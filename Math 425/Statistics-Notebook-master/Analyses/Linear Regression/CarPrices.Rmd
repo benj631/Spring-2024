@@ -1,0 +1,174 @@
+---
+title: "Car Prices"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+<br>
+
+```{r, include=FALSE}
+library(dplyr)
+library(tidyverse)
+library(plotly)
+library(ggplot2)
+library(pander)
+library(car)
+library(lattice)
+
+# Play this chunk to load the data.
+CarPrices <- read.csv("../../Data/CarPrices.csv", header=TRUE, quote="\"")
+
+Deville <- filter(CarPrices,CarPrices$Make == "Cadillac" & CarPrices$Model == "Deville")
+```
+
+## Background
+
+CarPrices is a data set that contains 80 samples of Cadillac cars. We will take a look specifically at Price as a factor of Mileage for the Deville model, and take a look at how the kind of Trim style the Deville model has greatly influences the price.
+
+## Model
+
+Below is the model for simple linear regression
+
+$Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \epsilon_i$
+
+
+
+
+
+```{r}
+# Assuming 'Deville' is your dataframe containing the data
+
+deville_lm <- lm(Price ~ Mileage, data = Deville)
+
+b <- coef(deville_lm)
+
+p <- plot_ly(data = Deville, x = ~Mileage, y = ~Price, type = "scatter", mode = "markers", 
+             color = ~Trim,
+             text = ~paste("Trim: ", Trim)) %>%
+  layout(title = "Price vs Mileage",
+         xaxis = list(title = "Mileage"),
+         yaxis = list(title = "Price"))
+
+# Add regression line to the plot
+p <- add_trace(p, x = Deville$Mileage, y = b[1] + b[2]*Deville$Mileage, 
+               type = "scatter", mode = "lines", line = list(color = "green"))
+
+# Print the plot
+p
+
+```
+
+```{r}
+
+# Set up a 1x2 grid for plots
+par(mfrow=c(1,3))
+plot(deville_lm, which=1)
+qqPlot(deville_lm$residuals, id=FALSE)
+plot(deville_lm$residuals)
+
+summary(deville_lm)
+
+```
+
+Adjusted R-squared:  0.3475
+
+## Revised Model
+
+
+
+Below is the equation for a two lines linear regression model
+
+$\underbrace{Y_i}_\text{Price} = \underbrace{β0 + β1X1i + β2X2i}_\text{ E(Yi)} + ϵ_i$
+
+
+\[ X_{2i} = \begin{cases}
+1 & \text{if Trim = DHS Sedan 4D or DTS Sedan 4D"} \\
+0 & \text{if Trim = Sedan 4D}
+\end{cases} \]
+
+```{r}
+
+# Create the scatter plot using plotly, coloring points based on the "Trim" variable
+
+
+p <- plot_ly(data = Deville, x = ~Mileage, y = ~Price, type = "scatter", mode = "markers", 
+        color = ~Trim,
+        text = ~paste("Trim: ", Trim)) %>%
+  layout(title = "Price vs Mileage",
+         xaxis = list(title = "Price"),
+         yaxis = list(title = "Mileage"))
+
+b <- coef(deville_lm)
+
+p <- add_trace(p, x = Deville$Mileage, y = b[1] + b[2]*Deville$Mileage, 
+               type = "scatter", mode = "lines", line = list(color = "skyblue"))
+
+p
+
+# Find a variable for cadillac deville that you can add, that if you add, makes for a better fit.
+# Try 2 lines, see what splits the values. Look at r2 values,
+# Do just mileage
+# When you add the variable, you will see the r2 jump.
+
+
+```
+
+split based on trim
+copy equation except for last change in slope term from statstics notebook
+do 3 graphs for new lines with regression model
+
+```{r}
+Deville <- Deville %>%
+  mutate(
+    Trim_Case = case_when(
+      Trim %in% c("DHS Sedan 4D", "DTS Sedan 4D") ~ 1,
+      Trim == "Sedan 4D" ~ 0
+    )
+  )
+
+
+# Fit linear models
+lm_trim <- lm(Price ~ Mileage + Trim_Case, data = Deville)
+
+# Obtain fitted values
+# fitted_values1 <- predict(lm_dts_dth)
+
+# Get coefficients
+bd <- coef(lm_trim) 
+
+# Create scatter plot
+p <- plot_ly(data = Deville, x = ~Mileage, y = ~Price, type = "scatter", mode = "markers", 
+             color = ~Trim,
+             text = ~paste("Trim: ", Trim)) %>%
+  layout(title = "Price vs Mileage",
+         xaxis = list(title = "Mileage"),
+         yaxis = list(title = "Price"))
+
+# Add regression lines
+p <- add_trace(p, x = Deville$Mileage, y = bd[1] + bd[2]*Deville$Mileage, 
+               type = "scatter", mode = "lines", line = list(color = "lightblue"))
+
+p <- add_trace(p, x = Deville$Mileage, y = (bd[1] + bd[3]) + bd[2]*Deville$Mileage, 
+               type = "scatter", mode = "lines", line = list(color = "pink"))
+
+p  # Print the plot
+
+```
+
+```{r}
+
+par(mfrow=c(1,3))
+plot(lm_trim, which=1)
+qqPlot(lm_trim, id=FALSE)
+plot(lm_trim$residuals)
+
+summary(lm_trim)
+
+```
+
+
+
+R squared: 0.9572 
+

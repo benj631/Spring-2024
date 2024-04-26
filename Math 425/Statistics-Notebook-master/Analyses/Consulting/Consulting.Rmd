@@ -1,0 +1,198 @@
+---
+title: "Consulting"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+```{r message=FALSE, warning=FALSE}
+# This gray area is called an "R-chunk". 
+# These library commands install some powerful functions for your use later on.
+library(mosaic)
+library(pander)
+library(tidyverse)
+library(DT)
+library(ggplot2)
+library(plotly)
+library(readr)
+library(car)
+library(GGally)
+
+lt <- read_csv("LeagueTilt.csv")
+```
+
+```{r}
+
+title_mapping <- list(
+  "Timestamp" = "Time",
+  "What roles do you play?" = "Roles",
+  "What champions do you play? Select 3 part 1 (If you play more, just pick the 3 you pick most. OTPs leave the other 2 blank.)" = "Champs(Top3-Pt1)",
+  "What champions do you play? Select 3 part 2" = "Champs(Top3-Pt2)",
+  "What champions do you play? Select 3 part 3" = "Champs(Top3-Pt3)",
+  "Roughly what Elo are you in?" = "Rank",
+  "How many games of League do you play per week?" = "WeeklyGames",
+  "Have you ever received disciplinary action in league of legends?" = "DisciplinaryAction",
+  "Rate your own toxicity" = "ToxicityRating",
+  "How often would you say you tilt?" = "TiltFrequency",
+  "Of the last 3 games you played, in how many did you tilt?" = "RecentTiltGames",
+  "Do you tilt more than the average league player?" = "TiltComparison",
+  "How much do you enjoy league overall?" = "EnjoymentLevel",
+  "Respond with \"muffin bites\", please :D" = "ResponsePhrase",
+  "You can use this for notes, if you need to." = "AdditionalNotes",
+  "There are a lot of champions that people might tilt over. Pick up to 10 champions that you tilt over MOST if they are on the *enemy team*" = "Top10TiltChampions(Enemy)",
+  "Select 1-3 champions that make you tilt if they are selected by your own teammates (Assuming they pick the champion into the typical role, and its not a purely troll pick)" = "TiltChampions(Teammates)",
+  "If you could delete (or if not delete, 'fix') one champion from the game, who would it be?" = "Deletion/FixChoice",
+  "Name the number 1 champ who tilts you, and explain specifically what it is about their kit that is tilting." = "Number1TiltChampion",
+  "Do the champions you ban tend to be champions you tilt over, or champions your mains have bad matchups against?" = "BannedChampionsReason",
+  "In your opinion, what makes you tilt over a champ? (for example, kit is annoying, can't punish, to easy to play)" = "TiltTriggerFactors",
+  "Do you think the champs you play are tilting to the people you play against?" = "ImpactonOpponents",
+  "Final question: which one do you like the most?" = "FavoriteQuestion",
+  "Anything you'd like to say about tilt, or this survey?" = "SurveyFeedbackonTilt"
+)
+
+colnames(lt) <- unlist(title_mapping)
+
+lt <- subset(lt, lt$Time != "1/17/2022 5:15:32")
+
+```
+
+```{r}
+# Define the specified responses
+specified_responses <- c(
+  "Every other day or so I'll play a game or two.",
+  "A couple times a week",
+  "On average 3+ games per day",
+  "2 or more per day"
+)
+
+# Filter rows based on specified responses
+lt <- lt[lt$WeeklyGames %in% specified_responses, ]
+
+# Define the mapping
+response_mapping <- c(
+  "Every other day or so I'll play a game or two." = 1,
+  "A couple times a week" = 2,
+  "On average 3+ games per day" = 3,
+  "2 or more per day" = 4
+)
+
+# Map responses to numbers
+lt$WeeklyGames <- response_mapping[lt$WeeklyGames]
+
+
+```
+
+```{r}
+rank_mapping <- c(
+  "unranked" = 0,
+  "Bronze" = 1,
+  "Silver" = 2,
+  "Gold" = 3,
+  "Platinum" = 4,
+  "Diamond" = 5,
+  "Masters - GM" = 6
+)
+
+# Assuming lt is your dataframe and Rank is the column containing the responses
+lt$RankNumeric <- rank_mapping[as.character(lt$Rank)]
+```
+
+
+```{r message=FALSE, warning=FALSE}
+print(colSums(is.na(lt)))
+
+print(unique(lt$TiltFrequency))
+
+# Print unique values for WeeklyGames
+print(unique(lt$WeeklyGames))
+
+```
+
+
+## Background
+
+League Tilt
+
+
+```{r}
+par(mfrow=c(1,2))
+
+ggplot(data = lt, aes(x = WeeklyGames, y = TiltFrequency)) +
+  geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  labs(x = "Weekly Games", y = "Tilt Frequency") +
+  theme_minimal()
+
+boxplot(lt$TiltFrequency)
+```
+
+```{r}
+lt.lm <- lm(ToxicityRating ~ WeeklyGames, data = lt)
+par(mfrow=c(1,4))
+plot(lt.lm, which=1:2)
+plot(lt.lm$residuals, ylab="Residuals")
+mtext("Residuals vs Order", side=3)
+qqPlot(lt.lm$residuals)
+
+summary(lt.lm)
+```
+
+```{r}
+
+ggplot(data = lt, aes(x = RankNumeric, y = TiltFrequency)) +
+  geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  labs(x = "Rank", y = "Tilt Frequency") +
+  theme_minimal()
+
+```
+
+```{r}
+
+ggplot(data = lt, aes(x = RecentTiltGames, y = TiltFrequency)) +
+  geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  labs(x = "Recent Tilt Games", y = "Tilt Frequency") +
+  theme_minimal()
+
+```
+
+
+```{r}
+
+ranktilt1.lm <- lm(ToxicityRating ~ RankNumeric, data= lt)
+pander(summary(ranktilt.lm))
+
+ranktilt2.lm <- lm(TiltFrequency ~ RecentTiltGames, data= lt)
+pander(summary(ranktilt.lm))
+
+ranktilt3.lm <- lm(ToxicityRating ~ RecentTiltGames, data= lt)
+pander(summary(ranktilt.lm))
+
+```
+
+
+```{r}
+threshold <- 15
+
+# Calculate cardinality for each column
+column_cardinality <- sapply(lt, function(x) length(unique(x)))
+
+# Identify columns with cardinality less than or equal to the threshold
+selected_columns <- names(column_cardinality[column_cardinality <= threshold])
+
+# Subset the dataset using selected columns and remove rows with NAs
+lt_clean <- na.omit(lt[selected_columns])
+
+# Create pairplot using cleaned data
+pairplot <- ggpairs(lt_clean)
+
+# Print column names used for the pairplot
+print(colnames(lt_clean))
+
+# Print the pairplot
+print(pairplot)
+```
+
+
+Note: Linear regression was shown to not be a good model with an R squared of close to 0 for TiltFrequency compared to rank.

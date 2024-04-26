@@ -1,0 +1,160 @@
+---
+title: "Recalling Words"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{=html}
+<script type="text/javascript">
+ function showhide(id) {
+    var e = document.getElementById(id);
+    e.style.display = (e.style.display == 'block') ? 'none' : 'block';
+ }
+</script>
+```
+```{r, include=FALSE}
+library(mosaic)
+library(car)
+library(pander)
+library(DT)
+library(ggplot2)
+```
+
+<br />
+
+### Background
+
+Many teachers and other educators are interested in understanding how to best deliver new content to students. In general, they have two choices of how to do this.
+
+1.  The Meshed Approach
+    -   Deliver new content while simultaneously reviewing previously understood content.
+2.  The Before Approach
+    -   Deliver new content after fully reviewing previously understood content.
+
+A study was performed to determine whether the *Meshed* or *Before* approaches to delivering content had any positive benefits on memory recall.
+
+::: {style="padding-left:15px;"}
+##### <a href="javascript:showhide('uniquename')">The Experiment [(click to view)]{style="font-size:8pt;"}</a>
+
+::: {#uniquename style="display:none;"}
+Individuals were seated at a computer and shown a list of words. Words appeared on the screen one at a time, for two seconds each, until all words had been shown (40 total). After all words were shown, they were required to perform a few two-digit mathematical additions (like 15 + 25) for 15 seconds to avoid immediate memory recall of the words. They were then asked to write down as many of the 40 words as they could remember. They were given a maximum of 5.3 minutes to recall words.
+
+The process of showing words and recalling words was repeated four times with the same list of words each time (four chances to get it right). The presentation of the first trial was the same for all treatment conditions. However, trials 2, 3, and 4 were slightly different for each treatment condition.
+
+::: {style="padding-left:15px;"}
+The `SFR` group (the control group) stands for Standard Free Recall. In all four trials the same list of 40 words was presented, in a random order each time.
+
+The `Before` group also used the same 40 words during each trial. However, any words that were correctly recalled in a previous trial were presented first, or *before* the words that were not recalled in the last trial. After all the correct words were presented in random order, the non-recalled words were presented in a random order.
+
+The `Meshed` group also used the same 40 words during each trial. However, words that were correctly recalled in a previous trial were alternated with a missed word during the next presentation order.
+:::
+
+The data records the number of correctly recalled words (out of the 40 possible) from the fourth trial. Results were obtained for 30 students, 10 in each of the three treatment groups: `SFR`, `Before`, and `Meshed`.
+:::
+
+##### <a href="javascript:showhide('uniquename2')">The Data [(click to view)]{style="font-size:8pt;"}</a>
+
+::: {#uniquename2 style="display:none;"}
+The results from the study can be found in the `Friendly` data set in R after loading `library(car)`.
+
+Click the "Code" button to see the data.
+
+```{r}
+datatable(Friendly, options=list(lengthMenu = c(3,10,30)))
+```
+:::
+:::
+
+<br />
+
+<!-- Begin writing your analysis below here. -->
+
+<!-- Note that your goal is to use the Friendly data to show whether or not the Meshed or Before methods have any positive benefit on memory recall. -->
+### Are The Methods Equally as Effective?
+
+We want to see if there is a meaningful difference in the performance of the data. Because the data sets are below n=30, and non-normally distributed[^1], we cannot use the central limit theorem, so a Wilcoxon test is most appropriate for the data. The null hypothesis is that the medians of the groups are the same, and the alternative hypothesis is that they are different.
+
+
+Null Hypothesis (H0): \( \mu_{SFR} = \mu_{Before} = \mu_{Meshed} \)
+
+Alternative Hypothesis (HA): \( \mu_{SFR} \neq \mu_{Before} \neq \mu_{Meshed} \)
+
+### Data
+
+Below are plots showing the data.
+
+
+```{r message=FALSE, warning=FALSE}
+
+SFR <- subset(Friendly, condition == "SFR")
+Before <- subset(Friendly, condition == "Before")
+Meshed <- subset(Friendly, condition == "Meshed")
+
+# Combine all data into one data frame
+friendly_data <- rbind(
+  data.frame(condition = "SFR", correct = SFR$correct),
+  data.frame(condition = "Before", correct = Before$correct),
+  data.frame(condition = "Meshed", correct = Meshed$correct)
+)
+
+# Create the ggplot
+ggplot(friendly_data, aes(x = condition, y = correct)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of Number of Words Recalled",x="Recall Condition", y = "Score") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Just visually with the boxplots, we can see some outliers in the data.
+
+Now let's compare the groups with the Wilcoxon test.
+
+### Running the Test
+
+
+```{r message=FALSE, warning=FALSE}
+
+SFR <- subset(Friendly, condition == "SFR")
+Before <- subset(Friendly, condition == "Before")
+Meshed <- subset(Friendly, condition == "Meshed")
+
+# Comparing SFR vs Before
+pander(wilcox.test(SFR$correct, Before$correct, paired = FALSE, alternative = "two.sided"))
+
+# Comparing SFR vs Meshed
+pander(wilcox.test(SFR$correct, Meshed$correct, paired = FALSE,alternative = "two.sided"))
+
+# Comparing Before vs Meshed
+pander(wilcox.test(Before$correct, Meshed$correct, paired = FALSE,alternative = "two.sided"))
+
+```
+
+At an alpha of .05, SFR and Before do have a different median, and so are from different populations. If we implemented the Bonferroni method and divided our alpha by 3 to get .0167 to lower the probability of a statistical error at that alpha, then it would apply, but at .05 it does.
+
+However, SFR and Meshed, and Before and Meshed both are statistically from the same population, at the p values .1015 and .378, respectively, so it can be said that while the Before condition is a statistically more effective method than the SFR method, the Meshed condition is not different from the Before. At an alpha of .0167, none of the methods are statistically different.
+
+### Conclusion
+
+At an alpha of .05, the Before condition is better than the SFR condition, but the Meshed condition is not statistically different from the other two.
+
+
+[^1]:
+
+```{r message=FALSE, warning=FALSE}
+
+SFR <- subset(Friendly, condition == "SFR")
+Before <- subset(Friendly, condition == "Before")
+Meshed <- subset(Friendly, condition == "Meshed")
+
+# Set up the layout for side by side plots
+par(mfrow=c(1, 3))
+
+# Create qqplots
+qqPlot(SFR$correct, main="SFR Condition",id=FALSE)
+qqPlot(Before$correct, main="Before Condition",id=FALSE)
+qqPlot(Meshed$correct, main="Meshed Condition",id=FALSE)
+
+
+```

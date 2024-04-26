@@ -1,0 +1,159 @@
+---
+title: "Rent"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+**Week 1 Analysis - Ben Jacobs**
+
+```{r message=FALSE, warning=FALSE}
+# This gray area is called an "R-chunk". 
+# These library commands install some powerful functions for your use later on.
+library(mosaic)
+library(pander)
+library(tidyverse)
+library(DT)
+library(ggplot2)
+library(plotly)
+
+# This read_csv command reads in the "Rent" data set into an object called "Rent"
+Rent <- read_csv("../Data/Rent.csv")
+
+# To load this data set into your R-Console do the following:
+#  1. From your top file menu select "Session -> Set Working Directory -> To Source File Location"
+#  2. Press the green "play button" in the top right corner of this gray box (which is called an "R-chunk").
+#  3. Then in your "Console" window of 
+```
+
+<br/>
+
+## Background
+
+Finding an affordable, but close apartment to campus can be tricky- or is it? Is there a correlation between the distance of apartments to campus and cost?
+
+Here is a data table showing the available approved housing apartment options at BYU-Idaho for single students. There are 122 entries comprising 57 female and 65 male apartment options.
+
+## Data
+
+```{r, warning=FALSE}
+# Code to get you started. 
+# View(...) works great in the Console, but datatable(...) must be
+# used instead within an R-chunk.
+datatable(Rent, options=list(lengthMenu = c(3,10,30)), extensions="Responsive")
+```
+
+## Intro
+
+By using the Latitude and Longitude of the center of the BYUI campus, we can use the Pythagorean Theorem and the coordinates of each apartment building to get it's distance from campus. Note that we are assuming the center of campus is about the bottom of the Taylor building, which is not fully accurate because campus is not exactly a rectangle. Additionally, because campus is rectangular, some units can be just as close to campus but not necessarily as close to the center as others. However, we can still roughly estimate the distance.
+
+## Graphic 1: Scatterplot
+
+Here is a scatterplot comparing rent price to the distance from campus. Distance is in degrees of latitude and longitude, with .01 degrees being about .7 miles.
+
+<!-- Present an interesting graphic using the Rent data set. Do not create the same graphics that are shown in the [Good Example Analysis](./Analyses/StudentHousing.html), but you can certainly use those graphics as a guide to inspire you on what to do yourself. -->
+
+```{r}
+# Use this R-chunk to...
+univ_latitude <- 43.8166
+univ_longitude <- -111.7824
+Rent$Distance <- sqrt((Rent$Longitude - univ_longitude)^2 + (Rent$Latitude - univ_latitude)^2)
+plot(Rent$Distance, Rent$AvgFloorPlanCost,
+     xlab = "Distance from University (Degrees, Latitude/Longitude)",
+     ylab = "Average Floor Plan Cost in USD ($)",
+     ylim = c(0, max(Rent$AvgFloorPlanCost)),
+     main = "Scatterplot of Apartment Price vs Distance from University",
+     pch = 19,
+     col = "blue"
+     )
+
+```
+
+Ignoring price, we can see that most apartment buildings are between 0.005 and 0.009 degrees (of latitude and longitude) away from campus, with some stragglers a bit further away from campus. If you're wondering what that closest apartment is- It's Riviera Apartments- which makes sense as it's across from the Clarke Building.This shows some of the skew of the data, because it's not necessarily closer than the other apartments that border campus, but is the closest to the Taylor Building, which is our campus center.
+
+## Graphic 2: Line Chart
+
+If we use a line chart, will we be able to see any trends? The below chart shows two trend lines; the black line tracks changes in data more closely, while the blue line is a more stable moving trend line, both according to the data in the scatterplot shown previously.
+
+```{r}
+univ_latitude <- 43.8166
+univ_longitude <- -111.7824
+Rent$Distance <- sqrt((Rent$Longitude - univ_longitude)^2 + (Rent$Latitude - univ_latitude)^2)
+ggplot(data=Rent,aes(x=Rent$Distance,y=Rent$AvgFloorPlanCost)) +
+  labs(
+    title = "Rent Price vs Distance to Center of Campus",
+    x = "Distance from University",
+    y = "Average Floor Plan Cost"
+  ) +
+  geom_line() +  stat_smooth(method = "loess", se = FALSE, color = "blue") +
+  geom_hline(yintercept = mean(Rent$Distance), color="blue")
+
+```
+
+We can see a general upwards trend. This is pretty unfortunate- apartments tend to get more expensive the further away from campus you go- that said for the most part there are apartments on the affordable side at pretty much every distance, except for between .009 and .011.
+
+```{=html}
+<!-- '''{r message=FALSE, warning=FALSE}
+Rent$PriceDistanceProduct <- Rent$AvgFloorPlanCost * Rent$Distance
+sorted_rent <- Rent[order(Rent$PriceDistanceProduct), ] plot(sorted_rent$PriceDistanceProduct, type = "l", xlab = "Apartments (Sorted by Price * Distance)", ylab = "Price * Distance", main = "Sorted Apartments by Price * Distance")
+
+text(1:length(sorted_rent$PriceDistanceProduct),  sorted_rent$PriceDistanceProduct, labels = sorted_rent$Name, pos = 4, col = "red", cex = 0.7)
+-->
+```
+```{=html}
+<!-- '''{r message=FALSE, warning=FALSE}
+library(plotly)
+
+Rent$PriceDistanceProduct <- Rent$AvgFloorPlanCost * Rent$Distance
+
+sorted_rent <- Rent[order(Rent$PriceDistanceProduct), ]
+
+p <- plot_ly(data = sorted_rent, x = ~PriceDistanceProduct, type = 'scatter', mode = 'lines+markers', text = ~ApartmentName)
+
+p <- p %>% layout(
+  title = "Interactive Scatter Plot by Price * Distance",
+  xaxis = list(title = "Apartments (Sorted by Price * Distance)"),
+  yaxis = list(title = "Price * Distance")
+)
+
+p
+-->
+```
+## Graphic 3: Rankings
+
+What if you want to determine where an apartment complex stands based on its affordability and distance? We can multiply the price by the distance, and rank each complex according to that price distance product.
+
+```{r}
+Rent$PriceDistanceProduct <- Rent$AvgFloorPlanCost * Rent$Distance
+Rent <- Rent[order(Rent$PriceDistanceProduct), ]
+Rent$Ranking <- rank(Rent$PriceDistanceProduct)
+p <- plot_ly(data = Rent, x = ~Ranking, y = Rent$PriceDistanceProduct, type = 'scatter', mode = 'lines+markers', text = ~Name)
+p <- p %>% layout(
+  title = "Interactive Scatter Plot by Price * Distance",
+  xaxis = list(title = "Ranking"),
+  yaxis = list(title = "Price * Distance")
+)
+p
+```
+
+This looks useful! If distance and pricing are our main concerns, we can use this chart to find the closest and most affordable apartments. It seems like our friends at the Gates are paying to get some extra exercise walking - you can see they have the highest price and distance compared to all the other apartment complexes. One interesting thing to note is that the chart seems to take a steep increase around #80.
+
+## Summary
+
+```{r}
+pdp <- rbind(PriceDistanceProduct=favstats(Rent$PriceDistanceProduct))
+pander(pdp[c("min", "Q1", "median", "mean", "Q3", "max", "n")], caption="Price * Distance")
+
+
+```
+
+This is a basic 5 number summary of the price distance product by which the previous chart ranked the complexes. One thing we can see from this is that because the mean and median are close together, and the apartments with scores of 10.2 are around #63, this is a relatively normal distribution and is not skewed.
+
+## Conclusion
+
+Although there are affordable apartments at any distance, apartments further from campus look slightly more expensive overall. Not that you won't be able to find one at the price point you're looking for. But- living closer to campus seems to be more affordable.
+
+Let me know if you're going to use this chart to find where you're going to live next semester. ;)

@@ -1,0 +1,101 @@
+---
+title: "Simple Linear Regression"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, message=FALSE, warning=FALSE}
+# Load your libraries
+library(car)
+library(tidyverse)
+library(readr)
+library(DT)
+library(ggplot2)
+library(pander)
+
+instaposts <- read_csv("InstaPosts.csv")
+
+
+```
+
+
+<!-- Directions
+
+Come up with a simple linear regression of your own creation. 
+
+* Write the Background and clearly state your question. Then collect data and perform the linear regression analysis in order to answer your question. Use the proper order of first, ask the question, then second, figure out the answer.
+
+* You should collect both the quantitative response variable and the quantitative explanatory variable yourself. This can be data you collect from 
+    - the internet (like weather data, Facebook data, or sports data) 
+    - your own experiment 
+    - your own observational study
+* However,     
+    - The data should not be a single pre-existing dataset. It must be something that you piece together yourself.
+
+* You need at least $n=3$ $(X,Y)$ pairs to perform the regression. However, your regression will only be useful if you can get around $n=10$ or more observations.
+
+-->
+
+
+## Background
+
+On my personal instagram, as of now, I have 135 picture posts. Each post can have up to 10 individual pictures. Each post can also receive likes and comments. Is there a correlation between the number of pictures in each individual post and the likes? Let's see.
+
+Let's start by taking a look at the data.
+
+## Datatable
+
+```{r}
+
+datatable(instaposts)
+
+```
+
+## Hypothesis
+
+The null hypothesis is that there is no correlation between the number of pictures in a post and the likes. The alternative hypothesis is that there is a correlation between the number of pictures in a post and the likes. $\beta_1$ represents the slope of the model, and if it is equal to 0 then it would not be an effective explanatory model.
+
+$H_0: \beta_1 = 0$  
+$H_a: \beta_1 \neq 0$
+
+
+## Justifying Linear Regression
+
+```{r}
+instalm <- lm(NumPictures ~ Likes, data = instaposts)
+
+residuals <- residuals(instalm)
+
+par(mfrow = c(1, 3))
+plot(instalm, which=1:2)
+plot(instalm$residuals, ylab="Residuals")
+mtext("Residuals vs Order", side=3)
+```
+
+From the first plot, we can see that the data seems to have constant variance but that the residuals are not very linear, and the second plot shows that the distribution of residuals is not normally distributed. The residuals vs order chart shows how posts past about #80 are much more scattered in terms of post amount compared to before 80. This shows that the error terms might not be independent of eachother. The data is not ideal for linear regression, but we will still use linear regression and see what we can find.
+
+
+## NumPictures vs Likes
+ 
+``` {r}
+instalm <- lm(NumPictures ~ Likes, data = instaposts)
+
+pander(summary(instalm))
+```
+
+Here we can see that the p value for the the intercept is 2.631 with a p value of 3.083e-06, meaning it is statistically significant. This would suggest in the context of that data that a post with 0 likes is very likely to have 2.6 pictures. This interpretation is problematic however, for several reasons. Posts can't have 2.6 pictures, but they can have 2 or 3. Also, because our slope is not statistically significant, meaning there is not enough evidence to show that the slope is a good predictor of the likes a post gets, we can't meaningfully predict how many likes a post will get- so our imaginary 2.6 picture post can't predictably have 0 likes.
+
+```{r}
+plot(instaposts$Likes, instaposts$NumPictures, main = "Scatterplot of NumPictures vs Likes",
+     xlab = "Likes", ylab = "NumPictures")
+abline(instalm, col = "red")
+
+```
+
+We see that the correlation line can be roughly modeled with the equation y=-0.02x + 2.63, so there is a decreasing relation in the number of likes. The coefficient has a significance of .333, which is not statistically significant. However, the intercept of 2.6 is statistically significant with a p value of 3.08e-06.
+
+## Conclusion
+
+We can conclude that there is not significant evidence to conclude that there is a correlation between the number of pictures in a post and the likes. The statistically significant y intercept value of the model is meaningless in it's predictive ability and so is negligible, and the slope coefficient is not statistically significant. As in the justification section, we saw that the data set was not ideal for linear regression, we can see why based on our analysis of the model.

@@ -1,0 +1,131 @@
+---
+title: "High School Seniors t Test"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(DT)
+library(pander)
+library(readr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+
+HSS <- read_csv("../../Data/HighSchoolSeniors.csv")
+#Remember: select "Session, Set Working Directory, To Source File Location", and then play this R-chunk into your console to read the HSS data into R. 
+
+# View(HSS)
+# names(HSS)
+
+# cat("Test Statistic:", t_test_result$statistic, "\n")
+# print(t_test_result)
+
+```
+## Everybody Sleeps
+
+Everybody sleeps, but student's don't sleep as much. How does sleep effect performance in memory for students, and how much less (or more) sleep do students in a higher grade get? We will take a look using a data set of high school students in the US.
+
+
+## Sleep and Memory
+
+We know that sleep effects memory, but how much? Performing an independent t test against students who got less than 8 hours of sleep per night, and students who got 8 or more, will we see a significant difference? We will set our alpha at .05 for this test. We also will remove several problematic data points, such as reports of over 44000 hours of sleep in one night (but wouldn't that be nice!).
+
+#### Null Hypothesis (\(H_0\)):
+
+\[ H_0: \text{There is no significant difference in the mean memory test scores between high school students who get 8 or more hours of sleep per night and those who less than 7 hours of sleep per night.} \]
+
+\[ H_0: \mu_{\text{8 or more hours}} = \mu_{\text{7 or fewer hours}} \]
+
+#### Alternative Hypothesis (\(H_a\)):
+
+\[ H_a: \text{There is a significant difference in the mean memory test scores between high school students who get 8 or more hours of sleep per night and those who get less than 8 hours of sleep per night.} \]
+
+\[ H_a: \mu_{\text{8 or more hours}} \neq \mu_{\text{7 or fewer hours}} \]
+
+
+
+```{r message=FALSE, warning=FALSE}
+HSS$Sleep_Hours_Schoolnight <- gsub("6hrs", "1", HSS$Sleep_Hours_Schoolnight)
+HSS$Sleep_Hours_Schoolnight <- as.numeric(HSS$Sleep_Hours_Schoolnight)
+HSS <- subset(HSS, !is.na(Sleep_Hours_Schoolnight) & Sleep_Hours_Schoolnight <= 20)
+
+
+eight_or_more <- HSS[HSS$Sleep_Hours_Schoolnight >= 8, ]
+less_than_eight <- HSS[HSS$Sleep_Hours_Schoolnight < 8, ]
+
+# Perform independent samples t-test
+pander(t_test_result <- t.test(
+  eight_or_more$Score_in_memory_game,
+  less_than_eight$Score_in_memory_game
+))
+
+boxplot_data <- data.frame(
+  Group = rep(c("8 or more hours", "7 or less hours"), 
+              c(nrow(eight_or_more), nrow(less_than_eight))),
+  Score_in_memory_game = c(eight_or_more$Score_in_memory_game, 
+                            less_than_eight$Score_in_memory_game)
+)
+
+# Create the boxplot
+ggplot(boxplot_data, aes(x = Group, y = Score_in_memory_game)) +
+  geom_boxplot(fill = "lightblue", color = "blue") +
+  labs(title = "Memory Test Scores by School Night Sleep Hours",
+       x = "Sleep Hours",
+       y = "Memory Test Score")
+
+```
+
+Our p-value of 0.947 is not below our alpha of .05, so there is not enough evidence to support the hypothesis that the distributions of each are different. It would seem that losing an hour or two won't make a significant difference in memory performance.
+
+## Table
+
+Here is a table showing the data:
+
+```{r}
+sleep_hours_counts <- table(HSS$Sleep_Hours_Schoolnight)
+
+# Print the formatted table
+kable(sleep_hours_counts, caption = "Sleep Hours Counts", col.names = c("Sleep Hours", "Count")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+## Conclusion
+
+It seems like missing an hour or two of sleep really does not make a significant in memory performance according to this test.
+
+
+<!-- Instructions
+
+1. Use the HSS dataset in R to come up with a question that can be answered with a t Test. 
+
+Here is a link to the survey given to the students that participated in the study:
+https://ww2.amstat.org/censusatschool/pdfs/C@SQuestionnaire.pdf
+(Use the link to learn about what each column of data in the data set represents.)
+
+2. Establish why your question is interesting and rephrase the question using a statistical "null" and "alternative" hypothesis. (Hint, see the "Math 325 Notebook -> R Help -> R-Markdown Hints" page of your textbook for instructions on how to write mathematical hypotheses.)
+
+3. Clearly answer your question using statistics. Be sure to compute a p-value and provide supporting numerical and graphical summaries.
+
+Note: you can create "groups" from the data in many ways. For example, suppose you wanted to create a variable that grouped people according to whether they thought recycling was more important than conserving water. You could do this by:
+
+```{r}
+HSS <- HSS %>%
+  mutate(recycling_than_water = ifelse(Importance_recycling_rubbish >	Importance_conserving_water, "Recycling More Important", "Water Conservation More Important"))
+```
+
+-->
+
+
+
+
+
+
+
+
+
+
