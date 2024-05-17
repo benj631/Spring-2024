@@ -1,0 +1,106 @@
+---
+title: "Math 325 Study Guide"
+output: 
+  html_document:
+    theme: cerulean
+---
+
+## General Concepts
+
+In general, you should be able to:
+
+* Identify the appropriate test that should be used for a given scenario. 
+* Perform the appropriate test and create supporting graphics and numerical summaries in R.
+* Recognize the four basic parametric distributions (normal, t, chi-squared, F) along with their parameters.
+* Recognize the logic behind each nonparametric test.
+* State the definition of a p-value.
+* Identify the two things needed to obtain a p-value.
+* Recognize when it is appropriate to make inference and when it is appropriate to just describe data.
+
+## Weeks 1 & 2: R Intro & Descriptive Statistics
+
+You should be able to:
+
+*	State the various types, proper usages, and proper interpretations of numerical and graphical summaries.
+*	Use R to compute numerical and graphical summaries for a given dataset.
+*	Perform basic data manipulations in R with `subset()`, `[ , ]`, and `$`.
+
+
+
+## Weeks 3 & 4: t-Tests & Wilcoxon Tests
+
+You should be able to:
+
+*	Classify a scenario as an Independent or Paired Test.
+* Classify a scenario as a t Test or Wilcoxon Test.
+* Identify a t Test as a parametric test (t distribution) and the Wilcoxon Test as nonparametric.
+* State the hypotheses for a t Test or Wilcoxon Test.
+*	Correctly use `t.test()` or `wilcoxon.test()` in R.
+* Check requirements.
+* Interpret the results.
+
+
+
+## Weeks 5 & 6: ANOVA & Kruskal-Wallis
+
+You should be able to:
+
+* Classify a scenario as an ANOVA or Kruskal-Wallis Test.
+* Recognize that the Kruskal-Wallis test is a nonparametric test.
+* Identify an ANOVA as a parametric test (F distribution) and the Kruskal-Wallis Test as nonparametric.
+* Know the difference between "Within Groups" and "Between Groups" variances for ANOVA.
+* State the hypotheses for an ANOVA or Kruskal-Wallis Test.
+*	Correctly use `aov()`, `summary()`, `plot(..., which=1:2)`, and `kruskal.test()` in R.
+* Check requirements (constant variance and normal errors for ANOVA; not too many ties present for Kruskal-Wallis).
+* Interpret the results.
+
+## Weeks 7 & 8: Linear Regression
+
+You should be able to:
+
+* Identify a scenario as a linear regression.
+* Recognize the explanatory and response variables of the regression.
+* State both the t Test hypotheses and F Test hypotheses and recognize when to use either.
+*	Correctly use `lm()`, `summary()`, and `plot(..., which=1:2)` in R.
+* Check requirements (linearity, constant variance, normal errors, fixed x-values, and independent errors).
+* Interpret the slope(s) and intercept of the regression.
+* Make predictions using the regression model.
+
+
+## (Week 9: Project 1)
+
+## Weeks 10 & 11: Logistic Regression
+
+You should be able to:
+
+* Identify a scenario as a logistic regression.
+* Recognize the explanatory variables and binomial response variable of the regression.
+* State the Z Test hypotheses for any single coefficient in the regression.
+*	Correctly use `glm()`, `summary()`, and `curve()` in R.
+* Check the goodness-of-fit of the logistic regression using an appropriate goodness-of-fit test (deviance residuals vs Hosmer-Lemeshow tests).
+* Interpret the effect of a slope term on the odds ratio.
+* Explain the difference between an odds and a probability.
+* Make predictions of probabilities using the logistic model.
+
+
+## Week 12: Chi Squared Tests of Independence
+
+You should be able to:
+
+* Identify a scenario as appropriate for a Chi squared Test.
+* Explain what an expected count is and how it is calculated.
+* State the hypotheses.
+*	Correctly use `chisq.test()`, `test.object$residuals`, and `barplot()` in R.
+* Check the requirements using the expected counts.
+* Interpret the results using Pearson Residuals when the p-value is significant.
+
+
+## Week 13: Permutation Tests
+
+You should be able to:
+
+*	State the logic behind the permutation test used to perform the Nonparametric Chi-squared Test.
+* Perform a permutation test in R for any of the scenarios including: Independent Samples, Paired Samples, Regression, or Chi-squared. 
+* Recognize that the only difference between a permutation test and the other tests taught in this course is in how the p-value is calculated. Everything else is the same.
+
+## (Week 14: Review & Final Exam)

@@ -1,0 +1,76 @@
+N <- 10  
+storage <- rep(NA, N)
+storage
+
+for (i in 1:N){
+  storage[i] <- 5*i
+  cat("i =", i, " and 5*i =", 5*i, " was saved in storage[", i, "]\n")
+}
+
+storage
+
+
+
+```{r}
+# All samples are wrong
+# and none of them agree (not that they aren't useful)
+# Sampling distribution of the sampling mean
+# Distribution obtained by repeatedly sampling population
+# 'fishing'
+
+# Having x values spread widely across the min-max of the possibilities is better than having them
+# in just one spot.
+
+# Statistics is where math meets the variation of reality.
+
+# Averages are quite stable. Individuals vary, the population is overall consistent.
+# Casinos, Lotteries, Insurance.
+
+# How confident can we be, if we get a sample, of our data?
+# How can we know when to trust, and when not to trust our sample?
+
+```
+
+# Vary values of N
+
+
+n <- 30
+Xi <- rep(seq(30, 100, length.out=n/2), each=2) #n must be even.
+Yi <- 2.5 + 3*Xi + rnorm(n, 0, 1.2)
+
+mylm <- lm(Yi ~ Xi)
+coef(mylm)
+coef(mylm)[1] #intercept only
+coef(mylm)[2] #slope only
+
+
+n <- 30
+intercepts <- slopes <- rep(NA,n)
+
+for (i in 1:n){
+
+  Xi <- rep(seq(30, 50000, length.out=n/2), each=2) #n must be even.
+  Yi <- 46000 + -0.016*Xi + rnorm(n, 0, 2000)
+  
+  mylm <- lm(Yi ~ Xi)
+  intercepts <- coef(mylm)[1] #intercept only
+  slopes <- coef(mylm)[2] #slope only
+}
+
+hist(intercepts)
+
+hist(slopes)
+
+
+
+
+N <- 10
+storage <- rep(NA, N)
+storage
+
+for (i in 1:N){
+  storage[i] <- 5*i
+  cat("i=", i, "and 5*i =", 5*i, "was saved in storage")
+}
+
+storage

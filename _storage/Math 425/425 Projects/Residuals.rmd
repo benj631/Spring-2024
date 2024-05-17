@@ -1,0 +1,32 @@
+---
+title: "Residuals"
+output: html_document
+date: "2024-05-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(pander)
+library(ggplot2)
+```
+
+
+## Residual
+```{r}
+
+iris_lm <- lm(iris$Sepal.Length ~ iris$Petal.Length)
+pander(summary(iris_lm))
+
+
+```
+
+
+```{r}
+
+```
+
+

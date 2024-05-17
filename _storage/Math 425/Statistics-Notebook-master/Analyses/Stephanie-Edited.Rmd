@@ -1,0 +1,128 @@
+---
+title: "Stephanie's Housing Request"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+**Week 2 Analysis**
+
+```{r, message=FALSE, warning=FALSE}
+library(mosaic)
+library(tidyverse)
+library(pander)
+library(DT)
+library(plotly)
+library(readr)
+library(png)
+library(htmltools)
+
+options(readr.show_col_types = FALSE)
+
+            # If you get an error stating: 
+            # Error in library(DT): there is no package called 'DT'
+            # You will need to run: install.packages("DT") 
+            # in your Console, then try "Knit HTML" again.
+
+```
+
+<br />
+
+## Background
+
+Stephanie[^1] is a student that will be starting school at BYU-Idaho next semester. Suppose she sent you the following email.
+
+[^1]: Note that Stephanie is a fictional character who is based on real experiences of many faculty and staff here at BYU-Idaho.
+
+------------------------------------------------------------------------
+
+"Hi. My name is Stephanie. I would like to learn about what housing options I have for living at BYU-Idaho next semester. It will be my first semester there, so I would like to find something that is close to campus and around \$300 a month in rent. I'm not too picky on roommates, but I would like somewhere that has a lot of people around so I can get to know as many people as possible. Thanks in advance!"
+
+------------------------------------------------------------------------
+
+<!--  Write your response to Stephanie below. Use the "Rent" dataset, good statistical analysis, and clear writing to make some well supported suggestions to her about apartments that meet her stated criterions. You are free to use other criterion that you think she might find more meaningful as well. -->
+
+## Response
+
+Dear Stephanie,
+
+Those are both respectable and understandable needs. In line with your requests, I've filtered the data set to only apartments that have a rent between \$900 and \$1400, or between \$225 and \$350 per month, and apartments for women. You can see the data set below:
+
+<!-- Hint, you should probably subset the Rent dataset to only show the "Approved Women's Housing" since Stephanie won't be interested in Male Housing options. Notice how this text in green doesn't show up in the HTML output because we used the HTML comment tags around this text. -->
+
+```{r}
+Rent <- read_csv("../Data/Rent.csv")
+F_Rent <- Rent[Rent$Gender == 'F', ]
+F_Aff_Rent <- F_Rent[F_Rent$MaxFloorPlanCost > 900 & F_Rent$MaxFloorPlanCost < 1500, ]
+
+# Code to get you started, be sure to use a subset of Rent instead of Rent in this code though.
+datatable(F_Aff_Rent, options=list(lengthMenu = c(3,10,30)), extensions="Responsive")
+```
+
+Below I have made two charts to help draw conclusions from the data:
+
+## Chart 1: Scatter Plot with Price and Residents
+
+```{r}
+
+
+p <- plot_ly(data = F_Aff_Rent,
+  x = F_Aff_Rent$MaxFloorPlanCost,
+  y = F_Aff_Rent$Residents,
+  type = 'scatter',
+  mode = 'markers',
+  text = ~Name,
+  color = ~Residents
+)
+p <- p %>% layout(
+  title = "Interactive Scatter Plot with Price and Residents",
+  xaxis = list(title = "Max Floor Plan Cost"),
+  yaxis = list(title = "Residents")
+)
+p
+
+```
+
+Here you can see the price, and max number of residents. At the high end on both factors, Centre Square has a whopping 450 residents, but also is on the high end of the rent scale we chose. Bayside Manor is affordable, but only has 8 residents. Royal Crest seems like the clear winner, with 342 residents, but at only \$995, or about \$248 per month. If you want to be around more people for a premium, you can go with Univeristy View, but Royal Crest seems like the best pick here.
+
+```{r}
+
+p <- plot_ly(
+  data = F_Aff_Rent,
+  x = ~Longitude,
+  y = ~Latitude,
+  size = ~Residents,  # Set size based on 'Residents'
+  type = 'scatter',
+  mode = 'markers',
+  text = ~Name,
+  color = ~MaxFloorPlanCost,
+  colors = c('blue', 'red')
+)
+
+p <- p %>% layout(
+  title = "Interactive Scatter Plot with Price and Residents",
+  xaxis = list(title = "Longitude"),
+  yaxis = list(title = "Latitude")
+)
+
+# Example image (replace "byui-Steph.png" with the actual path to your image file)
+image <- htmltools::img(src = "byui-Steph.png", width = "80%", style = "display:block; margin:auto;")
+
+# Combine scatter plot and image using tagList
+combined_plot <- tagList(p, image)
+
+# Display the combined plot
+combined_plot
+
+```
+
+Here is another perspective on your request to be around a lot of residents- this chart has the location of each apartment complex, but has the size of each dot based on how many residents can live there. You can imagine the chart above the image as if it were superimposed over the image below the chart. You can see which apartment complexes are closest to the others. The Grove on the far right, and Abby lane, on the far left for example, don't seem close to any other complexes. The Royal Crest, displaying as a large purple dot to the west of campus, is close to campus but also close to other complexes.
+
+## Conclusion
+
+Based on your requests, I would recommend you choose Royal Crest. It is affordable, has a lot of people, is near campus and a lot of other apartment complexes, and seems to best fit your requirements. I hope you have success finding many friends this next semester!
+
+Ben
