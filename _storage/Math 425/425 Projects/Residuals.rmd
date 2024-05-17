@@ -17,15 +17,72 @@ library(ggplot2)
 
 ## Residual
 ```{r}
+AW_Cloudy <- read_csv("Weather Prediction Data.csv")
 
-iris_lm <- lm(iris$Sepal.Length ~ iris$Petal.Length)
-pander(summary(iris_lm))
+April2023 <- filter(AW_Cloudy,AW_Cloudy$YearNum == 2023)
+April2023_lm <- lm(HighTemp ~ DayNum, data= April2023)
+summary(April2023_lm)
 
+b <- coef(April2023_lm)
 
+plot( April2023$DayNum,April2023$HighTemp,xlim=c(0,125),ylim=c(0,63))
+abline(b[1], b[2], add=TRUE)
+
+predict(April2023_lm,newdata=data.frame(DayNum=120))
 ```
 
 
 ```{r}
+# ggplot2 plot with regression line
+ma23 <- mean(April2023$HighTemp)
+
+
+residuals_df <- data.frame(DayNum = April2023$DayNum, Residuals = residuals(April2023_lm))
+
+# ggplot2 plot with regression line and horizontal line at the mean
+ggplot(data=April2023, aes(x=DayNum, y=HighTemp)) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE, col="blue") +
+  geom_hline(yintercept=ma23, col="red", linetype="dashed") + # Adding horizontal line at the mean
+  labs(title="High Temperature in April 2023", x="Day Number", y="High Temperature") +
+  theme_bw()
+
+
+```
+```{r}
+# Load necessary packages
+
+# Install and load necessary package
+
+# Read the CSV file
+AW_Cloudy <- read_csv("Weather Prediction Data.csv")
+
+# Filter data for April 2023
+April2023 <- filter(AW_Cloudy, YearNum == 2023)
+
+# Fit the linear regression model
+April2023_lm <- lm(HighTemp ~ DayNum, data=April2023)
+
+# Calculate residuals
+residuals <- resid(April2023_lm)
+
+# Store residuals in a dataframe with DayNum and HighTemp
+residuals_data <- April2023 %>%
+  mutate(Fitted = predict(April2023_lm), Residual = residuals)
+
+# Print residuals data (optional)
+print(residuals_data)
+
+# Plot using ggplot2
+ggplot(data = residuals_data) +
+  geom_point(aes(x = DayNum, y = HighTemp), color = "black") +
+  geom_smooth(aes(x = DayNum, y = HighTemp), method = "lm", se = FALSE, color = "blue") +
+  geom_hline(yintercept=ma23, col="red", linetype="dashed") + # Adding horizontal line at the mean
+  geom_segment(aes(x = DayNum, xend = DayNum, y = HighTemp, yend = Fitted), color = "red", linetype = "dashed") +
+  coord_cartesian(xlim = c(107, 116), ylim = c(35, 70)) +
+  labs(title = "High Temperature in April 2023 with Residuals", x = "Day Number", y = "High Temperature") +
+  theme_minimal()
+
 
 ```
 

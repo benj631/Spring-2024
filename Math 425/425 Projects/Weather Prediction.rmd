@@ -1,0 +1,158 @@
+---
+title: "Predicting the Weather"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+```{r, message=FALSE, warning=FALSE}
+
+library(mosaic)
+library(pander)
+library(tidyverse)
+library(DT)
+
+#April Weather
+AW_Cloudy <- read_csv("Weather Prediction Data.csv")
+View(AW_Cloudy)
+
+```
+
+## Conclusion
+
+My prediction for the high temperature for Monday, April 29th is: 54.4029 degrees Farenheit
+
+## Weather Graphic
+
+```{r}
+library(ggplot2)
+
+# Filter the data for April 2024
+April2024 <- filter(AW_Cloudy, YearNum == 2024)
+
+# Fit a linear regression model
+April2024_lm <- lm(HighTemp ~ DayNum, data = April2024)
+
+# Extract coefficients
+b <- coef(April2024_lm)
+
+# Create the plot
+ggplot(data = April2024, aes(x = DayNum, y = HighTemp)) +
+  geom_point() +  # Add points
+  geom_abline(intercept = b[1], slope = b[2], color = "red") +  # Add regression line
+  geom_point(aes(x = 120, y = 54.4029), color = "red", size = 3) +
+  xlim(0, 125) + ylim(0, 63) +  # Set limits for x and y axes
+  labs(x = "DayNum", y = "HighTemp")  # Set axis labels
+
+print("Prediction: 54.4 Degrees Farenheit")
+
+```
+
+## Background
+
+Even the best experts with great technology struggle to predict the weather. Can we predict the weather with less than 30 days worth of information?
+
+## Data Selection Methodology and Source
+
+Two immediate methods that one might use to predict the weather for Monday, April 29th, would be to use the previous week from that Monday, either the year past or the year of. The problem with this is that there is rainy and cloudy weather over and headed towards Rexburg. It does not intuitively seem like a smart idea to use data from sunny days to predict a cloudy or rainy days. It's possible here that our intuition is misleading, but for now we will trust intuition.
+
+Ultimately, I picked data from cloudy and rainy days from April 2024 and 2023 to predict the temperature. Days that showed at least mostly cloudy for half of the day were selected. The high temperature in April of 2024 for cloudy days has not yet reached above 57, and the first day in 2023 that a cloudy day went above 57 was April 25th, reaching 59. If next week heats up, even following temperature trends, we would expect it to hit around the same value. So, regardless of the regression, we could that if Monday is cloudy, and follows the same temperature pattern as 2023, it would end up somewhere between 56-60 degrees. However, we will stick to the regression lines to see what they show.
+
+Acknowledging that the day itself as an explanatory variable is bad, the idea is that selecting days that were mostly cloudy, and expecting Monday to be mostly cloudy means that the day gains some explanatory value.
+
+Data was collected from [timeanddate.com](https://www.timeanddate.com) for the Rexburg area (Fanning Field)
+
+Information was copied from the site into an excel spreadsheet, and loaded here as a csv file.
+
+```{r}
+datatable(AW_Cloudy, options=list(lengthMenu = c(6,10,30)), extensions="Responsive")
+```
+
+## Model
+
+3 regression lines were ran: 1 for this this years' cloudy April weather, one for 2023, and one with the data combined. But we will use the model that only uses data from April 2024. Here is the model for the data:
+
+$\underbrace{Y_i}_\text{HighTemp} = \underbrace{β0}_\text{Expected High Temp New Years} + \underbrace{β1}_\text{Temperature Change Amount by Day in Fareneit}\underbrace{Xi}_\text{Integer Day of the Year} + ϵ_i \text{where} \ \epsilon_i \sim N(0, \sigma^2)$
+
+β0 when β1 is 0 is meaningless in this model because we do not care about the weather on new years. The model predicts the high temperature in farenheit with the equation:
+
+$\hat{Y} = 29.5709 + (.2069)Xi , \text{where} \ \epsilon_i \sim N(0, \sigma^2)$
+
+with Xi being the date as the numbered day of the year.
+
+The null hypothesis is that there will be no correlation between the day and high temperature, and the alternative hypothesis is that there will be a meaningful correlation.
+
+$H_0: \beta_2 = 0$\
+$H_a: \beta_2 \neq 0$
+
+## Regression Lines
+
+Although three regressions were ran, the April 2024 one is what I chose because even though the April 2023 chart has better p values, the weather for this year is probably better for predicting weather for this year than weather from last year.
+
+# April 2024
+
+```{r}
+April2024 <- filter(AW_Cloudy,AW_Cloudy$YearNum == 2024)
+
+April2024_lm <- lm(HighTemp ~ DayNum, data= April2024)
+summary(April2024_lm)
+
+b <- coef(April2024_lm)
+
+plot( April2024$DayNum,April2024$HighTemp,xlim=c(0,125),ylim=c(0,63))
+abline(b[1], b[2], add=TRUE)
+
+predict(April2024_lm,newdata=data.frame(DayNum=120))
+
+
+```
+
+# April 2023
+
+```{r}
+April2023 <- filter(AW_Cloudy,AW_Cloudy$YearNum == 2023)
+April2023_lm <- lm(HighTemp ~ DayNum, data= April2023)
+summary(April2023_lm)
+
+b <- coef(April2023_lm)
+
+plot( April2023$DayNum,April2023$HighTemp,xlim=c(0,125),ylim=c(0,63))
+abline(b[1], b[2], add=TRUE)
+
+predict(April2023_lm,newdata=data.frame(DayNum=120))
+
+
+```
+
+# Combined
+
+```{r}
+Combined_lm <- lm(HighTemp ~ DayNum, data= AW_Cloudy)
+summary(Combined_lm)
+
+b <- coef(Combined_lm)
+
+plot( AW_Cloudy$DayNum,AW_Cloudy$HighTemp,xlim=c(0,125),ylim=c(0,63))
+abline(b[1], b[2], add=TRUE)
+
+predict(Combined_lm,newdata=data.frame(DayNum=120))
+
+
+```
+
+# Diagnostic Plots
+
+```{r}
+plot(April2024_lm, which=1:2)
+plot(April2024_lm$residuals, ylab="Residuals")
+mtext("Residuals vs Order", side=3)
+```
+
+Frankly, the charts show that the regression is not terrible according to any of the charts, but there are so few data points that the data point limitation is our biggest problem.
+
+# Model Usefulness
+
+Getting a p value of 0.408 tells us that our model's ability to predict high temp according to day is not very good at all. So we cannot reject the null hypothesis.
