@@ -1,0 +1,46 @@
+---
+title: "538"
+format: html
+editor: visual
+---
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(dplyr)
+```
+
+## FiveThirtyEight Summary
+
+FiveThirtyEight made an article several years ago which includes an interactive graph about gun violence. They used data from the Centers for Disease Control and Prevention’s Multiple Cause of Death database. The interative graph shows the demographics involved, and reasons for different gun deaths. The article argues that a better understanding of the reasons and demographics of gun death can help it better be prevented.
+
+```{r}
+
+# Tibble from tidyverse, very helpful
+guns <- read_csv("https://raw.githubusercontent.com/fivethirtyeight/guns-data/master/full_data.csv")
+
+
+```
+
+```{r}
+head(gun)
+
+ggplot(gun, aes(x = police, fill = sex)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Involvement of Police", y = "Count", fill = "Gender") +
+  ggtitle("Distribution of Gender by Police Involvement")
+```
+
+```{r}
+year_gender_totals <- gun %>%
+  group_by(year, sex) %>%
+  summarize(total = n())
+
+# Plot using ggplot2
+ggplot(year_gender_totals, aes(x = year, y = total, color = sex, group = sex)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Year", y = "Total Incidents", color = "Gender", 
+       title = "Total Gun Incidents by Year and Gender") +
+  theme_minimal()
+```

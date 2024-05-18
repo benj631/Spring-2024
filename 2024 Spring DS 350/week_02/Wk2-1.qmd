@@ -1,0 +1,50 @@
+---
+title: "Client Report - Flying Behind"
+subtitle: "Course DS 350"
+author: "Ben Jacobs"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+editor_options:
+    
+    chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+
+ 
+
+```{r}
+glimpse(iris)
+names(iris)
+
+
+ggplot(data=iris, mapping = aes( x = Sepal.Length, y = Sepal.Width, col=Species)) + 
+  geom_point()
+
+ggplot(data = iris, mapping = aes(x = Sepal.Length)) +
+  geom_histogram()
+
+ggplot(data = iris, mapping = aes(y = Sepal.Length, x = Species, fill=Species)) +
+  geom_boxplot()
+
+```
+

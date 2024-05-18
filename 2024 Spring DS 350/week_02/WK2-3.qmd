@@ -1,0 +1,23 @@
+---
+title: "Wk 2 Proj 1"
+output: html_document
+date: "2024-05-01"
+---
+
+```{r}
+install.packages("gapminder")
+library(gapminder)
+library(tidyverse)
+View(gapminder)
+```
+
+
+```{r}
+
+gm <- gapminder[gapminder$country != "Kuwait", ]
+
+
+ggplot(gm, aes())
+
+```
+

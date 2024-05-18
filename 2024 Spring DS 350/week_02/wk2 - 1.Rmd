@@ -1,0 +1,46 @@
+---
+title: "Wk 2 Proj 1"
+output: html_document
+date: "2024-05-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+library(ggplot2)
+```
+
+```{r}
+View(flights)
+
+```
+
+```{r}
+plot(flights$air_time, flights$distance)
+
+```
+
+```{r}
+
+flights_2 <- sampled_data <- flights[sample(nrow(flights), 1000), ]
+plot <- ggplot(flights_2, aes(x=air_time,y=distance)) +
+         geom_point(aes(color = arr_delay),size = 1) +
+        scale_color_gradient(low = "darkslateblue", high = "red")
+  
+plot + labs(color = "Arrival Delay")
+```
+
+```{r}
+
+plot <- ggplot(flights, aes(x=air_time,y=distance)) +
+         geom_point(aes(color = arr_delay),size = 1) +
+        scale_color_gradient(low = "darkslateblue", high = "red")
+
+plot + labs(color = "Arrival Delay")
+```
+
+
