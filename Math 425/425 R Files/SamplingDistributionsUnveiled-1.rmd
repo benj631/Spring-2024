@@ -1,0 +1,108 @@
+---
+title: "Sampling Distributions Unveiled"
+format: html
+editor: visual
+---
+
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+#Law
+B1 <- 3 # 
+B2 <- 1 # Girls interested in you increase per 1000 dollars income per year
+E <- 3 # Variance of girls interested in you
+
+rnorm
+
+```
+
+```{r}
+# Set seed for reproducibility
+# set.seed(123)
+
+# Parameters for the line
+b1 <- 10      # Intercept
+b2 <- 1    # Slope
+
+# Generate x values in the desired range
+x <- seq(0, 100, length.out = 30) # seq is range, length.out is number of points
+
+# Compute y values without error
+y <- b1 + b2 * x
+
+# Generate normally distributed errors with mean 0 and standard deviation 3
+error <- rnorm(length(x), mean = 0, sd = 10)
+
+# Add error to the y values
+y_with_error <- y + error
+
+# Plot the results
+plot(x, y_with_error, main = "Values along a line with normally distributed error", 
+     xlab = "Number of Girls interested in Guy", ylab = "Income (in $1000)", pch = 19, col = "blue")
+abline(b1, b2, col = "red", lwd = 2)  # Plot the true line for reference
+
+```
+
+
+```{r}
+N <- 10  
+storage <- rep(NA, N)
+storage
+
+for (i in 1:N){
+  storage[i] <- 5*i
+  cat("i =", i, " and 5*i =", 5*i, " was saved in storage[", i, "]\n")
+}
+
+storage
+```
+
+
+# Vary values of N
+
+
+n <- 30
+Xi <- rep(seq(30, 100, length.out=n/2), each=2) #n must be even.
+Yi <- 2.5 + 3*Xi + rnorm(n, 0, 1.2)
+
+mylm <- lm(Yi ~ Xi)
+coef(mylm)
+coef(mylm)[1] #intercept only
+coef(mylm)[2] #slope only
+
+
+n <- 30
+intercepts <- slopes <- rep(NA,n)
+
+for (i in 1:n){
+
+  Xi <- rep(seq(30, 50000, length.out=n/2), each=2) #n must be even.
+  Yi <- 46000 + -0.016*Xi + rnorm(n, 0, 2000)
+  
+  mylm <- lm(Yi ~ Xi)
+  intercepts <- coef(mylm)[1] #intercept only
+  slopes <- coef(mylm)[2] #slope only
+}
+
+hist(intercepts)
+
+hist(slopes)
+
+
+
+
+N <- 10
+storage <- rep(NA, N)
+storage
+
+for (i in 1:N){
+  storage[i] <- 5*i
+  cat("i=", i, "and 5*i =", 5*i, "was saved in storage")
+}
+
+storage

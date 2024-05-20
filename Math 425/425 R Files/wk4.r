@@ -18,10 +18,24 @@ tprob <- function(t=1, df=3, show.normal=TRUE, xlim=c(-4,4)){
   }
 }
 
+curve(dt(x, 3), from=-4, to=4, lwd=2)
+curve(dnorm(x), add=TRUE, col="gray")
+abline(h=0, v=c(-1,1), col=c("gray","orange","orange"), lwd=c(1,2,2))
+
 # Use the function
 tprob(t=-2)
 tprob(t=-8, xlim=c(-9,9))
 tprob(t=-2, df=15)
+
+tprob(t=1.285,df=13)
+tprob(t=2.991,df=48)
+tprob(t=-8, xlim=c(-9,9))
+tprob(t=-2, df=15)
+
+
+
+
+?dt
 
 curve(dt(x, 3), from=-4, to=4, lwd=2)
 curve(dnorm(x), add=TRUE, col="gray")
