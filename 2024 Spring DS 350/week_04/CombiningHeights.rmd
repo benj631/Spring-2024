@@ -1,0 +1,278 @@
+---
+title: "Combining Heights"
+format: html
+editor: visual
+---
+
+```{r}
+# install.packages("downloader")
+# install.packages("foreign")
+```
+
+
+```{r}
+library(haven)
+library(tidyverse)
+library(downloader)
+library(foreign)
+library(dplyr)
+library(readr)
+library(plotly)
+
+```
+
+```{r}
+
+# birth_year, height.in, height.cm, and study.
+
+german <- read_dta("https://byuistats.github.io/M335/data/heights/germanconscr.dta")
+bavarian <- read_dta("https://byuistats.github.io/M335/data/heights/germanprison.dta")
+
+bls <- read_csv("https://raw.githubusercontent.com/hadley/r4ds/main/data/heights.csv")
+
+#There is no gender identifier in this survey,
+# we will just work with the data, knowing there is likely a mix of genders.
+
+# https://www.ssc.wisc.edu/nsfh/wave3/NSFH3%20Apr%202005%20release/Nsfh3main04202005.CBK
+
+wisconsin <- read_sav("https://www.ssc.wisc.edu/nsfh/wave3/NSFH3%20Apr%202005%20release/main05022005.sav")
+
+```
+
+```{r}
+url <- "https://byuistats.github.io/M335/data/heights/Heights_south-east.zip"
+
+# Define the destination file path
+destfile <- "Heights_south-east.zip"
+
+# Download the zip file
+download(url, destfile, mode = "wb")
+
+# Unzip the downloaded file
+unzip(destfile, exdir = "unzipped_files")
+
+# List all files in the unzipped directory, including subdirectories
+all_unzip_files <- list.files("unzipped_files", recursive = TRUE, full.names = TRUE)
+
+# Print all unzipped files to understand the file structure
+print(all_unzip_files)
+
+# Identify the DBF file
+dbf_file <- all_unzip_files[grep("B6090\\.DBF$", all_unzip_files)]
+print(dbf_file) # Just to verify the DBF file path
+
+# Read the DBF file into a data frame if the file is found
+if (length(dbf_file) > 0) {
+  german2 <- read.dbf(dbf_file)
+  
+  # Display the first few rows of the data frame
+  head(german2)
+} else {
+  cat("No DBF file named 'B6090.dbf' found in the unzipped directory.\n")
+}
+```
+
+```{r}
+View(german2)
+glimpse(german2)
+names(german2)
+```
+
+```{r}
+# Adjust this mapping based on actual column names in german2
+name_mapping <- c(
+  "RECNO"    = "Record_Number",
+  "SJ"       = "Year_of_Measurement",
+  "REG"      = "Region_of_Birth",
+  "GEBGER"   = "District_of_Birth",
+  "SL"       = "Born_in_Town",
+  "GEBJZ"    = "Decade_of_Birth",
+  "GEWERBE"  = "Occupation",
+  "BERUF"    = "Occupation_Indicator",
+  "STD_ELT"  = "Occupation_of_Parents",
+  "F"        = "Height_Feet",
+  "Z"        = "Height_Inches",
+  "V"        = "Height_Quarter_Inches",
+  "S"        = "Height_One_Twelfth_Inch",
+  "GEBJ"     = "Year_of_Birth",
+  "CMETER"   = "Height_in_Centimeters",
+  "MASS"     = "Measurement_Indicator",
+  "ALTER"    = "Age",
+  "ALTERGR"  = "Age_Group",
+  "ARMGATT"  = "Army_Category",
+  "ZOLLABRD" = "Inches_Truncated",
+  "ZOLLVRD"  = "Inches_Rounded_to_Quarter",
+  "KOM2"     = "Code_Created_by_Data_Typist",
+  "REGIM"    = "Regiment",
+  "COMP"     = "Company",
+  "GREN"     = "Grenadier",
+  "LEIB"     = "Leib_Soldier",
+  "OFF1"     = "Officer",
+  "OFF2"     = "Non_Commissioned_Officer",
+  "OPF"      = "Born_in_Upper_Palatinate",
+  "PF"       = "Born_in_Palatinate",
+  "A16"      = "Age_16",
+  "A17"      = "Age_17",
+  "A18"      = "Age_18",
+  "A19"      = "Age_19",
+  "A20"      = "Age_20",
+  "A21"      = "Age_21",
+  "A22"      = "Age_22",
+  "A50"      = "Age_50_or_Older",
+  "G2529"    = "Born_1725_1729",
+  "G3034"    = "Born_1730_1734",
+  "G3539"    = "Born_1735_1739",
+  "G4044"    = "Born_1740_1744",
+  "G4549"    = "Born_1745_1749",
+  "G5054"    = "Born_1750_1754",
+  "G5559"    = "Born_1755_1759",
+  "G6064"    = "Born_1760_1764",
+  "G6569"    = "Born_1765_1769",
+  "G7074"    = "Born_1770_1774",
+  "COMPOS"   = "Number_within_Company"
+)
+```
+
+```{r}
+names(german2) <- name_mapping
+```
+
+```{r}
+german2 <- german2 %>% mutate(
+  birth_year = case_when(
+      !is.na(`Age_16`) ~ 1773 - 16,
+      !is.na(`Age_17`) ~ 1773 - 17,
+      !is.na(`Age_18`) ~ 1773 - 18,
+      !is.na(`Age_19`) ~ 1773 - 19,
+      !is.na(`Age_20`) ~ 1773 - 20,
+      !is.na(`Age_21`) ~ 1773 - 21,
+      !is.na(`Age_22`) ~ 1773 - 22,
+      !is.na(`Age_50_or_Older`) ~ 1773 - 50,
+      !is.na(`Born_1725_1729`) ~ 1725,
+      !is.na(`Born_1730_1734`) ~ 1730,
+      !is.na(`Born_1735_1739`) ~ 1735,
+      !is.na(`Born_1740_1744`) ~ 1740,
+      !is.na(`Born_1745_1749`) ~ 1745,
+      !is.na(`Born_1750_1754`) ~ 1750,
+      !is.na(`Born_1755_1759`) ~ 1755,
+      !is.na(`Born_1760_1764`) ~ 1760,
+      !is.na(`Born_1765_1769`) ~ 1765,
+      !is.na(`Born_1770_1774`) ~ 1770,
+      TRUE ~ NA_integer_
+  ),
+  height.in = Height_Feet * 12 + Height_Inches + Height_Quarter_Inches * .25 + Height_One_Twelfth_Inch * (1/12),
+  height.cm = height.in * 2.54,
+  study = "German 2"
+) %>% 
+  select(birth_year, height.in, height.cm, study)
+```
+
+
+```{r}
+# Wisconsin
+
+# RT216F height of respondent feet
+# RT216I height of respondent inches
+# DOBY birth year
+```
+
+
+```{r}
+wisconsin2 <- wisconsin %>% 
+  mutate(
+    birth_year = 2004 - DOBY,
+    height.in = RT216F * 12 + RT216I,
+    height.cm = height.in * 2.54,
+    study = "Wisconsin"
+  ) %>% 
+  select(birth_year, height.in, height.cm, study)
+```
+
+```{r}
+names(german)
+```
+
+```{r}
+name_mapping <- c(
+  "gebger" = "District_of_Birth",
+  "bdec"   = "Decade_of_Birth",
+  "height" = "Height",
+  "age"    = "Age",
+  "co"     = "Company"
+)
+
+names(german) <- name_mapping
+```
+
+```{r}
+german <- german %>% mutate(
+  birth_year = Decade_of_Birth,
+  height.in = Height / 2.54,
+  height.cm = Height,
+  study = "German 1"
+) %>% 
+  select(birth_year, height.in, height.cm, study)
+```
+
+```{r}
+bls <- bls %>% filter(sex == "male") %>%
+  mutate(
+    birth_year = 1909 + age,
+    height.in = height,
+    height.cm = height * 2.54,
+    study = "BLS"
+  )%>% 
+  select(birth_year, height.in, height.cm, study)
+```
+
+```{r}
+bavarian <- bavarian %>% mutate(
+  birth_year = bdec,
+  height.in = height / 2.54,
+  height.cm = height,
+  study = "Bavarian"
+)%>% 
+  select(birth_year, height.in, height.cm, study)
+```
+
+
+
+```{r}
+View(german)
+View(bavarian)
+View(bls)
+View(german2)
+View(wisconsin2)
+
+```
+
+```{r}
+heights <- bind_rows(
+  german,
+  bavarian,
+  bls,
+  german2,
+  wisconsin2
+)
+```
+
+```{r}
+
+# Define colors for each study group
+colors <- c("Bavarian" = "blue", "German 2" = "green", "German 1" = "red", "BLS" = "orange", "Wisconsin" = "purple")
+
+# Create the plot using Plotly
+plot <- plot_ly(heights, x = ~birth_year, y = ~height.in, type = 'scatter', mode = 'markers', color = ~study, colors = colors) %>%
+  layout(title = "Year vs Height",
+         xaxis = list(title = "Birth Year"),
+         yaxis = list(title = "Height (inches)"))
+
+# Display the plot
+plot
+
+
+```
+
+
+
+

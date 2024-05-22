@@ -1,29 +1,38 @@
 ---
 title: "Sampling Distributions Unveiled"
-format: html
-editor: visual
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
 ---
-
-
 
 ```{r}
 library(tidyverse)
+library(dplyr)
+library(pander)
 ```
+
+## Sampling Distribution
+
+What is a sampling distribution? A sampling distribution is the distribution of values for a given metric that we would obtain when selecting a subset of individuals from a population.
+
+## The True Fake Law
+
+Let's establish a fictitious law to describe a natural phenomenon. Let's suppose a law that governs how many women are interested in a relationship with a gentleman at any given time.
+
+Here is the general equation for the line:
+
+$\overbrace{y_i}^{\text{Dependent Variable}} = \overbrace{\beta_0}^{\text{Intercept}} + \overbrace{\beta_1}^{\text{Slope}} \overbrace{x_i}^{\text{Independent Variable}} + \overbrace{\epsilon_i}^{\text{Error Term}}$
+
+Here is the equation with our chosen values:
+
+$\overbrace{y_i}^{\text{Number of Women Interested}} = \overbrace{10}^{\text{Intercept}} + \overbrace{1}^{\text{Rate of Change}}\times \text{Income in \$1000} + \epsilon_i \sim N(0, 10)$
 
 
 ```{r}
 #Law
-B1 <- 3 # 
-B2 <- 1 # Girls interested in you increase per 1000 dollars income per year
-E <- 3 # Variance of girls interested in you
-
-rnorm
-
-```
-
-```{r}
-# Set seed for reproducibility
-# set.seed(123)
 
 # Parameters for the line
 b1 <- 10      # Intercept
@@ -35,7 +44,7 @@ x <- seq(0, 100, length.out = 30) # seq is range, length.out is number of points
 # Compute y values without error
 y <- b1 + b2 * x
 
-# Generate normally distributed errors with mean 0 and standard deviation 3
+# Generate normally distributed errors with mean 0 and standard deviation 10
 error <- rnorm(length(x), mean = 0, sd = 10)
 
 # Add error to the y values
@@ -46,63 +55,195 @@ plot(x, y_with_error, main = "Values along a line with normally distributed erro
      xlab = "Number of Girls interested in Guy", ylab = "Income (in $1000)", pch = 19, col = "blue")
 abline(b1, b2, col = "red", lwd = 2)  # Plot the true line for reference
 
+
 ```
+
+```{r}
+
+b1 = 10
+b2 = 1
+
+
+par(mfrow = c(3, 4))
+
+# First dataset
+set.seed(100)
+
+num_points <- 10
+
+x <- random_points <- runif(num_points, min = 0, max = 100) # length.out is number
+y <- b1 + b2 * x
+error <- rnorm(length(x), mean = 0, sd = 10)
+y_with_error <- y + error
+
+lm1 <- lm(y_with_error ~ x)
+
+# Scatter plot
+plot(x, y_with_error, main = "Sampling 1", 
+     xlab = "Income (in $1000)", ylab = "# Girls interested in Guy", pch = 19, col = "blue")
+abline(coef(lm1), col = "red", lwd = 2)  # Plot the fitted line
+
+# Residual plots
+plot(lm1, which = 1:3)
+
+# Second dataset
+set.seed(200)
+
+
+num_points <- 30
+
+x <- random_points <- runif(num_points, min = 0, max = 100)
+y <- b1 + b2 * x
+error <- rnorm(length(x), mean = 0, sd = 10)
+y_with_error <- y + error
+
+lm2 <- lm(y_with_error ~ x)
+
+# Scatter plot
+plot(x, y_with_error, main = "Sampling 2", 
+     xlab = "Income (in $1000)", ylab = "# Girls interested in Guy", pch = 19, col = "blue")
+abline(coef(lm2), col = "red", lwd = 2)  # Plot the fitted line
+
+# Residual plots
+plot(lm2, which = 1:3)
+
+# Third dataset
+
+set.seed(300)
+
+num_points <- 100
+
+x <- random_points <- runif(num_points, min = 0, max = 100)
+y <- b1 + b2 * x
+error <- rnorm(length(x), mean = 0, sd = 10)
+y_with_error <- y + error
+
+lm3 <- lm(y_with_error ~ x)
+
+# Scatter plot
+plot(x, y_with_error, main = "Sampling 3", 
+     xlab = "Income (in $1000)", ylab = "# Girls interested in Guy", pch = 19, col = "blue")
+abline(coef(lm3), col = "red", lwd = 2)  # Plot the fitted line
+
+# Residual plots
+plot(lm3, which = 1:3)
+
+
+```
+
+```{r}
+# Summaries
+print("Sampling 1")
+pander(summary(lm1))
+
+print("Sampling 2")
+pander(summary(lm2))
+
+print("Sampling 3")
+pander(summary(lm3))
+```
+
+
+We can see how even though these are all obtained for samples from the same simulated population, or equation, the regression models and goodness of fit charts vary.
+
 
 
 ```{r}
-N <- 10  
-storage <- rep(NA, N)
-storage
 
-for (i in 1:N){
-  storage[i] <- 5*i
-  cat("i =", i, " and 5*i =", 5*i, " was saved in storage[", i, "]\n")
-}
+set.seed(100)
 
-storage
-```
+b1 <- 10
+b2 <- 1
 
+n <- 2000
+intercepts <- numeric(n)
+slopes <- numeric(n)
 
-# Vary values of N
-
-
-n <- 30
-Xi <- rep(seq(30, 100, length.out=n/2), each=2) #n must be even.
-Yi <- 2.5 + 3*Xi + rnorm(n, 0, 1.2)
-
-mylm <- lm(Yi ~ Xi)
-coef(mylm)
-coef(mylm)[1] #intercept only
-coef(mylm)[2] #slope only
-
-
-n <- 30
-intercepts <- slopes <- rep(NA,n)
-
-for (i in 1:n){
-
-  Xi <- rep(seq(30, 50000, length.out=n/2), each=2) #n must be even.
-  Yi <- 46000 + -0.016*Xi + rnorm(n, 0, 2000)
+for (i in 1:n) {
+  Xi <- rep(seq(0, 100, length.out = n/2), each = 2) # n must be even.
+  Yi <- b1 + b2 * Xi + rnorm(length(Xi), 0, 10)
   
   mylm <- lm(Yi ~ Xi)
-  intercepts <- coef(mylm)[1] #intercept only
-  slopes <- coef(mylm)[2] #slope only
+  intercepts[i] <- coef(mylm)[1] # intercept only
+  slopes[i] <- coef(mylm)[2] # slope only
 }
 
-hist(intercepts)
+hist(intercepts, main = "Histogram of Intercept Estimates", xlab = "Intercept",breaks=20)
+hist(slopes, main = "Histogram of Slope Estimates", xlab = "Slope",breaks=20)
 
-hist(slopes)
+intercepts_mean <- mean(intercepts)
+intercepts_sd <- sd(intercepts)
+slopes_mean <- mean(slopes)
+slopes_sd <- sd(slopes)
+
+# Create a data frame
+summary_table <- data.frame(
+  Variable = c("Intercepts", "Slopes"),
+  Mean = c(intercepts_mean, slopes_mean),
+  SD = c(intercepts_sd, slopes_sd)
+)
+
+pander(summary_table)
+```
+
+We find about a standard deviation of about 10% of b1 for the intercept values, and about a standard deviation of 1% in our slope values. The mean values are almost nearly exact for what our b1 and b2 values are.
+
+This shows that without knowing the 'true line', with a large enough sample size, our estimate will be almost nearly exact.
+
+
+## P Values
+
+Let's obtain p values for our second model, which uses 100 points using the residual standard error. Let's take a look at the values of the model:
+
+```{r}
+print("Sampling 2")
+pander(summary(lm2))
+```
+
+This works because we can use the t-distribution at 28 degrees, scale it based off of the value of the intercept or slope, and by find the points at which other slope and intercept values have a 95% probability of being between those points.
+
+the logic of the p value is that there is are probabilities of values landing within certain ranges on the sampling distribution, so samples found at a point above or certain places have a certain chance of occurring. If we have a very small p value (which we do in this case, of .0004 for the intercept, and smaller for the slope) it means that the probability of getting that value by chance is very low, which can be a measure of validity.
+
+Let's convert the slope t value into a p value using pt().
+
+```{r}
+
+# Slope t value
+t_value <- 4.017
+value <- pt(t_value,28)
+print(value)
+one_side = 1-value
+two_side = one_side * 2
+print(two_side) # value is one side, multiply by 2 to get actual value
+
+# I could have used lower.tail = FALSE but what fun is that?
+```
+
+## Confidence Intervals.
+
+We can use the standard errors for both the intercept and slope estimate to estimate the confidence interval.
+
+```{r}
+t_value <- qt(0.975, df = 30 - 2) # 30 samples, - 2 = 28
+
+# Calculate confidence interval for the intercept
+ci_intercept <- 12.73 + c(-1, 1) * t_value * 3.168
+
+# Calculate confidence interval for the slope
+ci_slope <- .9386 + c(-1, 1) * t_value * .05921
+
+print("95% confidence intervals for slope and intercept:")
+print(ci_intercept)
+print(ci_slope)
+```
+With the 30 sample model, we can be 95% confident that the actual intercept and slope values are between the above values, respectively.
+Here's the formula for the confidence interval, given that the standard error is the critical value for a given percentage of confidence:
+
+Confidence interval = $ \text{Estimate (mean)} \pm \text{Std. Error} $
 
 
 
 
-N <- 10
-storage <- rep(NA, N)
-storage
 
-for (i in 1:N){
-  storage[i] <- 5*i
-  cat("i=", i, "and 5*i =", 5*i, "was saved in storage")
-}
 
-storage
+
