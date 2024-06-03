@@ -29,7 +29,7 @@ bavarian <- read_dta("https://byuistats.github.io/M335/data/heights/germanprison
 
 bls <- read_csv("https://raw.githubusercontent.com/hadley/r4ds/main/data/heights.csv")
 
-# There is no gender identifier in this survey,
+#There is no gender identifier in this survey,
 # we will just work with the data, knowing there is likely a mix of genders.
 
 # https://www.ssc.wisc.edu/nsfh/wave3/NSFH3%20Apr%202005%20release/Nsfh3main04202005.CBK
@@ -166,19 +166,18 @@ german2 <- german2 %>% mutate(
   select(birth_year, height.in, height.cm, study)
 ```
 
+
 ```{r}
 # Wisconsin
 
 # RT216F height of respondent feet
 # RT216I height of respondent inches
-# RE35 is gender
 # DOBY birth year
 ```
 
-```{r}
-wisconsin_male <- filter(wisconsin, RE35 == 1)
 
-wisconsin2 <- wisconsin_male %>% 
+```{r}
+wisconsin2 <- wisconsin %>% 
   mutate(
     birth_year = 2004 - DOBY,
     height.in = RT216F * 12 + RT216I,
@@ -235,6 +234,8 @@ bavarian <- bavarian %>% mutate(
   select(birth_year, height.in, height.cm, study)
 ```
 
+
+
 ```{r}
 View(german)
 View(bavarian)
@@ -253,12 +254,6 @@ heights <- bind_rows(
   wisconsin2
 )
 ```
-
-```{r}
-heights.lm <- lm(height.in ~ birth_year, data=heights)
-summary(heights.lm)
-```
-
 
 ```{r}
 
@@ -291,6 +286,5 @@ ggplot(heights, aes(x = birth_year, y = height.in, color = study)) +
 
 ```
 
-Getting this data in the proper format was challenging. Figuring out german translations, as well sifting through different data formats was required to get the data into a valid format. One of the data sets in this case doesn't have a distinction between female and male data, meaning there may be female heights in the data alongside the male data.
 
-A simple linear regression shows that the heights appear to be decreasing, but a linear model has a really low r squared value, meaning the model is not useful.There is not really any clear analysis to be drawn from the data. I don't think the data is clean or full enough to make a meaningful conclusion. We would need more data from each country, and that data would have to have more integrity.
+

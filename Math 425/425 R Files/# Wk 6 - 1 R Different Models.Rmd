@@ -1,0 +1,33 @@
+# Wk 6 - 1 R Different Models
+
+---
+title: "Different Models"
+  
+  
+---
+  
+  
+# Betas are a linear part of the model
+# Matrix - linear combination of terms
+# Betas are never squared or cubed
+# Beta times something plus beta times something
+# Somethings can be crazy
+# But beta has to just be linear.
+# Can't have beta times beta
+
+# two lines - collapsed 3d line
+
+# learn in simple spaces how to trust numbers by flying blind
+# can't trust your eyes when flying in a crazy sitaution
+# No clue where you are, need to know instrument panels
+
+
+# Very important code
+# Two lines model
+# X2 <- Sample(c(0,1)),n,replace=TRUE
+# Start in desmos, then build stuff in R
+
+```{r}
+y = b
+```
+

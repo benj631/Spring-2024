@@ -1,0 +1,60 @@
+---
+title: "themes"
+output: html_document
+date: "2024-05-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("directlabels")
+
+install.packages("ggrepel")
+install.packages("ggthemes")
+```
+
+
+```{r}
+library(tidyverse)
+
+library(directlabels) # Add text
+library(ggrepel) # Add text
+
+library(gapminder)
+library(ggthemes)
+library(scales)
+```
+
+```{r}
+ggplot(data = iris, size = 12, aes(x=Sepal.Width, y = Sepal.Length, color = Species, shape = Species)) +
+  geom_point() +
+  theme_bw() +
+  scale_color_brewer(palette = "Set1")
+```
+
+
+```{r}
+ggplot(data = iris, aes(x = Sepal.Width, y = Sepal.Length, color = Species, shape = Species)) +
+  geom_point(size = 3) +  # Adjust the size of the points as needed
+  scale_color_brewer(palette = "Set1") +
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_blank(), # Remove major grid lines on the x-axis
+    axis.ticks.length = unit(1, "in")  # Adjust the length of ticks on the x-axis
+  )
+```
+
+
+```{r}
+gapminder %>% filter(continent == "Oceania") %>% 
+    ggplot(mapping = aes(x=year,y=gdpPercap, color = country)) +
+    geom_line() +
+      geom_dl(method = list("smart.grid"), mapping = aes(label = country)) +
+  theme(
+    legend.position = "null"
+  )
+
+
+```
