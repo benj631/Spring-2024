@@ -1,0 +1,144 @@
+---
+title: "Recreating Graphs - Wk6 - 2"
+output: html_document
+date: "2024-06-03"
+---
+
+```{r}
+
+β0 = 4.3
+β1 = -3
+β2 = -3.5
+β3 = 1.3
+
+x <- seq(-10, 10, length.out = 400)
+
+# Generate random error term
+set.seed(123)  # Setting seed for reproducibility
+e <- rnorm(length(x), mean = 0, sd = 2)
+
+y = β0 + β1*x + β2*x^2 + β3*x^3 + e
+
+
+plot(x, y, type = "l", col = "blue", lwd = 2, 
+     xlab = "x", ylab = "y", 
+     main = "Plot of y = β0 + β1*x + β2*x^2 + β3*x^3 + e",
+     xlim = c(-4, 4), ylim = c(-11, 11))  # Adjusted xlim and ylim
+grid()
+
+
+```
+```{r}
+# Define coefficients
+β0 <- 4.3
+β1 <- -3
+β2 <- -3.5
+β3 <- 1.3
+
+# Generate x values
+num_values <- 30
+min_value <- -2
+max_value <- 4
+set.seed(100)  # Setting seed for reproducibility
+xvals <- runif(num_values, min = min_value, max = max_value)
+
+# Generate random error term
+error <- rnorm(length(xvals), mean = 0, sd = 4)  # Generating normally distributed errors
+
+# Initialize yvals as an empty vector
+yvals <- numeric(length(xvals))
+
+# Calculate corresponding y values using a loop
+for (i in seq_along(xvals)) {
+  x <- xvals[i]
+  y <- β0 + β1 * x + β2 * (x^2) + β3 * (x^3) + error[i]
+  yvals[i] <- y
+}
+
+# Combine x and y values into a data frame
+cubic_data <- data.frame(x = xvals, y = yvals)
+
+# Plot
+plot(cubic_data, col = "purple", 
+     xlab = "x", ylab = "y", 
+     main = "Cubic Data", pch = 16,
+      xlim = c(-2, 3.5), ylim = c(-12, 12))
+grid()
+
+lmc <- lm(y ~ x + I(x^2) + I(x^3), data = cubic_data)
+
+# Add cubic regression curve to the plot
+b <- coef(lmc)
+
+curve(b[1] + b[2]*x + b[3]*x^2 + b[4]*x^3, add=TRUE, col = "red", lty="dashed")
+curve(4.3 + -3*x + -3.5*x^2 + 1.3*x^3, add=TRUE, col="blue" )
+
+legend("topleft", legend = c("Simulated Line", "Cubic Model"),
+       col = c("blue", "red"), lty = 1, lwd = 2)
+
+```
+
+
+```{r}
+β0 = 52.5
+β1 = -.2
+β2 = -26
+β3 = 1
+
+num_values <- 40
+min_value <- 30
+max_value <- 52
+set.seed(100)  # Setting seed for reproducibility
+x <- runif(num_values, min = min_value, max = max_value)
+
+# Generate random error term
+error <- rnorm(num_values, mean = 0, sd = 0)  # Generating normally distributed errors
+
+# Calculate corresponding y values using a loop
+
+  x2 <- sample(0:1, num_values, replace = TRUE)
+
+  y <- β0 + β1 * x + β2 * x2 + β3 *x * x2 + error
+
+# Combine x and y values into a data frame
+twolines_data <- data.frame(x = x, y = y, x2 = x2)
+
+# Plot
+plot(x~y,data=twolines_data, col = "purple", 
+     xlab = "x", ylab = "y", 
+     main = "Two Lines Data", pch = 16
+     #,xlim = c(29, 52), ylim = c(25, 60)
+     )
+grid()
+```
+
+
+```{r}
+lm2l <- lm(y ~ x + x2 + x:x2, data=twolines_data)
+
+# Add cubic regression curve to the plot
+b <- coef(lm2l)
+print(b)
+
+x2=0
+curve(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2, add=TRUE, col = "red", lty="dashed")
+x2=1
+curve(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2, add=TRUE, col = "pink", lty="dashed")
+
+β0 = 52.5
+β1 = -.2
+β2 = -26
+β3 = 1
+
+x2=0
+curve( β0+ β1*x + β2*x2 + β3*x*x2, add=TRUE, col = "blue", lty="dashed")
+x2=1
+curve( β0+ β1*x + β2*x2 + β3*x*x2, add=TRUE, col = "lightblue", lty="dashed")
+
+# legend("topleft", legend = c("Simulated Two Lines 1", "STL 2", "2L Model", "2LM2"),
+#        col = c("red","pink","blue","lightblue"), lty = 1, lwd = 2")
+
+
+```
+
+

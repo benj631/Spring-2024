@@ -1,0 +1,53 @@
+---
+title: "ggtest"
+output: html_document
+date: "2024-06-05"
+---
+
+```{r}
+# Load ggplot2 library
+library(ggplot2)
+
+# Create a sample dataset
+set.seed(123)
+df <- data.frame(
+  x = rnorm(100, mean = 5, sd = 2),
+  y = rnorm(100, mean = 5, sd = 2),
+  category = sample(c("A", "B"), 100, replace = TRUE),
+  group = sample(letters[1:4], 100, replace = TRUE)
+)
+
+# Basic ggplot with various elements
+p <- ggplot(df, aes(x = x, y = y)) +
+  
+  # Add points
+  geom_point(aes(color = category, shape = group), size = 3) +
+  
+  # Add a regression line
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  
+  # Customize labels
+  labs(title = "Scatter Plot with Various ggplot2 Elements",
+       subtitle = "Illustration of ggplot2 syntax",
+       x = "X Axis Label",
+       y = "Y Axis Label",
+       color = "Category",
+       shape = "Group") +
+  
+  # Customize the theme
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.title = element_text(face = "italic"),
+    legend.position = "bottom"
+  ) +
+  
+  # Add facets
+  facet_wrap(~ category)
+
+# Print the plot
+print(p)
+
+```
+

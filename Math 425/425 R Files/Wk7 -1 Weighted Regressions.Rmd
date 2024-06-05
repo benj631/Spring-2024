@@ -1,0 +1,51 @@
+---
+title: "Wk7 - 1"
+output: html_document
+date: "2024-06-03"
+---
+
+```{r}
+X <- c(1, 4,7, 8,  10, 20)
+
+Y <- c(3, 5, 18, 13, 12,   1)
+```
+
+```{r}
+# Just Cherrypick your data :D
+# Anything above 1 just becomes the new 100%
+# Weighting systems are unguessable
+# Reproducability crisis
+# 'Peer reviewed'
+# Show your everything and be transparent
+
+w <- c(0, 0, 1, 0, 0, 1)
+
+mylm <- lm(Y ~ X, weights=w)
+
+plot(Y ~ X, pch=21, bg=rgb(1-w,1-w,1-w), col="orange")
+
+abline(mylm)
+```
+
+```{r}
+w <- c(1, .5, .5, 1, 1, .2)
+
+mylm <- lm(Y ~ X, weights=w)
+
+plot(Y ~ X, pch=21, bg=rgb(1-w,1-w,1-w), col="orange")
+
+abline(mylm)
+```
+
+```{r}
+pairs(mtcars)
+pairs(mtcars,panel=panel.smooth)
+```
+
+```{r}
+
+```
+
+
+
+

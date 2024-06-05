@@ -1,0 +1,28 @@
+---
+title: "Baseball"
+format: html
+editor: visual
+---
+
+```{r}
+install.packages("Lahman")
+install.packages("priceR")
+install.packages("sportyR")
+```
+
+
+```{r}
+library(Lahman)
+library(priceR)
+```
+
+
+```{r}
+utah_players <- CollegePlaying %>%
+
+```
+
+```{r}
+ggplot(baseball,aes(y=reorder(name_full, salary_adjusted), x=salaryAdjusted/1000))
+```
+
