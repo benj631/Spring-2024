@@ -80,19 +80,19 @@ legend("topleft", legend = c("Simulated Line", "Cubic Model"),
 
 
 ```{r}
-β0 = 52.5
-β1 = -.2
-β2 = -26
-β3 = 1
+β0 = 55
+β1 = -.13
+β2 = -63
+β3 = 1.4
 
-num_values <- 40
+num_values <- 30
 min_value <- 30
 max_value <- 52
 set.seed(100)  # Setting seed for reproducibility
 x <- runif(num_values, min = min_value, max = max_value)
 
 # Generate random error term
-error <- rnorm(num_values, mean = 0, sd = 0)  # Generating normally distributed errors
+error <- rnorm(num_values, mean = 0, sd = 2)  # Generating normally distributed errors
 
 # Calculate corresponding y values using a loop
 
@@ -104,7 +104,7 @@ error <- rnorm(num_values, mean = 0, sd = 0)  # Generating normally distributed 
 twolines_data <- data.frame(x = x, y = y, x2 = x2)
 
 # Plot
-plot(x~y,data=twolines_data, col = "purple", 
+plot(y~x,data=twolines_data, col = as.factor(x2), 
      xlab = "x", ylab = "y", 
      main = "Two Lines Data", pch = 16
      #,xlim = c(29, 52), ylim = c(25, 60)
@@ -120,15 +120,22 @@ lm2l <- lm(y ~ x + x2 + x:x2, data=twolines_data)
 b <- coef(lm2l)
 print(b)
 
+plot(y~x,data=twolines_data, col = as.factor(x2), 
+     xlab = "x", ylab = "y", 
+     main = "Two Lines Data", pch = 16
+     #,xlim = c(29, 52), ylim = c(25, 60)
+     )
+grid()
+
 x2=0
 curve(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2, add=TRUE, col = "red", lty="dashed")
 x2=1
 curve(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2, add=TRUE, col = "pink", lty="dashed")
 
-β0 = 52.5
-β1 = -.2
-β2 = -26
-β3 = 1
+β0 = 55.5
+β1 = -.13
+β2 = -63
+β3 = 1.4
 
 x2=0
 curve( β0+ β1*x + β2*x2 + β3*x*x2, add=TRUE, col = "blue", lty="dashed")
