@@ -1,0 +1,263 @@
+---
+title: "Car Prices"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+  md_document:
+    variant: markdown
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(pander)
+library(car)
+library(DT)
+```
+
+```{r, message=FALSE, warning=FALSE}
+hpp <- read_csv("Honda Pilot Prices2.csv")
+```
+
+## Car Prices {.tabset}
+
+### Analysis
+
+My family is looking into prices for the Honda Pilot near Sacramento, California. Is there an ideal price for purchasing that make and model of car? Let's take a look at some data from various websites to see if the information will help with that decision.
+
+#### Data
+
+Here is the data. It includes the website and the year of the car. Makes and models include various versions of the Honda Pilot:
+
+```{r}
+# View(hpp)
+datatable(hpp, options=list(lengthMenu = c(5,10,30)), extensions="Responsive")
+```
+
+#### First Look
+
+Let's take a look at the data:
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(data = hpp, aes(x = Mileage, y = Price, color = Site)) +
+  geom_point(size=2.5) +
+  labs(
+    title = "Honda Pilot Car Prices vs. Mileage",
+    x = "Mileage (miles)",
+    y = "Price (USD)" ) +
+  theme_bw()
+```
+We can see a clear curve to the data. So a linear model is intuitively not a good fit. Which curve might best fit this data? Let's use the boxCox function on a basic linear model to see which function might be the best:
+
+```{r}
+boxCox(lm(Price ~ Mileage, data=hpp))
+``` 
+The Box Cox function is telling us that, as the ideal λ is .25 that the sqrt(sqrt()) transformation on the data might be the most ideal. Let's try this transformation.
+
+#### Sqrt Sqrt
+
+```{r}
+hpp.lmsqrtsqrt <- lm(sqrt(sqrt(Price)) ~ Mileage, data=hpp)
+pander(summary(hpp.lmsqrtsqrt))
+
+intercept <- coef(hpp.lmsqrtsqrt)[1]
+slope <- coef(hpp.lmsqrtsqrt)[2]
+
+# Define the function for the regression line
+regression_line <- function(x) (intercept + slope * x)^4
+
+# Create the plot
+ggplot(data = hpp, aes(x = Mileage, y = Price, color = Site)) +
+  geom_point(size=2.5) +
+  stat_function(fun = regression_line, color = "black", linetype = "dashed", linewidth=.8) +
+  labs(
+    title = "Sqrt(Sqrt()) Tranformation",
+    x = "Mileage (miles)",
+    y = "Price (USD)" ) +
+  theme_bw()
+```
+This gives us an R^2 of 0.8638, and significant p-values. This is good, but can we do better? Let's try some other transformations.
+
+#### Log
+
+```{r}
+hpp.lmlog <- lm(log(Price) ~ Mileage, data=hpp)
+pander(summary(hpp.lmlog))
+
+intercept <- coef(hpp.lmlog)[1]
+slope <- coef(hpp.lmlog)[2]
+
+# Define the function for the regression line
+regression_line <- function(x) exp(intercept + slope * x)
+
+# Create the plot
+ggplot(data = hpp, aes(x = Mileage, y = Price, color = Site)) +
+  geom_point(size=2.5) +
+  stat_function(fun = regression_line, color = "black", linetype = "dashed", linewidth =.8) +
+  labs(
+    title = "Log() Transformation",
+    x = "Mileage (miles)",
+    y = "Price (USD)" ) +
+  theme_bw()
+```
+
+We have an R^2 of 0.8585. So our sqrt function is doing better than our log, but very slightly. I'm not sure why our residual standard error is so low.
+
+#### Quadratic
+
+Let's try one last model, a quadratic modeling.
+
+```{r}
+hpp.lmquad <- lm(Price ~ Mileage + I(Mileage^2), data=hpp)
+pander(summary(hpp.lmquad))
+
+b1 <- coef(hpp.lmquad)[1]
+b2 <- coef(hpp.lmquad)[2]
+b3 <- coef(hpp.lmquad)[3]
+
+# Define the function for the regression line
+regression_line <- function(x) b1 + b2 * x + b3 * x ^ 2
+
+# Create the plot
+ggplot(data = hpp, aes(x = Mileage, y = Price, color = Site)) +
+  geom_point(size=2.5) +
+  stat_function(fun = regression_line, color = "black", linetype = "dashed", linewidth =.8) +
+  labs(
+    title = "Quadratic Transformation",
+    x = "Mileage (miles)",
+    y = "Price (USD)" ) +
+  theme_bw()
+```
+This gives us an $R^2$ of 0.8881, which is higher than the other transformations. This is interesting, because it implies that somewhere past about 200,000 miles, the car will start gaining value as you drive it. That is clearly not the case, unless the Honda Pilot is secretly going to be loved by vintage car enthusiasts, and I don't think that's likely.
+
+#### Piecewise Model
+
+If the quadratic doesn't make much sense past about 190,000, can we stitch together two functions and get a better $R^2$?
+
+```{r}
+hpp.lmsqrtsqrt <- lm(sqrt(sqrt(Price)) ~ Mileage, data=hpp)
+
+# Fit the quadratic model
+hpp.lmquad <- lm(Price ~ Mileage + I(Mileage^2), data = hpp)
+
+# Define the breakpoint
+breakpoint <- 130000
+
+# Predict Price using the models
+predicted_price_sqrtsqrt <- (predict(hpp.lmsqrtsqrt, newdata = data.frame(Mileage = hpp$Mileage)))^4
+predicted_price_quad <- predict(hpp.lmquad, newdata = data.frame(Mileage = hpp$Mileage))
+
+# Combine predictions based on the breakpoint
+combined_predicted_price <- ifelse(hpp$Mileage <= breakpoint, predicted_price_sqrtsqrt, predicted_price_quad)
+
+# Calculate R-squared for the combined model
+actual_price <- hpp$Price
+combined_model_r_squared <- 1 - sum((actual_price - combined_predicted_price)^2) / sum((actual_price - mean(actual_price))^2)
+
+combined_model_r_squared
+```
+...No.
+Here's what it looks like, though:
+
+```{r}
+# Assuming `hpp` is your data frame containing the variables `Price` and `Mileage`
+
+hpp.lmlog <- lm(log(Price) ~ Mileage, data = hpp)
+hpp.lmquad <- lm(Price ~ Mileage + I(Mileage^2), data = hpp)
+
+# Define the breakpoint
+breakpoint <- 125000
+
+# Predict Price using the models
+predicted_price_log <- exp(predict(hpp.lmlog, newdata = data.frame(Mileage = hpp$Mileage)))
+predicted_price_quad <- predict(hpp.lmquad, newdata = data.frame(Mileage = hpp$Mileage))
+
+# Combine predictions based on the breakpoint
+predicted_price <- ifelse(hpp$Mileage <= breakpoint, predicted_price_log, predicted_price_quad)
+
+# Plot the data and combined model predictions
+ggplot(data = hpp, aes(x = Mileage, y = Price, color = Site)) +
+  geom_point(size = 2.5) +
+  geom_line(aes(y = predicted_price), color = "black", linetype = "dashed", linewidth = 0.8) +
+  labs(
+    title = "Piecewise Transformation",
+    x = "Mileage (miles)",
+    y = "Price (USD)"
+  ) +
+  theme_bw()
+
+```
+
+#### Models and P-Values
+
+Why does the quadratic have the best $R^2$? We can suppose that the quadratic is catching the points near 180,000 a skewed amount more than the other models because of the lack of data points. We could collect more data to confirm that.
+
+Aside from the piecewise, the log transformation has the smallest P-Values, but the lowest $R^2$ value. If we accept p values as significant at the 0.5 level, then all the models have very significant p values, and only our $R^2$ is relevant. That doesn't seem like a meaningful way to identify the best model, though. They seem so similar that it seems hard to pick a best.
+
+#### Buying Price
+
+Definitely don't buy it before 25,000 miles. In looking through prices, not many Honda Pilots were for sale past about 125,000 miles, just looking around. This would suggest that they might bite the dust around then- or if somebody still has one, they are repairing it and making it last longer, but these are just guesses. We can guess that past 150,000, they might not last so well.
+
+Making a purchase around 75,000, where the car is about $25,000, and is about $20,000 cheaper is an interesting situation: The person who bought it new can sell it for the majority of it's value even though it's only at half it's life.
+
+Really the conclusion here is A: don't buy from online sellers, or B: don't buy the Honda Pilot. If anything, you'd need a deal better than the model is predicting here to get a worthwhile deal on the car.
+
+That one green dot from Carfax for $12,999 that has 76,000 miles is probably your best bet, assuming there's nothing majorly wrong with it. That's still a lot of money for a used car though. Maybe if you can argue down the price, it could be very worth it (relatively).
+
+```{r}
+prediction <- predict(hpp.lmquad,data.frame(Mileage=75000))
+prediction <- prediction + c(3549,-3549)
+prediction
+```
+Subtracting our standard error as a rough estimate of the standard deviation, we get 19327.43. So 13,500 is several standard deviations below the predicted price at 75,000 miles.
+
+#### Selling Price
+
+If don't buy a Honda Pilot, you won't have one to sell. But if you did have one to sell, probably selling it between $125-150,000 would be the best option, because who is going to buy it after that? If you sold it at, say, $135,000, let's see what your predicted value loss would be:
+
+```{r}
+prediction_75000 <- predict(hpp.lmquad, data.frame(Mileage = 75000))
+prediction_135000 <- predict(hpp.lmquad, data.frame(Mileage = 135000))
+
+loss <- prediction_75000 - prediction_135000
+print(loss)
+
+```
+A $9878 loss for driving 60,000 miles is pretty bad, but any other purchasing and selling point seems worse. Any purchase sooner, and you're losing a lot more value. For example, let's sell at the same place, but purchase at 0:
+
+```{r}
+prediction_75000 <- predict(hpp.lmquad, data.frame(Mileage = 0))
+prediction_135000 <- predict(hpp.lmquad, data.frame(Mileage = 135000))
+
+loss2 <- prediction_75000 - prediction_135000
+print(loss2)
+```
+$30448 is a lot more to lose.
+
+Either way, the car would need to hold up well past 150,000 miles to be worth the money (relatively), regardless of when you bought it, as you wouldn't really be looking to sell it anyways, so you would just want to maximize your use of it until it becomes defunct.
+
+#### Conclusion
+
+Why does the quadratic perform best? I don't know. What I do know, is that dealerships are expensive, and/or you shouldn't buy a used Honda Pilot unless you get a really good deal.
+
+### For the Teacher
+
+#### Residual Plots
+
+```{r}
+par(mfrow = c(3,3))
+plot(hpp.lmsqrtsqrt, which = 1:3)
+plot(hpp.lmlog, which = 1:3)
+plot(hpp.lmquad, which = 1:3)
+```
+
+All plots look good for the most part.
+It's noteworthy that both the log and sqrtsqrt transformations appeat to have non-constant variance, but the quad transformation has constant variance.
+
+#### Breakpoints
+
+Different breakpoints can be tried for the piecewise function- but it's not really science at that point. It does not affect most of the points, so it doesn't seem to really effect things all that much. Who would buy a Honda Pilot that has over 180,000 miles on it? And for $9,000?

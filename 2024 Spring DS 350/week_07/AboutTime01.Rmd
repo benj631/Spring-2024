@@ -1,0 +1,24 @@
+---
+  title: "It's About Time"
+output: 
+  html_document: default
+md_document:
+  variant: markdown
+---
+  
+```{r}
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(pander)
+library(lubridate)
+```
+
+```{r}
+sales <- read_csv("https://byuistats.github.io/M335/data/sales.csv")
+```
+
+```{r}
+View(sales)
+```
+
