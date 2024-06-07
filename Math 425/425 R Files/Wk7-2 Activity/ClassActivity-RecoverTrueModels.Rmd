@@ -1,0 +1,180 @@
+---
+title: "Recovering a True Model"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, message=FALSE, warning=FALSE}
+rbdata_beg <- read.csv("rbdata_beginner-1.csv", header=TRUE, stringsAsFactors = TRUE)
+rbdata_int <- read.csv("rbdata_intermediate.csv", header=TRUE, stringsAsFactors = TRUE)
+rbdata_adv <- read.csv("rbdata_advanced.csv", header=TRUE, stringsAsFactors = TRUE)
+```
+
+## Part 1 - Recovering a True Model (Beginner Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{B}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = 92.34 + -8.57 X_{3i} + 6.1 X_{5i} + .099 X_{3i} X_{5i}
+$$
+```{r}
+View(rdata_beg)
+pairs(rbdata_beg, panel=panel.smooth, col=as.factor(rbdata_beg$X3))
+
+lm1 <- lm(Y ~ X3*X5, data=rbdata_beg)
+summary(lm1)
+```
+
+with our estimate of $\sigma$ as ...
+
+```{r}
+
+```
+
+
+## Part 2 - Recovering a True Model (Intermediate Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{...}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = ...
+$$
+
+with our estimate of $\sigma$ as ...
+
+```{r}
+View(rbdata_int)
+pairs(rbdata_int, col = as.factor(rbdata_int$x2))
+pairs(rbdata_int, col = as.factor(rbdata_int$x3))
+```
+
+
+
+## Part 3 - Recovering a True Model (Advanced Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{...}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = ...
+$$
+
+with our estimate of $\sigma$ as ...
+
+
+```{r}
+# Use this on the intermediate data
+
+ggplot(rbdata_int, aes(x=x2,y=y,color=interaction(x4,x5,x8)))+
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~interaction(x4,x5,x8)) +
+  theme_bw()
+```
+
+
+```{r}
+View(rdata_adv)
+pairs(rbdata_adv, panel=panel.smooth, col=as.factor(rbdata_adv$x4))
+pairs(rbdata_adv, panel=panel.smooth, col=as.factor(rbdata_adv$x5))
+pairs(rbdata_adv, panel=panel.smooth, col=as.factor(rbdata_adv$x8))
+```
+```{r}
+ggplot(rbdata_adv, aes(x=x2,y=y,color=interaction(x4,x5,x8)))+
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  facet_wrap(~interaction(x4,x5,x8)) +
+  theme_bw()
+
+# Using terms that seem like they work, lets just see what happens
+lm1 <- lm(y ~ x2*x4*x5*x8 *I(x2^2), data=rbdata_adv)
+summary(lm1)
+# NAs - you've used some things that can't happen
+
+# Let's construct an lm with what we think is actually effecting stuff
+lm2 <- lm(y~ x2 + I(x2^2) +
+            x4 + x4:x2 + x4:I(x2^2) +
+            x5 + x5:x2 + x5:I(x2^2) +
+            x8 + x8:x2 + x8:I(x2^2) + x8:I(x2^3) + x8:I(x2^4) +
+            x4:x8 + x4:x8:x2 + x4:x8:I(x2^2) + x4:x8:I(x2^3) + x4:x8:I(x2^4),
+            data=rbdata_adv)
+
+summary(lm2)
+
+ggplot(rbdata_adv, aes(x=x2,y=y,color=interaction(x4,x5,x8)))+
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~interaction(x4,x5,x8)) +
+  theme_bw()
+
+```
+
+
+Note x4 and x5. They are missing a dot in the top right corner. Also x5 and x8. These are binary variables. Slope is exciting. Note y - x8,
+
+Note y-x2 in x4
+
+```{r}
+library(plotly)
+library(reshape2)
+```
+
+```{r}
+helix1 <- filter(rbdata_adv,x4 == 0, x5 == 0, x8 == 1)
+helix1$side = 0
+helix2 <- filter(rbdata_adv,x4 == 1, x5 == 0, x8 == 1)
+helix1$side = 1
+```
+
+
+```{r}
+
+helix_data = merge(helix1, helix2)
+
+#Graph Resolution (more important for more complex shapes)
+graph_reso <- 0.5
+
+#Setup Axis
+axis_x <- seq(min(airquality$Temp), max(airquality$Temp), by = graph_reso)
+axis_y <- seq(min(airquality$Month), max(airquality$Month), by = graph_reso)
+
+#Sample points
+air_surface <- expand.grid(Temp = axis_x, Month = axis_y, KEEP.OUT.ATTRS=F)
+air_surface$Z <- predict.lm(air_lm, newdata = air_surface)
+air_surface <- acast(air_surface, Month ~ Temp, value.var = "Z") #y ~ x
+
+#Create scatterplot
+plot_ly(rbdata_adv, 
+        x = ~x2, 
+        y = ~y, 
+        z = ~Ozone,
+        text = rownames(airquality), 
+        type = "scatter3d", 
+        mode = "markers") %>%
+  add_trace(z = air_surface,
+            x = axis_x,
+            y = axis_y,
+            type = "surface")
+```
+
