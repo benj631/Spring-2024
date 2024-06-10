@@ -1,0 +1,97 @@
+  ---
+title: "challenge template"
+format:
+  html:
+    self-contained: true
+    code-fold: true
+---
+
+```{r}
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(pander)
+library(lubridate)
+
+
+```
+
+```{r}
+cinema <- read_csv("https://github.com/ktoutloud/classslides/raw/master/math335/extra/women_film_data.csv")
+```
+
+```{r}
+View(cinema)
+```
+
+```{r}
+cinema_masters <- filter(cinema, cinema$awlevel == "07") # Master
+cinema_schools <- filter(cinema_masters, school_id %in% c(108870,110662,123961,190150,193900))
+
+# had an error here in the final submission
+cinema_long <- cinema_schools %>%
+  pivot_wider(
+    names_from = sex,
+    values_from = graduates
+  ) %>%
+  mutate(ratio = female / (female + male)) %>%
+  select(year, school_id, awlevel, male, female, ratio)
+
+```
+
+```{r}
+View(cinema_long)
+```
+
+```{r}
+
+average_ratio <- cinema_long %>%
+  group_by(year) %>%
+  summarise(avg_ratio = mean(ratio))
+
+school_labels <- data.frame(
+  school_id = c(108870, 110662, 123961, 190150, 193900),
+  school_name = c(
+    "AFI",
+    "UCLA",
+    "USC",
+    "Columbia University in the City of New York",
+    "New York University"
+  ),
+  stringsAsFactors = FALSE
+)
+
+ggplot(cinema_long, aes(x = year, y = ratio * 100, color = as.factor(school_id))) +
+  geom_point() +
+  geom_line() +
+  geom_text(
+    data = school_labels,
+    aes(label = school_name, x = Inf, y = Inf, color = as.factor(school_id)),
+    #nudge_x = -0.2,  # Adjust horizontal position
+    nudge_y = 5,   # Adjust vertical position
+    #hjust = 0,       # Left-align text
+    #vjust = 0        # Align text to the bottom
+  ) +
+   geom_line(data = average_ratio, aes(y = avg_ratio * 100), color = "black", linetype = "dashed") +
+  labs(
+    title = "The cinematography pipleline has plenty of women",
+    subtitle = "Female share of graduating classes in graduate programs related to cinematography at top five film schools",
+    x = "Year",
+    y = "Female share of graduating class"
+  ) +
+  scale_x_continuous(breaks = unique(cinema_long$year)) +
+  # scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme(
+    legend.position = "none",  # Remove legend
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    panel.grid = element_line(color = "darkgrey", size = 0.2),
+    axis.line.x.bottom = element_line(color = "black"),
+    plot.background = element_rect(fill = "grey", color = NA)
+  )
+```
+
+

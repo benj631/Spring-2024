@@ -57,11 +57,39 @@ $$
 with our estimate of $\sigma$ as ...
 
 ```{r}
-View(rbdata_int)
-pairs(rbdata_int, col = as.factor(rbdata_int$x2))
-pairs(rbdata_int, col = as.factor(rbdata_int$x3))
+lm.int <- lm(y~ x1 + x2 + x3 + x1:x2 + x1:x3 + x2:x3 + x1:x2:x3 ,
+            data=rbdata_int)
+summary(lm.int)
+confint(lm.int, interval="confidence")
 ```
 
+
+```{r}
+# View(rbdata_int)
+pairs(rbdata_int, col = as.factor(interaction(rbdata_int$x2,rbdata_int$x3)), panel=panel.smooth)
+ggplot(rbdata_int,aes(y=y,x=x1,col = as.factor(interaction(x2,x3)))) +
+     geom_point() +
+    geom_point(aes(y=lm.int$fit),cex=0.5,col="black") +
+      facet_wrap(~as.factor(interaction(x2,x3))) +
+      theme_bw()
+```
+```{r}
+plot(x4 ~ x5, data=rbdata_int)
+```
+```{r}
+plot(x3~ x5, data=rbdata_int)
+plot(y ~ x5, data=rbdata_int)
+plot(x1~ x5, data=rbdata_int)
+```
+
+```{r}
+ggplot(rbdata_int, aes(x=x2,y=y,color=interaction(x2, x3)))+
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  #geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~interaction(x2,x3)) +
+  theme_bw()
+```
 
 
 ## Part 3 - Recovering a True Model (Advanced Level)

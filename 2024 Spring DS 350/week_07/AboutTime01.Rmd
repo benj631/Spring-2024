@@ -22,3 +22,89 @@ sales <- read_csv("https://byuistats.github.io/M335/data/sales.csv")
 View(sales)
 ```
 
+```{r}
+sales$MTime <- ymd_hms(sales$Time, tz = "America/Denver")
+```
+
+```{r}
+sales_summary <- sales_summary %>%
+  mutate(MDate = as.Date(MTime))
+
+# Step 2: Group by day (MDate) and summarize total sales
+daily_summary <- sales_summary %>%
+  group_by(MDate) %>%
+  summarise(total_amount = sum(total_amount))
+
+# Step 2: Plot using ggplot2
+ggplot(sales_summary, aes(x = MTime, y = total_amount)) +
+  geom_line() +                    # Add line plot of total_amount vs. MTime
+  geom_smooth(method = "loess") +  # Add a smoothed line using LOESS method
+  labs(x = "Time", y = "Gross Sales") +  # Labels for x and y axes
+  theme_bw() 
+```
+
+```{r}
+# sales_summary <- sales_summary %>%
+#  mutate(MDate = as.Date(MTime))
+
+# Step 2: Group by day (MDate) and summarize total sales
+daily_summary <- sales_summary %>%
+  group_by(MDate) %>%
+  summarise(total_amount = sum(total_amount)) %>%
+  ungroup() %>%
+  mutate(cumulative_total = cumsum(total_amount))
+
+# Step 3: Plotting cumulative total sales over days
+ggplot(daily_summary, aes(x = MDate, y = cumulative_total)) +
+  geom_line() +                    # Add line plot of cumulative_total vs. MDate
+  labs(x = "Date", y = "Cumulative Total Sales") +  # Labels for x and y axes
+  theme_bw()  
+```
+
+```{r}
+View(sales_summary)
+```
+
+
+```{r}
+sales <- sales %>%
+  mutate(MDate = as.Date(MTime))
+
+# Step 2: Summarize data to create sales_summary while retaining 'Name'
+sales_summary <- sales %>%
+  group_by(Name, MDate) %>%
+  summarise(total_amount = sum(Amount)) %>%
+  ungroup() %>%
+  mutate(cumulative_total = ave(total_amount, Name, FUN = cumsum))  # Calculate cumulative total by Name
+
+# Step 3: Plot cumulative total sales over time for each company
+ggplot(sales_summary, aes(x = MDate, y = cumulative_total, color = Name)) +
+  geom_line() +                    # Add line plot of cumulative_total vs. MDate, colored by company
+  labs(x = "Date", y = "Cumulative Total Sales", title = "Cumulative Total Sales by Company") +  # Labels for x and y axes
+  theme_bw() +                     # Apply black and white theme
+  scale_color_discrete(name = "Company")  # Customize legend title
+```
+```{r}
+sales <- sales %>%
+  mutate(MDate = as.Date(MTime),
+         YearMonth = format(MDate, "%Y-%m"))
+
+# Step 2: Summarize data to calculate total sales by month and company
+sales_summary <- sales %>%
+  group_by(Name, YearMonth) %>%
+  summarise(total_sales = sum(Amount)) %>%
+  ungroup()
+
+# Check the structure of sales_summary and inspect first few rows
+str(sales_summary)
+head(sales_summary)
+
+# Step 3: Plot total sales by month for each company
+ggplot(sales_summary, aes(x = YearMonth, y = total_sales, color = Name)) +
+  geom_line() +                    # Add line plot of total_sales vs. YearMonth, colored by company
+  labs(x = "Month", y = "Total Sales", title = "Total Sales by Month for Each Company") +  # Labels for x and y axes
+  theme_bw() +                     # Apply black and white theme
+  scale_x_discrete(labels = function(x) format(as.Date(paste(x, "01", sep = "-")), "%b %Y")) +  # Format x-axis labels as Month Year
+  scale_color_discrete(name = "Company")  # Customize legend title
+```
+
