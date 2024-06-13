@@ -1,0 +1,30 @@
+---
+title: "Idaho Water"
+output: html_document
+date: "2024-06-10"
+---
+
+```{r}
+# install.packages("pacman")
+library(pacman)
+pacman::p_load(downloader, sf, fs, tidyverse)
+```
+
+```{r}
+id_wells <- "https://byuistats.github.io/M335/data/Wells.zip"
+id_dams <- "https://byuistats.github.io/M335/data/Idaho_Dams.zip"
+id_water <- "https://byuistats.github.io/M335/data/water.zip"
+id_stateshape <- "https://byuistats.github.io/M335/data/shp.zip"
+
+river_path <- "https://research.idwr.idaho.gov/gis/Spatial/Hydrography/streams_lakes/c_250k/hyd250.zip"
+df <- tempfile(); uf <- tempfile()
+download(river_path, df, mode = "wb")
+unzip(df, exdir = uf)
+rivers <- read_sf(uf)
+file_delete(df); dir_delete(uf)
+
+
+# Use stateshape file
+
+```
+

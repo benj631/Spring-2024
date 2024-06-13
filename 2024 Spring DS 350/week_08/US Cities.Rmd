@@ -1,0 +1,67 @@
+---
+title: "US Cities"
+output: html_document
+date: "2024-06-10"
+---
+
+https://spatialreference.org/ 
+https://spatialreference.org/ref/epsg/4326/
+
+devtools::install_github('jgcri/rgis')
+
+```{r}
+install.packages("sf")
+
+install.packages("USAboundaries", repos = "https://ropensci.r-universe.dev", type = "source")
+install.packages("USAboundariesData", repos = "https://ropensci.r-universe.dev", type = "source")
+
+#OR
+install.packages("devtools")
+devtools::install_github("ropensci/USAboundaries")
+devtools::install_github("ropensci/USAboundariesData")
+
+#OR
+install.packages("USAboundaries")
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(USAboundaries)
+library(USAboundariesData)
+```
+
+```{r}
+idaho <- us_states() %>% filter(name %in% 'Idaho')
+View(idaho)
+
+idaho_counties <- us_counties(states = "Idaho")
+View(idaho_counties)
+
+idaho_cities <- us_cities(states = 'Idaho')
+
+# EPSG is a progression
+# Geospatial projection type
+st_crs(idaho)
+```
+
+
+```{r}
+ggplot(idaho_counties) +
+  # geom_sf() +
+  geom_sf(data=idaho_cities, aes(color=population)) + 
+  scale_color_gradient(low = min(idaho$population), high = quantile(idaho$population, .75) +
+  coord_sf(crs = 26911)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = idaho_counties, fill = "white", color = "black") +
+  geom_sf(data = idaho_cities, aes(color = population), size = 3) +
+  scale_color_gradient(low = "lightblue", high = "darkblue") +
+  coord_sf(crs = 26911) +  # EPSG: 26911 is the CRS for Idaho (UTM zone 11N)
+  theme_bw() +
+  labs(title = "Population of Cities in Idaho", color = "Population")
+```
+
+
