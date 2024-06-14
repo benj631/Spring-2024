@@ -43,6 +43,8 @@ idaho_cities <- us_cities(states = 'Idaho')
 # EPSG is a progression
 # Geospatial projection type
 st_crs(idaho)
+
+us_states <- us_states()
 ```
 
 
