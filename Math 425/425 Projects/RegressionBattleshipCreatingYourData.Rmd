@@ -10,6 +10,7 @@ output:
 ```{r message=FALSE, warning=FALSE}
 library(pander)
 library(tidyverse)
+library(dplyr)
 ```
 
 # {.tabset .tabset-pills}
@@ -86,14 +87,9 @@ For the Intermediate Level competition, there are also five official rules your 
 
 ## Desmos 
 
-Start by creating a picture of your true model in Desmos. Snip a screenshot of your completed model. Include a picture of your Desmos graph showing your true model.
+True Model:
 
-<!-- Delete this line 
-
-![](NameofYourDesmosPicture.png) 
-
-and delete this line for the image code above to work. --> 
-
+![Model](rb_model.png) 
 
 ## Code
 
@@ -101,46 +97,107 @@ Use the R-chunks below to create your simulated sample of data from your true re
 
 
 ```{r, comment=NA}
-set.seed(122) #This ensures the randomness is the "same" everytime if you play the entire R-chunk as one entire piece of code. If you run lines separately, your data might not come out the same every time. You can pick any integer value you want for set.seed. Each choice produces a different sample, so you might want to play around with a few different choices.
+set.seed(123) # This ensures the randomness is the "same" everytime if you play the entire R-chunk as one entire piece of code. If you run lines separately, your data might not come out the same every time. You can pick any integer value you want for set.seed. Each choice produces a different sample, so you might want to play around with a few different choices.
 
 ## To begin, decide on your sample size. (You may have to revise it later to ensure all values in your lm(...) are significant.)
   
- n <- 50
+ n <- 1000
   
 ## Then, create 10 X-variables using functions like rnorm(n, mean, sd), rchisq(n, df), rf(n, df1, df2), rt(n, df), rbeta(n, a, b), runif(n, a, b) or sample(c(1,0), n, replace=TRUE)... ## To see what any of these functions do, run codes like hist(rchisq(n, 3)). These functions are simply allowing you to get a random sample of x-values. But the way you choose your x-values can have quite an impact on what the final scatterplot of the data will look like.
 
- x1 <- rep(0,n) # One of the curves
- x2 <- rep(0,n) # Second curve
- x3 <- rep(0,n) # Upturned Cos 
- x4 <- rep(0,n) # Downturned Cos
- x5 <- rep(0,n) # Makes one of the cosines drop out on intervals
- x6 <- rep(0,n) #replace this
- x7 <- rep(0,n) #replace this
- x8 <- rep(0,n) #replace this
- x9 <- rep(0,n) #replace this
- x10 <- rep(0,n) #replace this
- 
- x2[x7==1] <-0
- 
-## Then, create betas, sigma, normal error terms and y
- 
-β0 <-
- #beta1 <- ...   
- #...
- 
- sigma <- 1.72 #change to whatever positive number you want
- 
+random_n1_1 <- function() ifelse(runif(1) > 0.5, 1, -1)
+#random_0_1 <- function() rbinom(1, 1, 0.5)
+random_0_1_p <- function(p = 0.5) {
+  rbinom(1, 1, p)
+}
 
+# Actual X values
+x1 <- seq(-2.9, 2.9, length.out = n)
+ 
+# Positive 1 or Negative 1 - With x5 make second line
+x2 <- sample(c(-1,1),n,replace=TRUE)
+
+ # Either positive 1 or - 1 - depending on -1 interaction 
+x3 <- sample(c(-1,1),n,replace=TRUE)
+
+# 4 term model is base model.
+
+# Y2 & Y3 by Dropping out x ^ -1 term. (0,1)
+x4 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)
+
+# x drop out (0,1)
+x5 <- sample(c(0,1),n,prob=c(.25,.75),replace = TRUE) 
+
+# x ^3 drop out
+x6 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE) 
+
+# x^5 drop out
+x7 <- sample(c(0,1),n,prob=c(.75,.25),replace = TRUE) 
+
+# Garbage
+x8 <- sample(c(-1,1),n,replace=TRUE) # (-1,1) but garbage
+x9 <- sample(c(0,1),n,prob=c(.25,.75),replace = TRUE) # but garbage
+x10 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)  # but garbage
+
+# Prevent the following situations:
+# x ^ 5 and x ^ 3 ONLY
+# x and x ^ 3 ONLY
+# x only
+# x ^ 3 only
+# x ^ 5 only
+ 
+# Then, create betas, sigma, normal error terms and y
+  sigma <- 5 #change to whatever positive number you want
+ 
+  
  ################################
  # You ARE NOT ALLOWED to change this part:
  epsilon_i <- rnorm(n, 0, sigma)
  ################################ 
  
- #An example of how to make Y...
+ # An example of how to make Y...
  # y <-  beta0 + beta1*X1 + beta2*X2 + beta3*X4*X2 + epsilon_i
  
- y <- 0 #...edit this code and replace it with your model. Don't forget the + epsilon_i!
+ εi <- epsilon_i
  
+# Betas
+  
+βint <- NA # Not using this, because everything crosses the y axis anyways
+
+β1 <- 8 # -1
+β2 <- -6 # 1
+β3 <- 2 # 3
+β4 <- 2 # 5
+
+β5 <- .3125  # x 
+β6 <- .4166666 # 
+β7 <- 2
+β8 <- -1.6666
+β9 <- .125
+
+
+y1 = 8 * x ^ -1 - 6 * x + 2 * x ^ 3 + 2 * x ^ 5 + εi
+y2 = -8 * x ^ -1 + 6 * x - 2 * x ^ 3 - 2 * x ^ 5 + εi
+ 
+y3 <- -2.5 * x + 2.5 * x ^ 3 -.4* x ^ 5 + εi
+y4 <- +2.5 * x - 2.5 * x ^ 3 + .4* x ^ 5 + εi
+y3_4 <- -2.5 * x * x2 * x3 + 2.5 * x * x2 * x3 ^ 3 - .4* x * x2 * x3 ^ 5 + εi
+
+y5 <- x ^ -1 + εi
+y6 <- -(x ^ -1) + εi
+y5_6 <- (x ^ -1) * x2 * x3 + εi
+
+y7 <- -10 * x -15 * x ^ 3 + εi
+y8 <- +10 * x + 15 * x ^ 3 + εi
+y7_8 <- 10 * x * x2 * x3 + -15 * x * x2 * x3 ^ 3 + εi
+
+y <- (
+β1 * x^-1 * x2 * x3 * β5x4 +
+β2 * x * x2 * x3 * β6x5 +
+β3 * x^3 * x2 * x3 * x6 + 
+β4 * x^5 * x2 * x3 * x7 + 
+εi
+)
  
  ## Now, you need to load your x-variables and y-variable 
  ## into a data set.
@@ -156,15 +213,56 @@ set.seed(122) #This ensures the randomness is the "same" everytime if you play t
  # And the beta's cannot be part of the x-transformations.
 
  # This loads your data into a data set:
- rbdata <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
+data <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
  
- #Now fit your model to make sure it comes out significant:
- mylm <- lm(y ~ 0, data=rbdata) #edit this code to be your true model
- summary(mylm)
- #all p-values must be significant
- #the R^2 value must be greater than or equal to 0.30.
- 
+############### Model Engineering ##############
 
+# x4 ----> x^-1 drop out
+# x5 ----> x    drop out
+# x6 ----> x^3 drop out
+# x7 ----> x^5 drop out
+
+# Prevent the following situations where the following variables are the only ones
+# that drop out, and the others remain:
+# x only drop
+# x ^ 3 only drop
+# x and x ^ 3 only drops
+# x ^ 5 only drop
+# x ^ 5 and x ^ 3 only drops
+
+exclude_condition1 <- data$x4 == 1 & data$x5 == 0 & data$x6 == 1 & data$x7 == 1
+exclude_condition2 <- data$x4 == 1 & data$x5 == 1 & data$x6 == 0 & data$x7 == 1
+exclude_condition3 <- data$x4 == 1 & data$x5 == 0 & data$x6 == 0 & data$x7 == 1
+exclude_condition4 <- data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 0
+exclude_condition5 <- data$x4 == 1 & data$x5 == 1 & data$x6 == 0 & data$x7 == 0
+
+# Combine all conditions
+exclude_all <- exclude_condition1 | exclude_condition2 | exclude_condition3 | exclude_condition4 | exclude_condition5
+
+# Filter rows from the model matrix
+filtered_model <- data[!exclude_all, ]
+
+
+######## END ENGINEERING ################
+```
+```{r}
+View(rbdata)
+```
+
+```{r}
+plot(y~x1,rbdata)
+```
+
+
+```{r, comment=NA}
+# Now fit your model to make sure it comes out significant:
+
+mylm <- lm(y ~ 0, data=rbdata) #edit this code to be your true model
+summary(mylm)
+
+# all p-values must be significant
+# the R^2 value must be greater than or equal to 0.30.
+ 
 # Once you are done with creating your model, and have successfully
 # graphed it (see below), un-comment the following `write.csv` code,
 # then, PLAY this ENTIRE R-chunk to write your data to a csv.

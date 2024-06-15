@@ -5,6 +5,16 @@ date: "2024-06-10"
 ---
 
 ```{r}
+#Sf - spacial features
+# EPSG #
+# epsg.org/home
+# Spacialreference.org
+st_transform(crs = st_crs(4326))
+coord_sf(crs = st_crs(4326)) # Just graphing
+```
+
+
+```{r}
 # install.packages("pacman")
 library(pacman)
 pacman::p_load(downloader, sf, fs, tidyverse)
@@ -80,5 +90,12 @@ ggplot() +
   labs(title = "Population of Cities in Idaho", color = "Population")
 ```
 
+```{r}
+ggplot() +
+  geom_sf(data= id, aes(geometry= geometry)) +
+```
+
+
+  
 
 
