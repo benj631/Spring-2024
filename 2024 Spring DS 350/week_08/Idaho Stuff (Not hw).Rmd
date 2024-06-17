@@ -1,0 +1,43 @@
+---
+title: "Idaho Stuff"
+output: html_document
+date: "2024-06-17"
+---
+
+```{r}
+library(tidyverse)
+library(sf)
+library(USAboundaries)
+library(USAboundariesData)
+library(dplyr)
+library(lubridate)
+```
+
+
+```{r}
+us_counties <- us_counties()
+
+idaho <- us_states() %>% filter(name %in% 'Idaho')
+
+idaho_counties <- us_counties(states = "Idaho")
+
+idaho_cities <- us_cities(states = 'Idaho')
+
+# EPSG is a progression
+# Geospatial projection type
+st_crs(idaho)
+
+us_states <- us_states()
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = idaho_counties, fill = "white", color = "black") +
+  geom_sf(data = idaho_cities, aes(color = population), size = 3) +
+  scale_color_gradient(low = "lightblue", high = "darkblue") +
+  coord_sf(crs = 26911) +  # EPSG: 26911 is the CRS for Idaho (UTM zone 11N)
+  theme_bw() +
+  labs(title = "Population of Cities in Idaho", color = "Population")
+```
+```
+

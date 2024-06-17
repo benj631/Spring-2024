@@ -1,0 +1,101 @@
+---
+title: "Idaho Water"
+output: html_document
+date: "2024-06-10"
+---
+
+```{r}
+#Sf - spacial features
+# EPSG #
+# epsg.org/home
+# Spacialreference.org
+st_transform(crs = st_crs(4326))
+coord_sf(crs = st_crs(4326)) # Just graphing
+```
+
+
+```{r}
+# install.packages("pacman")
+library(pacman)
+pacman::p_load(downloader, sf, fs, tidyverse)
+```
+
+```{r}
+# For reference
+river_path <- "https://research.idwr.idaho.gov/gis/Spatial/Hydrography/streams_lakes/c_250k/hyd250.zip"
+df <- tempfile(); uf <- tempfile()
+download(river_path, df, mode = "wb")
+unzip(df, exdir = uf)
+rivers <- read_sf(uf)
+file_delete(df); dir_delete(uf)
+```
+
+
+```{r}
+id_wells <- "https://byuistats.github.io/M335/data/Wells.zip"
+id_dams <- "https://byuistats.github.io/M335/data/Idaho_Dams.zip"
+id_water <- "https://byuistats.github.io/M335/data/water.zip"
+id_stateshape <- "https://byuistats.github.io/M335/data/shp.zip"
+
+
+download_and_read_sf <- function(filepath, df_name) {
+  # Create temporary files
+  df <- tempfile()
+  uf <- tempfile()
+  
+  # Download the file
+  download.file(filepath, df, mode = "wb")
+  
+  # Unzip the file
+  unzip(df, exdir = uf)
+  
+  # Read the shapefile
+  data <- sf::read_sf(uf)
+  
+  # Clean up temporary files
+  file.remove(df)
+  unlink(uf, recursive = TRUE)
+  
+  # Assign the resulting dataframe to the specified variable name in the global environment
+  assign(df_name, data, envir = .GlobalEnv)
+}
+
+wells <- NA
+dams <- NA
+water <- NA
+stateshape <- NA
+
+
+download_and_read_sf(id_wells, "wells")
+download_and_read_sf(id_dams, "dams")
+download_and_read_sf(id_water, "water")
+download_and_read_sf(id_stateshape, "stateshape")
+
+```
+
+```{r}
+View(wells)
+View(dams)
+View(water)
+View(stateshape)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = idaho_counties, fill = "white", color = "black") +
+  geom_sf(data = idaho_cities, aes(color = population), size = 3) +
+  scale_color_gradient(low = "lightblue", high = "darkblue") +
+  coord_sf(crs = 26911) +  # EPSG: 26911 is the CRS for Idaho (UTM zone 11N)
+  theme_bw() +
+  labs(title = "Population of Cities in Idaho", color = "Population")
+```
+
+```{r}
+ggplot() +
+  geom_sf(data= id, aes(geometry= geometry)) +
+```
+
+
+  
+
+

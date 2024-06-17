@@ -1,0 +1,135 @@
+---
+title: "US Cities"
+output: html_document
+date: "2024-06-10"
+---
+
+https://spatialreference.org/ 
+https://spatialreference.org/ref/epsg/4326/
+
+devtools::install_github('jgcri/rgis')
+
+```{r}
+install.packages("sf")
+
+install.packages("USAboundaries", repos = "https://ropensci.r-universe.dev", type = "source")
+install.packages("USAboundariesData", repos = "https://ropensci.r-universe.dev", type = "source")
+
+#OR
+install.packages("devtools")
+devtools::install_github("ropensci/USAboundaries")
+devtools::install_github("ropensci/USAboundariesData")
+
+#OR
+install.packages("USAboundaries")
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(USAboundaries)
+library(USAboundariesData)
+```
+
+```{r}
+idaho <- us_states() %>% filter(name %in% 'Idaho')
+View(idaho)
+
+idaho_counties <- us_counties(states = "Idaho")
+View(idaho_counties)
+
+idaho_cities <- us_cities(states = 'Idaho')
+
+# EPSG is a progression
+# Geospatial projection type
+st_crs(idaho)
+
+us_states <- us_states()
+```
+
+
+```{r}
+ggplot(idaho_counties) +
+  # geom_sf() +
+  geom_sf(data=idaho_cities, aes(color=population)) + 
+  scale_color_gradient(low = min(idaho$population), high = quantile(idaho$population, .75) +
+  coord_sf(crs = 26911)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = idaho_counties, fill = "white", color = "black") +
+  geom_sf(data = idaho_cities, aes(color = population), size = 3) +
+  scale_color_gradient(low = "lightblue", high = "darkblue") +
+  coord_sf(crs = 26911) +  # EPSG: 26911 is the CRS for Idaho (UTM zone 11N)
+  theme_bw() +
+  labs(title = "Population of Cities in Idaho", color = "Population")
+```
+
+```{r}
+
+us_states <- us_states()
+
+#us_counties <- us_counties() %>%
+#  filter(!(state_name %in% c("Alaska", "Hawaii")))
+
+us_counties <- us_counties()
+
+# Check for duplicate column names
+duplicate_names <- names(us_counties)[duplicated(names(us_counties))]
+if(length(duplicate_names) > 0) {
+  warning("Duplicate column names found: ", paste(duplicate_names, collapse = ", "))
+  # Rename duplicate columns (example renaming, adjust as necessary)
+  names(us_counties)[duplicated(names(us_counties))] <- paste0(duplicate_names, "_1")
+}
+
+
+# Get US cities data
+us_cities <- us_cities()
+
+# Assume `us_cities` has a `population` column; if not, you'll need to add or merge it
+# Here we are just going to make up some population data for demonstration purposes
+# In practice, you should replace this with actual population data
+set.seed(42)
+
+us_cities <- us_cities %>%
+  filter(!(state_name %in% c("Alaska", "Hawaii"))) %>%
+  mutate(population = sample(1:1000000, n(), replace = TRUE))
+
+# Plotting the data
+ggplot() +
+  geom_sf(data = us_counties, fill = "white", color = "black") +
+  geom_sf(data = us_cities, aes(color = population), size = 3) +
+  scale_color_gradient(low = "lightblue", high = "darkblue") +
+  coord_sf(crs = 4269) +  # EPSG: 4269 is a common CRS for the US
+  theme_bw()
+```
+
+```{r}
+# Load libraries
+library(USAboundaries)
+library(sf)
+library(ggplot2)
+library(dplyr)
+
+# Get US counties data and filter out Alaska and Hawaii
+us_counties <- us_counties()
+
+us_counties <- us_counties%>%
+  filter(!(st_abbr %in% c("AK", "HI")))
+
+# Get US cities data and filter out Alaska and Hawaii
+us_cities <- us_cities() %>%
+  filter(!(state %in% c("AK", "HI"))) %>%  # Use state abbreviations for filtering
+  mutate(population = sample(1:1000000, n(), replace = TRUE))  # Mock population data
+
+# Plotting the data
+ggplot() +
+  geom_sf(data = us_counties, fill = "white", color = "black") +
+  geom_sf(data = us_cities, aes(color = population), size = 3) +
+  scale_color_gradient(low = "lightblue", high = "darkblue") +
+  coord_sf(crs = 4269, xlim = c(-125, -66), ylim = c(24, 50)) +  # Adjust the CRS and limits to focus on the contiguous US
+  theme_bw()
+
+```
+

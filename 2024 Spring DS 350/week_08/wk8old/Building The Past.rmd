@@ -1,0 +1,46 @@
+---
+title: "Building The past"
+output: html_document
+date: "2024-06-14"
+---
+
+```{r}
+devtools::install_github("hathawayj/buildings")
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(USAboundaries)
+library(USAboundariesData)
+library(dplyr)
+
+```
+
+```{r}
+#state_name appears twice.
+
+us_states <- us_states()
+us_counties <- us_counties()
+us_counties <- us_counties[, -13] # remove duplicate.
+
+pc <- us_counties %>% filter(namelsad == "Placer County")
+```
+
+```{r}
+names(us_counties)
+```
+
+
+```{r}
+left_join(usa,by=join_by(stateabbr=stusps)) %>%
+    mutata(
+        norm_tot_permits = total_permits / max(total_permits) %>%
+          st_sf
+    )
+```
+
+```{r}
+# Do for Placer County
+```
+

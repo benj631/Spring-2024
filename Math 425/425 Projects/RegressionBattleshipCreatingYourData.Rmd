@@ -97,55 +97,57 @@ Use the R-chunks below to create your simulated sample of data from your true re
 
 
 ```{r, comment=NA}
-set.seed(123) # This ensures the randomness is the "same" everytime if you play the entire R-chunk as one entire piece of code. If you run lines separately, your data might not come out the same every time. You can pick any integer value you want for set.seed. Each choice produces a different sample, so you might want to play around with a few different choices.
-
-## To begin, decide on your sample size. (You may have to revise it later to ensure all values in your lm(...) are significant.)
+set.seed(123) 
   
- n <- 1000
-  
-## Then, create 10 X-variables using functions like rnorm(n, mean, sd), rchisq(n, df), rf(n, df1, df2), rt(n, df), rbeta(n, a, b), runif(n, a, b) or sample(c(1,0), n, replace=TRUE)... ## To see what any of these functions do, run codes like hist(rchisq(n, 3)). These functions are simply allowing you to get a random sample of x-values. But the way you choose your x-values can have quite an impact on what the final scatterplot of the data will look like.
+n <- 20000
 
-random_n1_1 <- function() ifelse(runif(1) > 0.5, 1, -1)
-#random_0_1 <- function() rbinom(1, 1, 0.5)
-random_0_1_p <- function(p = 0.5) {
-  rbinom(1, 1, p)
-}
 
 # Actual X values
-x1 <- seq(-2.9, 2.9, length.out = n)
- 
+
+# for set 1 ----->
+x8 <- seq(-2.9, 2.9, length.out = n)
+
 # Positive 1 or Negative 1 - With x5 make second line
-x2 <- sample(c(-1,1),n,replace=TRUE)
+x9 <- sample(c(-1,1),n,replace=TRUE)
 
  # Either positive 1 or - 1 - depending on -1 interaction 
-x3 <- sample(c(-1,1),n,replace=TRUE)
+x10 <- sample(c(-1,1),n,replace=TRUE)
 
-# 4 term model is base model.
 
-# Y2 & Y3 by Dropping out x ^ -1 term. (0,1)
-x4 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)
+# 2 term model is base model.
 
-# x drop out (0,1)
-x5 <- sample(c(0,1),n,prob=c(.25,.75),replace = TRUE) 
+# y3/4 term 1 β3: .25 x * x1 Modifier
+x1 <- sample(c(0,1),n,prob=c(.6667, .3333),replace = TRUE)
 
-# x ^3 drop out
-x6 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE) 
+# y3/4 term 2 β4 : .1666666666 x^3 * x2 Modifier
+x2 <- sample(c(0,1),n,prob=c(.6667, .3333),replace = TRUE)
 
-# x^5 drop out
-x7 <- sample(c(0,1),n,prob=c(.75,.25),replace = TRUE) 
+# y5/6 term1 β5: 8 x^-1 * x3 INSERT
+x3 <- sample(c(0,1),n,prob=c(.6667, .3333),replace = TRUE)
 
-# Garbage
-x8 <- sample(c(-1,1),n,replace=TRUE) # (-1,1) but garbage
-x9 <- sample(c(0,1),n,prob=c(.25,.75),replace = TRUE) # but garbage
-x10 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)  # but garbage
+# y5/6 term 2 β6: .6 x * x4 Modifier
+x4 <- sample(c(0,1),n,prob=c(.6667,.3333),replace = TRUE)
 
-# Prevent the following situations:
-# x ^ 5 and x ^ 3 ONLY
-# x and x ^ 3 ONLY
-# x only
-# x ^ 3 only
-# x ^ 5 only
- 
+# y5/6 term 3 β7: .13333333333 x^3 * x5
+x5 <- sample(c(0,1),n,prob=c(.6667,.3333),replace = TRUE)
+
+# These two together give us our x^5 term.
+# Case x6 == 1, x7 == 0
+# y3/4 term 4 β8: .4 x^5 * x6
+x6 <- sample(c(0,1),n,prob=c(.3333,.6667),replace = TRUE)
+
+# Case x6 == 1, x7 == 1
+# y3/4 term 4 β9: .2 x^5 * x7
+x7 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)
+
+
+# Include Cases
+
+# x1 - 7 == 0 (Base Model)
+# x1,x2,x6, == 1, x5, x7 == 0 (Line 1)
+# x3,x4,x5,x6,x7 = 1, x1, x2 = 0 (Line 2)
+
+
 # Then, create betas, sigma, normal error terms and y
   sigma <- 5 #change to whatever positive number you want
  
@@ -162,95 +164,274 @@ x10 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)  # but garbage
  
 # Betas
   
-βint <- NA # Not using this, because everything crosses the y axis anyways
+βint <- NA # Not using this
 
-β1 <- 8 # -1
-β2 <- -6 # 1
-β3 <- 2 # 3
-β4 <- 2 # 5
+# Line pair 1
+β1 <- 10 # x
+β2 <- 15 # x^3
 
-β5 <- .3125  # x 
-β6 <- .4166666 # 
-β7 <- 2
-β8 <- -1.6666
-β9 <- .125
+# Line pair 2
+β3 <- -.25 # x
+β4 <- .16666666666 # x^3
+β8 <- -.4 # x^5
 
+# Line pair 3
+β5 <- 8  # x^-1 
+β6 <- -.6 # x
+β7 <- .13333333333 #x^3
+β8 <- -.4 # x^5
+β9 <- .2 # x^5
 
-y1 = 8 * x ^ -1 - 6 * x + 2 * x ^ 3 + 2 * x ^ 5 + εi
-y2 = -8 * x ^ -1 + 6 * x - 2 * x ^ 3 - 2 * x ^ 5 + εi
- 
-y3 <- -2.5 * x + 2.5 * x ^ 3 -.4* x ^ 5 + εi
-y4 <- +2.5 * x - 2.5 * x ^ 3 + .4* x ^ 5 + εi
-y3_4 <- -2.5 * x * x2 * x3 + 2.5 * x * x2 * x3 ^ 3 - .4* x * x2 * x3 ^ 5 + εi
+# For reference
 
-y5 <- x ^ -1 + εi
-y6 <- -(x ^ -1) + εi
-y5_6 <- (x ^ -1) * x2 * x3 + εi
+# y1 <- -10 * x -15 * x ^ 3 + εi
+# y2 <- +10 * x + 15 * x ^ 3 + εi
 
-y7 <- -10 * x -15 * x ^ 3 + εi
-y8 <- +10 * x + 15 * x ^ 3 + εi
-y7_8 <- 10 * x * x2 * x3 + -15 * x * x2 * x3 ^ 3 + εi
+# y3 <- -2.5 * x + 2.5 * x ^ 3 -.4* x ^ 5 + εi
+# y4 <- +2.5 * x - 2.5 * x ^ 3 + .4* x ^ 5 + εi
+
+# y5 = 8 * x ^ -1 - 6 * x + 2 * x ^ 3 + .2 * x ^ 5 + εi
+# y6 = -8 * x ^ -1 + 6 * x - 2 * x ^ 3 - .2 * x ^ 5 + εi
+
+# β3: x1 ----> -.25 x * x1 Modifier
+# β4: x2 ----> .1666666666 x^3 * x2 Modifier
+# β5: x3 ----> 8 x^-1 * x3 Addition
+# β6: x4 ----> -.6 x * x4 Modifier
+# β7: x5 ----> .13333333333 x^3 * x5 Modifier
+# β8: x6 ----> .4 x^5 * x6 (Case x6 == 1, x7 == 0) Add
+# β9: x7 ----> .2 x^5 * x7 (Case x6 == 1, x7 == 1)
+
+# Very Important
+x <- x8
 
 y <- (
-β1 * x^-1 * x2 * x3 * β5x4 +
-β2 * x * x2 * x3 * β6x5 +
-β3 * x^3 * x2 * x3 * x6 + 
-β4 * x^5 * x2 * x3 * x7 + 
-εi
+  x9 * x10 * (
+#   x^-1             x             x^3             x^5
+                     β1 * x      + β2 * x^3      +
+                     β3 * x * x1 + β4 * x^3 * x2 + β8 * x^5 * x6 +
+    β5 * x^-1 * x3 + β6 * x * x4 + β7 * x^3 * x5 + β9 * x^5 * x6 * x7 +
+    εi
+  )
 )
  
- ## Now, you need to load your x-variables and y-variable 
- ## into a data set.
- # You can include Y' or X' instead of Y or X if you wish.
- # Remember, only these functions are allowed when transforming
- # variables: 1/Y^2, 1/Y, log(Y), sqrt(Y), sqrt(sqrt(Y)), Y^2, Y^3, 1/X^2, 1/X, log(X), sqrt(X), sqrt(sqrt(X)), X^2, X^3, X^4, X^5. 
- #########################################################
- # ILLEGAL: Y = (beta0 + beta1*X5)^2 + epsilon_i #########
- #########################################################
- # Legal: sqrt(Y) = beta0 + beta1*X5^2 + epsilon_i #######
- #########################################################
- # You can only transform individual terms, not groups of terms.
- # And the beta's cannot be part of the x-transformations.
 
- # This loads your data into a data set:
+# This loads your data into a data set:
 data <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
  
-############### Model Engineering ##############
+############### Model Engineering ###############
 
-# x4 ----> x^-1 drop out
-# x5 ----> x    drop out
-# x6 ----> x^3 drop out
-# x7 ----> x^5 drop out
+# Line 1 Bounds - Limit X values for specific cases
 
-# Prevent the following situations where the following variables are the only ones
-# that drop out, and the others remain:
-# x only drop
-# x ^ 3 only drop
-# x and x ^ 3 only drops
-# x ^ 5 only drop
-# x ^ 5 and x ^ 3 only drops
+lb1.1 <- -1
+lb1.2 <- 1
 
-exclude_condition1 <- data$x4 == 1 & data$x5 == 0 & data$x6 == 1 & data$x7 == 1
-exclude_condition2 <- data$x4 == 1 & data$x5 == 1 & data$x6 == 0 & data$x7 == 1
-exclude_condition3 <- data$x4 == 1 & data$x5 == 0 & data$x6 == 0 & data$x7 == 1
-exclude_condition4 <- data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 0
-exclude_condition5 <- data$x4 == 1 & data$x5 == 1 & data$x6 == 0 & data$x7 == 0
+lb2.1 <- -2.8572
+lb2.2 <- 2.8572
+
+lb3.1 <- -2.2628
+lb3.2 <- -.2992
+lb3.3 <- .2992
+lb3.4 <- 2.2628
+
+
+# β3: x1 ----> .25 x * x1 Modifier
+# β4: x2 ----> .1666666666 x^3 * x2 Modifier
+# β5: x3 ----> 8 x^-1 * x3 INSERT
+# β6: x4 ----> .6 x * x4 Modifier
+# β7: x5 ----> .13333333333 x^3 * x5
+# β8: x6 ----> .4 x^5 * x6 (Case x6 == 1, x7 == 0)
+# β9: x7 ----> .2 x^5 * x7 (Case x6 == 1, x7 == 1)
+
+# Include Cases
+# x1 - 7 == 0 (Base Model)
+# x1,x2,x6, == 1, x5, x7 == 0 (Line 1)
+# x3,x4,x5,x6,x7 = 1, x1, x2 = 0 (Line 2)
+
+# Limit Permutation Possibilities
+condition1 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 0 & data$x7 == 0
+condition2 <- data$x1 == 1 & data$x2 == 1 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 1 & data$x7 == 0
+condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1
+
+# Limit X values for specific cases
+condition4 <- condition1 & data$x8 >= lb1.1 & data$x8 <= lb1.2
+condition5 <- condition2 & data$x8 >= lb2.1 & data$x8 <= lb2.2
+condition6 <- condition3 & ((data$x8 >= lb3.1 & data$x8 <= lb3.2) | (data$x8 >= lb3.3 & data$x8 <= lb3.4))
 
 # Combine all conditions
-exclude_all <- exclude_condition1 | exclude_condition2 | exclude_condition3 | exclude_condition4 | exclude_condition5
+include_all <- condition4 | condition5 | condition6
 
 # Filter rows from the model matrix
-filtered_model <- data[!exclude_all, ]
+rbdata <- data[include_all, ]
 
 
-######## END ENGINEERING ################
+############### END ENGINEERING ###############
 ```
+
+
+
+```{r}
+# Define the number of observations (n)
+n <- 100000
+
+# Generate x8 variable
+x8 <- seq(-2.9, 2.9, length.out = n)
+
+# Generate x9 and x10 variables
+x9 <- sample(c(-1, 1), n, replace = TRUE)
+x10 <- sample(c(-1, 1), n, replace = TRUE)
+
+# Generate x1 to x7 variables
+x1 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
+x2 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
+x3 <- sample(c(0, 1), n, prob = c(0.33, 0.67), replace = TRUE)
+x4 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
+x5 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
+x6 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
+x7 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
+
+# Set up beta coefficients
+β1 <- 10
+β2 <- 15
+β3 <- 0.25
+β4 <- 0.16666666666
+β5 <- 8
+β6 <- 0.6
+β7 <- 0.13333333333
+β8 <- -0.4
+β9 <- 0.2
+
+# Set up epsilon_i (error terms)
+sigma <- 5
+epsilon_i <- rnorm(n, 0, sigma)
+
+# Generate y variables based on the specified equations
+y1 <- -10 * x8 - 15 * x8^3 + epsilon_i
+y2 <- 10 * x8 + 15 * x8^3 + epsilon_i
+y3 <- -2.5 * x8 + 2.5 * x8^3 - 0.4 * x8^5 + epsilon_i
+y4 <- 2.5 * x8 - 2.5 * x8^3 + 0.4 * x8^5 + epsilon_i
+y5 <- 8 * x8^(-1) - 6 * x8 + 2 * x8^3 + 0.2 * x8^5 + epsilon_i
+y6 <- -8 * x8^(-1) + 6 * x8 - 2 * x8^3 - 0.2 * x8^5 + epsilon_i
+
+# Create data frame
+data <- data.frame(y = y,
+                   x1 = x1, x2 = x2, x3 = x3, x4 = x4, x5 = x5, x6 = x6, x7 = x7,
+                   x8 = x8, x9 = x9, x10 = x10)
+
+# Define bounds for conditions
+lb1.1 <- -1
+lb1.2 <- 1
+
+lb2.1 <- -2.8572
+lb2.2 <- 2.8572
+
+lb3.1 <- -2.2628
+lb3.2 <- -0.2992
+lb3.3 <- 0.2992
+lb3.4 <- 2.2628
+
+# Define conditions
+condition1 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 0 & data$x7 == 0
+condition2 <- data$x1 == 1 & data$x2 == 1 & data$x6 == 1 & data$x5 == 0 & data$x7 == 0
+condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1
+
+# Apply range conditions
+condition4 <- condition1 & data$x8 >= lb1.1 & data$x8 <= lb1.2
+condition5 <- condition2 & data$x8 >= lb2.1 & data$x8 <= lb2.2
+condition6 <- condition3 & ((data$x8 >= lb3.1 & data$x8 <= lb3.2) | (data$x8 >= lb3.3 & data$x8 <= lb3.4))
+
+# Combine all conditions
+include_all <- condition4 | condition5 | condition6
+
+# Filter rows
+rbdata <- data[include_all, ]
+
+```
+
+```{r}
+# Generate the data
+set.seed(123)
+n <- 20000
+
+x8 <- seq(-2.9, 2.9, length.out = n)
+x9 <- sample(c(-1,1), n, replace=TRUE)
+x10 <- sample(c(-1,1), n, replace=TRUE)
+
+x1 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
+x2 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
+x3 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
+x4 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
+x5 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
+x6 <- sample(c(0,1), n, prob=c(.3333, .6667), replace=TRUE)
+x7 <- sample(c(0,1), n, prob=c(.5, .5), replace=TRUE)
+
+sigma <- 5
+epsilon_i <- rnorm(n, 0, sigma)
+
+β1 <- 10
+β2 <- 15
+β3 <- -0.25
+β4 <- 0.16666666666
+β5 <- 8
+β6 <- -0.6
+β7 <- 0.13333333333
+β8 <- -0.4
+β9 <- 0.2
+
+# Calculate y based on the given formula
+y <- x9 * x10 * (
+  β1 * x8 +
+  β2 * x8^3 +
+  β3 * x8 * x1 +
+  β4 * x8^3 * x2 +
+  β8 * x8^5 * x6 +
+  β5 * x8^-1 * x3 +
+  β6 * x8 * x4 +
+  β7 * x8^3 * x5 +
+  β9 * x8^5 * x6 * x7 +
+  epsilon_i
+)
+
+data <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
+
+# Conditions for inclusion
+condition1 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 0 & data$x7 == 0 # Line 1
+condition2 <- data$x1 == 1 & data$x2 == 1 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 1 & data$x7 == 0 # Line 2
+condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1 # Line 3
+
+lb1.1 <- -1
+lb1.2 <- 1
+lb2.1 <- -2.8572
+lb2.2 <- 2.8572
+lb3.1 <- -2.2628
+lb3.2 <- -0.2992
+lb3.3 <- 0.2992
+lb3.4 <- 2.2628
+
+condition4 <- condition1 & data$x8 >= lb1.1 & data$x8 <= lb1.2
+condition5 <- condition2 & data$x8 >= lb2.1 & data$x8 <= lb2.2
+condition6 <- condition3 & ((data$x8 >= lb3.1 & data$x8 <= lb3.2) | (data$x8 >= lb3.3 & data$x8 <= lb3.4))
+
+include_all <- condition4 | condition5 | condition6
+
+rbdata <- data[include_all, ]
+
+# Check the resulting filtered data
+head(rbdata)
+summary(rbdata)
+
+```
+
+
 ```{r}
 View(rbdata)
+nrow(rbdata)
 ```
 
 ```{r}
-plot(y~x1,rbdata)
+plot(y~x8,rbdata)
+```
+```{r}
+plot(y~x8,data)
 ```
 
 
@@ -284,7 +465,47 @@ summary(mylm)
 Provide a 2D scatterplot that shows both your *true* model (dashed lines) and *estimated* model (solid lines) on the same scatterplot. This should match your Desmos graph. 
 
 ```{r}
+library(ggplot2)
+library(reshape2)
 
+# Set seed for reproducibility
+set.seed(42)
+
+# Generate x values
+x <- seq(-10, 10, length.out = 400)
+
+# Define y values without epsilon
+
+y1 <- 10 * x + 15 * x ^ 3
+y2 <- -10 * x - 15 * x ^ 3
+y3 <- -2.5 * x + 2.5 * x ^ 3 - 0.4 * x ^ 5
+y4 <- 2.5 * x - 2.5 * x ^ 3 + 0.4 * x ^ 5
+y5 <- 8 * x ^ -1 - 6 * x + 2 * x ^ 3 + 2 * x ^ 5
+y6 <- -8 * x ^ -1 + 6 * x - 2 * x ^ 3 - 2 * x ^ 5
+
+
+# Create a data frame
+df <- data.frame(
+  x = x,
+  y1 = y1,
+  y2 = y2,
+  y3 = y3,
+  y4 = y4,
+  y5 = y5,
+  y6 = y6
+)
+
+# Melt the data frame for easier plotting with ggplot
+df_melted <- melt(df, id.vars = 'x')
+
+# Plotting using ggplot2
+ggplot(df_melted, aes(x = x, y = value, color = variable)) +
+  geom_line(size = 1.2) +
+  xlim(-2.9, 2.9) +
+  ylim(-25, 25) +
+  ggtitle('Plot of y1, y2, y3, y4, y5, y6, y7, and y8') +
+  theme_bw() +
+  labs(x = 'x', y = 'value') 
 ```
 
 
