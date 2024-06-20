@@ -35,15 +35,16 @@ library(lubridate)
 ```
 
 ```{r}
-us_states <- us_states()
+states <- us_states()
 
-us_states <- us_states() %>% filter(name %in% state.name, name != "Hawaii", name != "Alaska")
+lower_48 <- states %>% filter(name %in% state.name, name != "Hawaii", name != "Alaska", name != "Puerto Rico")
 
-us_cities <- us_cities %>%
+us_cities <- us_cities() %>%
   filter(!(state_name %in% c("Alaska", "Hawaii"))) %>%
   mutate(population = sample(1:1000000, n(), replace = TRUE))
 
 us_cities_top3 <- us_cities %>%
+  group_by(state_name) %>%
   arrange(desc(population)) %>%  # Arrange by population in descending order
   slice(1:3) %>%  # Select the top 3 cities by population
   mutate(index = case_when(
@@ -51,20 +52,28 @@ us_cities_top3 <- us_cities %>%
     row_number() == 2 ~ 2,
     row_number() == 3 ~ 3
   ))
-
-idaho <- us_states %>% filter(name == "Idaho")
-
-us_counties <- us_counties()
-duplicated_column <- names(us_counties)[duplicated(names(us_counties))]
-us_counties <- us_counties %>% select(-duplicated_column)
-us_counties <- us_counties %>% filter(!state_name %in% c("Alaska", "Hawaii")) %>% select(state_name)
+  
+id_counties <- us_counties(states ="Idaho")
 
 ggplot() +
-  #geom_sf(data = us_states, aes(fill = NA, color = "black"), size = 0.5) +  # Outline of states
-  geom_sf(data = us_counties, fill = "white", color = "black") +  # Counties as base layer
+  geom_sf(data = lower_48, fill = "white") +  # Outline of states
+  geom_sf(data = id_counties, fill = "white", color = "black") +  # Counties as base layer
   # geom_sf(data = us_states, aes(fill = name), color = "black") +  # States with fill based on state name
-  geom_sf(data = us_cities_top3, aes(color = population), size = 3) +   # Cities with color based on population
-  geom_sf(data = idaho, fill = "transparent", color = "blue", size = 2) +  # Highlight Idaho state
+  geom_sf(data = us_cities_top3, aes(color = population), size = 3)   # Cities with color based on population
+```
+
+
+```{r}
+ggplot() +
+  geom_sf(data = lower_48, aes(fill = "white", color = "black"), size = 0.5) +  # Outline of states
+  geom_sf(data = id_counties, fill = "white", color = "black") +  # Counties as base layer
+  # geom_sf(data = us_states, aes(fill = name), color = "black") +  # States with fill based on state name
+  geom_sf(data = us_cities_top3, aes(color = population), size = 3)   # Cities with color based on population
+  
+```
+
+```{r}
+geom_sf(data = idaho, fill = "transparent", color = "blue", size = 2) +  # Highlight Idaho state
   scale_color_gradient(low = "lightblue", high = "darkblue") +    # Color scale for city population
   coord_sf(crs = st_crs(us_states)) +  # Set coordinate system
   theme_bw() +
@@ -73,5 +82,4 @@ ggplot() +
        color = "Population")  # Labels and titles
 ```
 
-```
 

@@ -1,0 +1,67 @@
+---
+title: "Zachdata"
+output: html_document
+date: "2024-06-17"
+---
+
+```{r}
+library(tidyverse)
+library(pander)
+library(dplyr)
+library(readr)
+```
+
+1. Output of y dependent on both x1 and x5 - No.
+2. Is x3 in your model -> No
+3. Is x7 in your model -> No
+
+```{r}
+zachdata <- read_csv("zachdata.csv")
+```
+
+```{r}
+View(zachdata)
+```
+
+```{r}
+plot()
+plot(y~x1,data=zachdata)
+plot(y~x5,data=zachdata)
+plot(y~x6,data=zachdata)
+```
+
+
+```{r}
+pairs(zachdata)
+pairs(zachdata,panel=panel.smooth, col=as.factor(data$x10))
+pairs(zachdata,panel=panel.smooth, col=as.factor(data$x3))
+```
+X8 and x10 are mutually exclusive
+X8 and x9 are mutually exclusive'
+
+
+```{r}
+# Let's construct an lm with what we think is actually effecting stuff
+lm2 <- lm(y~ 
+            x5:x8 +
+            
+            x5:x9 +
+            
+            x5:x10,
+          
+          
+            data=zachdata)
+
+summary(lm2)
+```
+
+
+```{r}
+ggplot(zachdata, aes(x=x5,y=y,color=interaction(x10)))+
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  #geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~interaction(x10)) +
+  theme_bw()
+```
+

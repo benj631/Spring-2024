@@ -97,15 +97,15 @@ Use the R-chunks below to create your simulated sample of data from your true re
 
 
 ```{r, comment=NA}
-set.seed(123) 
+set.seed(120) 
   
-n <- 20000
+n <- 100000
 
 
 # Actual X values
 
 # for set 1 ----->
-x8 <- seq(-2.9, 2.9, length.out = n)
+x8 <- runif(n,-2.6, 2.6)
 
 # Positive 1 or Negative 1 - With x5 make second line
 x9 <- sample(c(-1,1),n,replace=TRUE)
@@ -149,7 +149,7 @@ x7 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)
 
 
 # Then, create betas, sigma, normal error terms and y
-  sigma <- 5 #change to whatever positive number you want
+  sigma <- 4 #change to whatever positive number you want
  
   
  ################################
@@ -168,19 +168,19 @@ x7 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)
 
 # Line pair 1
 β1 <- 10 # x
-β2 <- 15 # x^3
+β2 <- -15 # x^3
 
 # Line pair 2
-β3 <- -.25 # x
-β4 <- .16666666666 # x^3
-β8 <- -.4 # x^5
+β3 <- -7.5 # x
+β4 <- 12.5 # x^3
+β8 <- .4 # x^5
 
 # Line pair 3
 β5 <- 8  # x^-1 
-β6 <- -.6 # x
-β7 <- .13333333333 #x^3
-β8 <- -.4 # x^5
-β9 <- .2 # x^5
+β6 <- -16 # x
+β7 <- 17 #x^3
+β8 <- .4 # x^5
+β9 <- -.2 # x^5
 
 # For reference
 
@@ -222,8 +222,8 @@ data <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
 
 # Line 1 Bounds - Limit X values for specific cases
 
-lb1.1 <- -1
-lb1.2 <- 1
+lb1.1 <- -1.3716
+lb1.2 <- 1.3716
 
 lb2.1 <- -2.8572
 lb2.2 <- 2.8572
@@ -253,9 +253,13 @@ condition2 <- data$x1 == 1 & data$x2 == 1 & data$x3 == 0 & data$x4 == 0 & data$x
 condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1
 
 # Limit X values for specific cases
-condition4 <- condition1 & data$x8 >= lb1.1 & data$x8 <= lb1.2
-condition5 <- condition2 & data$x8 >= lb2.1 & data$x8 <= lb2.2
-condition6 <- condition3 & ((data$x8 >= lb3.1 & data$x8 <= lb3.2) | (data$x8 >= lb3.3 & data$x8 <= lb3.4))
+condition4 <- condition1 & ((data$x8 >= lb1.1) & (data$x8 <= lb1.2))
+condition5 <- condition2 & ((data$x8 >= lb2.1) & (data$x8 <= lb2.2))
+condition6 <- condition3 & (((data$x8 >= lb3.1) & (data$x8 <= lb3.2)) | ((data$x8 >= lb3.3) & (data$x8 <= lb3.4)))
+
+# condition4 <- FALSE
+# condition5 <- FALSE
+# condition6 <- FALSE
 
 # Combine all conditions
 include_all <- condition4 | condition5 | condition6
@@ -265,160 +269,15 @@ rbdata <- data[include_all, ]
 
 
 ############### END ENGINEERING ###############
-```
 
-
-
-```{r}
-# Define the number of observations (n)
-n <- 100000
-
-# Generate x8 variable
-x8 <- seq(-2.9, 2.9, length.out = n)
-
-# Generate x9 and x10 variables
-x9 <- sample(c(-1, 1), n, replace = TRUE)
-x10 <- sample(c(-1, 1), n, replace = TRUE)
-
-# Generate x1 to x7 variables
-x1 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
-x2 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
-x3 <- sample(c(0, 1), n, prob = c(0.33, 0.67), replace = TRUE)
-x4 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
-x5 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
-x6 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
-x7 <- sample(c(0, 1), n, prob = c(0.11, 0.89), replace = TRUE)
-
-# Set up beta coefficients
-β1 <- 10
-β2 <- 15
-β3 <- 0.25
-β4 <- 0.16666666666
-β5 <- 8
-β6 <- 0.6
-β7 <- 0.13333333333
-β8 <- -0.4
-β9 <- 0.2
-
-# Set up epsilon_i (error terms)
-sigma <- 5
-epsilon_i <- rnorm(n, 0, sigma)
-
-# Generate y variables based on the specified equations
-y1 <- -10 * x8 - 15 * x8^3 + epsilon_i
-y2 <- 10 * x8 + 15 * x8^3 + epsilon_i
-y3 <- -2.5 * x8 + 2.5 * x8^3 - 0.4 * x8^5 + epsilon_i
-y4 <- 2.5 * x8 - 2.5 * x8^3 + 0.4 * x8^5 + epsilon_i
-y5 <- 8 * x8^(-1) - 6 * x8 + 2 * x8^3 + 0.2 * x8^5 + epsilon_i
-y6 <- -8 * x8^(-1) + 6 * x8 - 2 * x8^3 - 0.2 * x8^5 + epsilon_i
-
-# Create data frame
-data <- data.frame(y = y,
-                   x1 = x1, x2 = x2, x3 = x3, x4 = x4, x5 = x5, x6 = x6, x7 = x7,
-                   x8 = x8, x9 = x9, x10 = x10)
-
-# Define bounds for conditions
-lb1.1 <- -1
-lb1.2 <- 1
-
-lb2.1 <- -2.8572
-lb2.2 <- 2.8572
-
-lb3.1 <- -2.2628
-lb3.2 <- -0.2992
-lb3.3 <- 0.2992
-lb3.4 <- 2.2628
-
-# Define conditions
-condition1 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 0 & data$x7 == 0
-condition2 <- data$x1 == 1 & data$x2 == 1 & data$x6 == 1 & data$x5 == 0 & data$x7 == 0
-condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1
-
-# Apply range conditions
-condition4 <- condition1 & data$x8 >= lb1.1 & data$x8 <= lb1.2
-condition5 <- condition2 & data$x8 >= lb2.1 & data$x8 <= lb2.2
-condition6 <- condition3 & ((data$x8 >= lb3.1 & data$x8 <= lb3.2) | (data$x8 >= lb3.3 & data$x8 <= lb3.4))
-
-# Combine all conditions
-include_all <- condition4 | condition5 | condition6
-
-# Filter rows
-rbdata <- data[include_all, ]
-
+write.csv(rbdata,"rbdata.csv",row.names=FALSE)
 ```
 
 ```{r}
-# Generate the data
-set.seed(123)
-n <- 20000
+test.lm <- lm(y ~ x9:x10:(
+                     x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata)
 
-x8 <- seq(-2.9, 2.9, length.out = n)
-x9 <- sample(c(-1,1), n, replace=TRUE)
-x10 <- sample(c(-1,1), n, replace=TRUE)
-
-x1 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
-x2 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
-x3 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
-x4 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
-x5 <- sample(c(0,1), n, prob=c(.6667, .3333), replace=TRUE)
-x6 <- sample(c(0,1), n, prob=c(.3333, .6667), replace=TRUE)
-x7 <- sample(c(0,1), n, prob=c(.5, .5), replace=TRUE)
-
-sigma <- 5
-epsilon_i <- rnorm(n, 0, sigma)
-
-β1 <- 10
-β2 <- 15
-β3 <- -0.25
-β4 <- 0.16666666666
-β5 <- 8
-β6 <- -0.6
-β7 <- 0.13333333333
-β8 <- -0.4
-β9 <- 0.2
-
-# Calculate y based on the given formula
-y <- x9 * x10 * (
-  β1 * x8 +
-  β2 * x8^3 +
-  β3 * x8 * x1 +
-  β4 * x8^3 * x2 +
-  β8 * x8^5 * x6 +
-  β5 * x8^-1 * x3 +
-  β6 * x8 * x4 +
-  β7 * x8^3 * x5 +
-  β9 * x8^5 * x6 * x7 +
-  epsilon_i
-)
-
-data <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
-
-# Conditions for inclusion
-condition1 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 0 & data$x7 == 0 # Line 1
-condition2 <- data$x1 == 1 & data$x2 == 1 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 1 & data$x7 == 0 # Line 2
-condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1 # Line 3
-
-lb1.1 <- -1
-lb1.2 <- 1
-lb2.1 <- -2.8572
-lb2.2 <- 2.8572
-lb3.1 <- -2.2628
-lb3.2 <- -0.2992
-lb3.3 <- 0.2992
-lb3.4 <- 2.2628
-
-condition4 <- condition1 & data$x8 >= lb1.1 & data$x8 <= lb1.2
-condition5 <- condition2 & data$x8 >= lb2.1 & data$x8 <= lb2.2
-condition6 <- condition3 & ((data$x8 >= lb3.1 & data$x8 <= lb3.2) | (data$x8 >= lb3.3 & data$x8 <= lb3.4))
-
-include_all <- condition4 | condition5 | condition6
-
-rbdata <- data[include_all, ]
-
-# Check the resulting filtered data
-head(rbdata)
-summary(rbdata)
-
+summary(test.lm)
 ```
 
 
@@ -430,85 +289,124 @@ nrow(rbdata)
 ```{r}
 plot(y~x8,rbdata)
 ```
-```{r}
-plot(y~x8,data)
-```
-
-
-```{r, comment=NA}
-# Now fit your model to make sure it comes out significant:
-
-mylm <- lm(y ~ 0, data=rbdata) #edit this code to be your true model
-summary(mylm)
-
-# all p-values must be significant
-# the R^2 value must be greater than or equal to 0.30.
- 
-# Once you are done with creating your model, and have successfully
-# graphed it (see below), un-comment the following `write.csv` code,
-# then, PLAY this ENTIRE R-chunk to write your data to a csv.
-
- # write.csv(rbdata, "rbdata.csv", row.names=FALSE)
-
-# The above code writes the dataset to your "current directory"
-# To see where that is, use: getwd() in your Console.
-# Find the rbdata.csv data set and upload it to I-Learn.
-```
-
-
-
-
-
 
 ## R Plot
 
 Provide a 2D scatterplot that shows both your *true* model (dashed lines) and *estimated* model (solid lines) on the same scatterplot. This should match your Desmos graph. 
 
 ```{r}
-library(ggplot2)
-library(reshape2)
+y1 <- function(x){ 10 * x + 15 * x ^ 3}
+y2 <- function(x){-10 * x - 15 * x ^ 3}
+y3 <- function(x){-2.5 * x + 2.5 * x ^ 3 - 0.4 * x ^ 5}
+y4 <- function(x){2.5 * x - 2.5 * x ^ 3 + 0.4 * x ^ 5}
+y5 <- function(x){8 * (x ^-1) - 6 * x + 2 * x ^ 3 + 2 * x ^ 5}
+y6 <- function(x){-8 * (x ^ -1) + 6 * x - 2 * x ^ 3 - 2 * x ^ 5}
 
-# Set seed for reproducibility
-set.seed(42)
+b <- coef (test.lm)
 
-# Generate x values
-x <- seq(-10, 10, length.out = 400)
+y7 <- function(x,x9=1,x10=1) {
+  b[1] +
+  x9 * x10 * (
+    b[2] * x + b[3] * x^3)
+}
 
-# Define y values without epsilon
+y8 <- function(x,x9=1,x10=1,x1=1,x2=1,x3=0,x4=0,x5=0,x6=1,x7=0) {
+  b[1] +
+  x9 * x10 * (
+    b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+  )
+}
 
-y1 <- 10 * x + 15 * x ^ 3
-y2 <- -10 * x - 15 * x ^ 3
-y3 <- -2.5 * x + 2.5 * x ^ 3 - 0.4 * x ^ 5
-y4 <- 2.5 * x - 2.5 * x ^ 3 + 0.4 * x ^ 5
-y5 <- 8 * x ^ -1 - 6 * x + 2 * x ^ 3 + 2 * x ^ 5
-y6 <- -8 * x ^ -1 + 6 * x - 2 * x ^ 3 - 2 * x ^ 5
+y9 <- function(x,x9=1,x10=1,x1=0,x2=0,x3=1,x4=1,x5=1,x6=1,x7=1) {
+  b[1] +
+  x9 * x10 * (
+    b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+  )
+}
 
+y10 <- function(x,x9=-1,x10=1,x1=0,x2=0,x3=0,x4=0,x5=0,x6=0,x7=0) {
+  b[1] +
+  x9 * x10 * (
+    b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+  )
+}
 
-# Create a data frame
-df <- data.frame(
-  x = x,
-  y1 = y1,
-  y2 = y2,
-  y3 = y3,
-  y4 = y4,
-  y5 = y5,
-  y6 = y6
-)
+y11 <- function(x,x9=-1,x10=1,x1=1,x2=1,x3=0,x4=0,x5=0,x6=1,x7=0) {
+  b[1] +
+  x9 * x10 * (
+    b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+  )
+}
 
-# Melt the data frame for easier plotting with ggplot
-df_melted <- melt(df, id.vars = 'x')
+y12 <- function(x,x9=-1,x10=1,x1=0,x2=0,x3=1,x4=1,x5=1,x6=1,x7=1) {
+  b[1] +
+  x9 * x10 * (
+    b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+  )
+}
 
-# Plotting using ggplot2
-ggplot(df_melted, aes(x = x, y = value, color = variable)) +
-  geom_line(size = 1.2) +
-  xlim(-2.9, 2.9) +
-  ylim(-25, 25) +
-  ggtitle('Plot of y1, y2, y3, y4, y5, y6, y7, and y8') +
-  theme_bw() +
-  labs(x = 'x', y = 'value') 
+ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9,x10))) +
+  geom_point(size=1)+ 
+  scale_y_continuous(lim=c(-75,+75)) +
+  stat_function(fun=y1, col = "black",size=1.5) +
+  stat_function(fun=y2, col = "forestgreen",size=1.5) +
+  stat_function(fun=y3, col = "orange",size=1.5) +
+  stat_function(fun=y4, col = "purple",size=1.5) +
+  stat_function(fun=y5, col = "red",size=1.5) +
+  stat_function(fun=y6, col = "purple",size=1.5)
+  stat_function(fun=y7, col = "grey",size=2)
+  # stat_function(fun=y8, col = "grey",size=100) +
+  # stat_function(fun=y9, col = "grey",size=100) +
+  # stat_function(fun=y10, col = "grey",size=100) +
+  # stat_function(fun=y11, col = "grey",size=100)
+  
+  
+  
+  
 ```
 
 
+```{r}
+test.lm <- lm(y ~ x9:x10:(
+                     x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata)
+
+
+
+```
+
+```{r}
+library(pander)
+summary(test.lm)
+#pander(b)
+```
+
+# Line pair 1
+β1 <- 10 # x
+β2 <- -15 # x^3
+
+# Line pair 2
+β3 <- -7.5 # x
+β4 <- 12.5 # x^3
+β8 <- .4 # x^5
+
+# Line pair 3
+β5 <- 8  # x^-1 
+β6 <- -16 # x
+β7 <- 17 #x^3
+β8 <- .4 # x^5
+β9 <- -.2 # x^5
+
+```{r}
+rbdatatemp <- rbdata()
+```
+
+
+stat_function(fun=y1) + 
 ## Math Model
 
 Write out your "true" model in mathematical form. Make sure it matches your code. This could be "painful" if you chose a complicated model.
