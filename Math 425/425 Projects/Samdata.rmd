@@ -24,41 +24,106 @@ library(readr)
 ```{r}
 samdata <- read_csv("samdata.csv")
 ```
+```{r}
+# proof that x5 and 6 are useless
+samdata <- samdata[(samdata$x6 == 1 | samdata$x5 == 1) & (samdata$x2 == 0 & samdata$x1 == 0), ]
+
+# View the subsetted data
+View(samdata)
+```
+
 
 ```{r}
 View(samdata)
+```
 
-pairs(samdata,panel=panel.smooth, col=as.factor(data$x5))
+
+
+```{r}
+samdata <- samdata %>% select(-x6)
+samdata <- samdata %>% select(-x10)
+samdata <- samdata %>% select(-x5)
+```
+
+
+
+
+```{r}
+pairs(samdata,panel=panel.smooth, col=as.factor(data$x2))
 pairs(samdata,panel=panel.smooth, col=as.factor(data$x3))
 ```
 
-```{r}
-samlm1 <- lm(y ~ x2:x5:x6+
-          x1:x2:x5 +
-          x4:x2:x5+
-          x7:x2:x5+
-          x8:x2:x5+
-          x9:x2:x5+
-          x10:x2:x5,
-            data=samdata)
 
-summary(samlm1)
+```{r}
+interaction_mapping <- function(x2, x3) {
+  return(1 + x2 * 2 + x3)
+}
+
+# Create the interaction variable in samdata
+samdata <- samdata %>%
+  mutate(interaction = interaction_mapping(x2, x3))
+
+# Print the updated dataset
+View(samdata)
 ```
 
+x4 not so much?
+
 ```{r}
-plot(y~x1,col=as.factor(x3))
+samlm2 <- lm(y ~ x1 + x1:x2 + x1:x3 + x1:x2:x3 + I(x1^2):x3:x2 + I(x1^2):x2,data=samdata)
+model <- lm(y ~ x1 + I(x1^2) + x3 + x2 + x1:x3 + I(x1^2):x2 + x1:x3:x2 + I(x1^2):x3:x2, data = samdata)
+
+
+summary(samlm2)
 ```
 
 
 ```{r}
-ggplot(data, aes(x=x2,y=y,color=interaction(x4,x5,x8)))+
-  geom_point() +
-  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
-  geom_point(aes(y=lm2$fit),cex=0.5) +
-  facet_wrap(~interaction(x4,x5,x8)) +
+intercept = 0
+y = intercept + x1^2 * x2 * -1*x3
+```
+
+
+```{r}
+
+samlong_data <- samdata %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+ggplot(samlong_data, aes(x = value)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  facet_wrap(~ variable, scales = "free") +
   theme_bw()
-
 ```
+
+x2: parabola or not
+x3: negative or not
+
+```{r}
+samdata$fit <- predict(samlm2)
+
+ggplot(samdata, aes(x = x1, y = y)) +
+  geom_point() +
+  geom_line(aes(y = fit), color = "blue", size = 1) +  # Add fitted values
+  facet_wrap(~ interaction) +  # Facet by samdata$interaction
+  theme_bw()
+```
+
+
+
+```{r}
+ggplot(samdata, aes(x = x7, y = y)) +
+  geom_point() +
+  facet_wrap(~ samdata$interaction) +
+  theme_bw()
+```
+
+```{r}
+ggplot(samdata, aes(x = x4, y = y)) +
+  geom_point() +
+  facet_wrap(~ samdata$interaction) +
+  theme_bw()
+```
+
 ```{r}
 ggplot(rbdata_adv, aes(x=x2,y=y,color=interaction(x3)))+
   geom_point() +

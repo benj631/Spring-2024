@@ -17,7 +17,64 @@ library(readr)
 
 ```{r}
 zachdata <- read_csv("zachdata.csv")
+zachdata$x1s <- sqrt(zachdata$x1)
 ```
+```{r}
+unique_permutations <- list(as.list(zachdata[1, c("x2", "x4", "x8", "x9", "x10")]))
+interaction_numbers <- integer(nrow(zachdata))
+interaction_numbers[1] <- 1  # Assign the first row the interaction number 1
+
+# Iterate through each row of the dataset starting from the second row
+for (i in 2:nrow(zachdata)) {
+  # Extract the current permutation as a list
+  current_permutation <- as.list(zachdata[i, c("x2", "x4", "x8", "x9", "x10")])
+  
+  # Check if the current permutation exists in the unique_permutations list
+  found <- FALSE
+  for (j in 1:length(unique_permutations)) {
+    if (identical(unique_permutations[[j]], current_permutation)) {
+      interaction_numbers[i] <- j
+      found <- TRUE
+      break
+    }
+  }
+  
+  # If the permutation is new, add it to the unique_permutations list
+  if (!found) {
+    unique_permutations[[length(unique_permutations) + 1]] <- current_permutation
+    interaction_numbers[i] <- length(unique_permutations)
+  }
+}
+
+# Add the interaction numbers to the dataset
+zachdata <- zachdata %>%
+  mutate(interaction = interaction_numbers)
+
+#make a table of the interactions
+unique_combinations <- do.call(rbind, lapply(unique_permutations, as.data.frame))
+unique_combinations <- unique_combinations %>%
+  mutate(interaction = 1:nrow(unique_combinations))
+
+# Print the table of unique combinations
+print(unique_combinations)
+
+# Print the updated dataset
+View(zachdata)
+```
+We see that x2 is the only variable on when other variables are on
+
+```{r}
+zachdata <- zachdata %>%
+  mutate(
+    interaction = x2 * 16 + x4 * 8 + x8 * 4 + x9 * 2 + x10 * 1
+  )
+
+# Print the updated dataset with the 'interaction' column
+View(zachdata)
+# Print the updated dataset
+View(zachdata)
+```
+
 
 ```{r}
 View(zachdata)
@@ -44,24 +101,59 @@ X8 and x9 are mutually exclusive'
 # Let's construct an lm with what we think is actually effecting stuff
 lm2 <- lm(y~ 
             x5:x8 +
-            
             x5:x9 +
-            
             x5:x10,
-          
-          
             data=zachdata)
-
 summary(lm2)
+```
+
+```{r}
+
 ```
 
 
 ```{r}
-ggplot(zachdata, aes(x=x5,y=y,color=interaction(x10)))+
+# x3 is only involved in interactions 1 and 10, whatever that means.
+ggplot(zachdata, aes(x=x1,y=y,col=interaction(x2,x3))) +
   geom_point() +
   # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
-  #geom_point(aes(y=lm2$fit),cex=0.5) +
-  facet_wrap(~interaction(x10)) +
+  # geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~ zachdata$interaction) +
   theme_bw()
 ```
+```{r}
+ggplot(zachdata, aes(x=x1,y=y,col=interaction(x2,x3,x4))) +
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  # geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~ zachdata$interaction) +
+  theme_bw()
+```
+```{r}
+ggplot(zachdata, aes(x=x1,y=y,col=interaction(x8,x9,x10))) +
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  # geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~ zachdata$interaction) +
+  theme_bw()
+```
+
+```{r}
+ggplot(zachdata, aes(x=x6,y=y,col=x2))+
+  geom_point() +
+  # geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~ zachdata$interaction) +
+  theme_bw()
+```
+
+```{r}
+# Just x1 *-.1
+ggplot(zachdata, aes(x=x5,y=y,col=x3))+
+  geom_point() +
+  # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
+  # geom_point(aes(y=lm2$fit),cex=0.5) +
+  facet_wrap(~ zachdata$interaction) +
+  theme_bw()
+```
+
 

@@ -1,0 +1,29 @@
+---
+title: "Sam Data"
+output: html_document
+date: "2024-06-21"
+---
+
+
+```{r}
+library(tidyverse)
+library(pander)
+library(dplyr)
+library(readr)
+```
+
+
+```{r}
+bendata <- read_csv("rbdata.csv")
+```
+
+```{r}
+plot(y~x8,bendata)
+```
+```{r}
+benlm <- lm(y ~ x9:x10:(
+                     x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=bendata)
+
+summary(benlm)
+```
+
