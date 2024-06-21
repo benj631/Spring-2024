@@ -27,3 +27,8 @@ benlm <- lm(y ~ x9:x10:(
 summary(benlm)
 ```
 
+```{r}
+zachlm <- lm(y^2 ~ I(x8^2) + I(x1) + I(x1):I(x8^2) + x7 + x9:x7:x8 + x7:I(x8^2),data=bendata)
+summary(zachlm)
+```
+
