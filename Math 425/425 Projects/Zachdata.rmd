@@ -15,10 +15,23 @@ library(readr)
 2. Is x3 in your model -> No
 3. Is x7 in your model -> No
 
+
 ```{r}
 zachdata <- read_csv("zachdata.csv")
 zachdata$x1s <- sqrt(zachdata$x1)
 ```
+
+```{r}
+View(zachdata)
+```
+
+
+```{r}
+hist(zachdata$y,xlim = c(-1, 1.5))
+mean(zachdata$y)
+```
+
+
 ```{r}
 unique_permutations <- list(as.list(zachdata[1, c("x2", "x4", "x8", "x9", "x10")]))
 interaction_numbers <- integer(nrow(zachdata))
@@ -64,35 +77,14 @@ View(zachdata)
 We see that x2 is the only variable on when other variables are on
 
 ```{r}
-zachdata <- zachdata %>%
-  mutate(
-    interaction = x2 * 16 + x4 * 8 + x8 * 4 + x9 * 2 + x10 * 1
-  )
-
-# Print the updated dataset with the 'interaction' column
-View(zachdata)
-# Print the updated dataset
-View(zachdata)
-```
-
-
-```{r}
 View(zachdata)
 ```
 
 ```{r}
-plot()
-plot(y~x1,data=zachdata)
-plot(y~x5,data=zachdata)
-plot(y~x6,data=zachdata)
+pairs(zachdata,panel=panel.smooth, col=as.factor(data$x2))
+pairs(zachdata,panel=panel.smooth, col=as.factor(data$x4))
 ```
 
-
-```{r}
-pairs(zachdata)
-pairs(zachdata,panel=panel.smooth, col=as.factor(data$x10))
-pairs(zachdata,panel=panel.smooth, col=as.factor(data$x3))
-```
 X8 and x10 are mutually exclusive
 X8 and x9 are mutually exclusive'
 
@@ -114,13 +106,14 @@ summary(lm2)
 
 ```{r}
 # x3 is only involved in interactions 1 and 10, whatever that means.
-ggplot(zachdata, aes(x=x1,y=y,col=interaction(x2,x3))) +
+ggplot(zachdata, aes(x=x1+x5+x6,y=y,col=interaction(x2,x3))) +
   geom_point() +
   # see the first chart, how x4 and 5 and 5 and x8 can't activate simultaneously
   # geom_point(aes(y=lm2$fit),cex=0.5) +
   facet_wrap(~ zachdata$interaction) +
   theme_bw()
 ```
+
 ```{r}
 ggplot(zachdata, aes(x=x1,y=y,col=interaction(x2,x3,x4))) +
   geom_point() +
@@ -129,6 +122,7 @@ ggplot(zachdata, aes(x=x1,y=y,col=interaction(x2,x3,x4))) +
   facet_wrap(~ zachdata$interaction) +
   theme_bw()
 ```
+
 ```{r}
 ggplot(zachdata, aes(x=x1,y=y,col=interaction(x8,x9,x10))) +
   geom_point() +

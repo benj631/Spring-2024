@@ -12,12 +12,17 @@ format:
 date: "2024-06-10"
 ---
 
+
+
 https://spatialreference.org/ 
 https://spatialreference.org/ref/epsg/4326/
 
 devtools::install_github('jgcri/rgis')
 
-```{r eval=FALSE}
+
+::: {.cell}
+
+```{.r .cell-code}
 install.packages("devtools")
 install.packages("sf")
 
@@ -32,8 +37,11 @@ devtools::install_github("ropensci/USAboundariesData")
 #OR
 install.packages("USAboundaries")
 ```
+:::
 
-```{r}
+::: {.cell}
+
+```{.r .cell-code}
 library(tidyverse)
 library(sf)
 library(USAboundaries)
@@ -42,8 +50,11 @@ library(dplyr)
 library(lubridate)
 library(ggrepel)
 ```
+:::
 
-```{r}
+::: {.cell}
+
+```{.r .cell-code}
 states <- us_states()
 
 lower_48 <- states %>% filter(name %in% state.name, name != "Hawaii", name != "Alaska", name != "Puerto Rico")
@@ -89,8 +100,13 @@ ggplot() +
        subtitle = "Top 3 Cities by Population Highlighted",
        color = "Population") +
   theme_bw()# Cities with color based on population
-
 ```
+
+::: {.cell-output-display}
+![](US-Cities_files/figure-html/unnamed-chunk-3-1.png){width=672}
+:::
+:::
+
 
 
 ```

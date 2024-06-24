@@ -97,7 +97,7 @@ Use the R-chunks below to create your simulated sample of data from your true re
 
 
 ```{r, comment=NA}
-set.seed(120) 
+set.seed(120)
   
 n <- 100000
 
@@ -269,9 +269,13 @@ rbdata <- data[include_all, ]
 
 
 ############### END ENGINEERING ###############
+```
 
+```{r}
 write.csv(rbdata,"rbdata.csv",row.names=FALSE)
 ```
+
+
 
 ```{r}
 test.lm <- lm(y ~ x9:x10:(
@@ -419,6 +423,244 @@ $$
 ## Results
 
 Once the Regression Battleship competition is completed, you will be given instructions on how to complete this section. The basic idea is to compare the three guesses at your true model (from two peers, and your teacher) to decide who won (i.e., who had the closest guess).
+
+```{r}
+set.seed(123) 
+  
+n <- 100000
+
+
+# Actual X values
+
+# for set 1 ----->
+x8 <- runif(n,-2.6, 2.6)
+
+# Positive 1 or Negative 1 - With x5 make second line
+x9 <- sample(c(-1,1),n,replace=TRUE)
+
+ # Either positive 1 or - 1 - depending on -1 interaction 
+x10 <- sample(c(-1,1),n,replace=TRUE)
+
+
+# 2 term model is base model.
+
+# y3/4 term 1 β3: .25 x * x1 Modifier
+x1 <- sample(c(0,1),n,prob=c(.6667, .3333),replace = TRUE)
+
+# y3/4 term 2 β4 : .1666666666 x^3 * x2 Modifier
+x2 <- sample(c(0,1),n,prob=c(.6667, .3333),replace = TRUE)
+
+# y5/6 term1 β5: 8 x^-1 * x3 INSERT
+x3 <- sample(c(0,1),n,prob=c(.6667, .3333),replace = TRUE)
+
+# y5/6 term 2 β6: .6 x * x4 Modifier
+x4 <- sample(c(0,1),n,prob=c(.6667,.3333),replace = TRUE)
+
+# y5/6 term 3 β7: .13333333333 x^3 * x5
+x5 <- sample(c(0,1),n,prob=c(.6667,.3333),replace = TRUE)
+
+# These two together give us our x^5 term.
+# Case x6 == 1, x7 == 0
+# y3/4 term 4 β8: .4 x^5 * x6
+x6 <- sample(c(0,1),n,prob=c(.3333,.6667),replace = TRUE)
+
+# Case x6 == 1, x7 == 1
+# y3/4 term 4 β9: .2 x^5 * x7
+x7 <- sample(c(0,1),n,prob=c(.5,.5),replace = TRUE)
+
+
+# Include Cases
+
+# x1 - 7 == 0 (Base Model)
+# x1,x2,x6, == 1, x5, x7 == 0 (Line 1)
+# x3,x4,x5,x6,x7 = 1, x1, x2 = 0 (Line 2)
+
+
+# Then, create betas, sigma, normal error terms and y
+  sigma <- 4 #change to whatever positive number you want
+ 
+  
+ ################################
+ # You ARE NOT ALLOWED to change this part:
+ epsilon_i <- rnorm(n, 0, sigma)
+ ################################ 
+ 
+ # An example of how to make Y...
+ # y <-  beta0 + beta1*X1 + beta2*X2 + beta3*X4*X2 + epsilon_i
+ 
+ εi <- epsilon_i
+ 
+# Betas
+  
+βint <- NA # Not using this
+
+# Line pair 1
+β1 <- 10 # x
+β2 <- -15 # x^3
+
+# Line pair 2
+β3 <- -7.5 # x
+β4 <- 12.5 # x^3
+β8 <- .4 # x^5
+
+# Line pair 3
+β5 <- 8  # x^-1 
+β6 <- -16 # x
+β7 <- 17 #x^3
+β8 <- .4 # x^5
+β9 <- -.2 # x^5
+
+# For reference
+
+# y1 <- -10 * x -15 * x ^ 3 + εi
+# y2 <- +10 * x + 15 * x ^ 3 + εi
+
+# y3 <- -2.5 * x + 2.5 * x ^ 3 -.4* x ^ 5 + εi
+# y4 <- +2.5 * x - 2.5 * x ^ 3 + .4* x ^ 5 + εi
+
+# y5 = 8 * x ^ -1 - 6 * x + 2 * x ^ 3 + .2 * x ^ 5 + εi
+# y6 = -8 * x ^ -1 + 6 * x - 2 * x ^ 3 - .2 * x ^ 5 + εi
+
+# β3: x1 ----> -.25 x * x1 Modifier
+# β4: x2 ----> .1666666666 x^3 * x2 Modifier
+# β5: x3 ----> 8 x^-1 * x3 Addition
+# β6: x4 ----> -.6 x * x4 Modifier
+# β7: x5 ----> .13333333333 x^3 * x5 Modifier
+# β8: x6 ----> .4 x^5 * x6 (Case x6 == 1, x7 == 0) Add
+# β9: x7 ----> .2 x^5 * x7 (Case x6 == 1, x7 == 1)
+
+# Very Important
+x <- x8
+
+y <- (
+  x9 * x10 * (
+#   x^-1             x             x^3             x^5
+                     β1 * x      + β2 * x^3      +
+                     β3 * x * x1 + β4 * x^3 * x2 + β8 * x^5 * x6 +
+    β5 * x^-1 * x3 + β6 * x * x4 + β7 * x^3 * x5 + β9 * x^5 * x6 * x7 +
+    εi
+  )
+)
+ 
+
+# This loads your data into a data set:
+data <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
+ 
+############### Model Engineering ###############
+
+# Line 1 Bounds - Limit X values for specific cases
+
+lb1.1 <- -1.3716
+lb1.2 <- 1.3716
+
+lb2.1 <- -2.8572
+lb2.2 <- 2.8572
+
+lb3.1 <- -2.2628
+lb3.2 <- -.2992
+lb3.3 <- .2992
+lb3.4 <- 2.2628
+
+
+# β3: x1 ----> .25 x * x1 Modifier
+# β4: x2 ----> .1666666666 x^3 * x2 Modifier
+# β5: x3 ----> 8 x^-1 * x3 INSERT
+# β6: x4 ----> .6 x * x4 Modifier
+# β7: x5 ----> .13333333333 x^3 * x5
+# β8: x6 ----> .4 x^5 * x6 (Case x6 == 1, x7 == 0)
+# β9: x7 ----> .2 x^5 * x7 (Case x6 == 1, x7 == 1)
+
+# Include Cases
+# x1 - 7 == 0 (Base Model)
+# x1,x2,x6, == 1, x5, x7 == 0 (Line 1)
+# x3,x4,x5,x6,x7 = 1, x1, x2 = 0 (Line 2)
+
+# Limit Permutation Possibilities
+condition1 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 0 & data$x7 == 0
+condition2 <- data$x1 == 1 & data$x2 == 1 & data$x3 == 0 & data$x4 == 0 & data$x5 == 0 & data$x6 == 1 & data$x7 == 0
+condition3 <- data$x1 == 0 & data$x2 == 0 & data$x3 == 1 & data$x4 == 1 & data$x5 == 1 & data$x6 == 1 & data$x7 == 1
+
+# Limit X values for specific cases
+condition4 <- condition1 & ((data$x8 >= lb1.1) & (data$x8 <= lb1.2))
+condition5 <- condition2 & ((data$x8 >= lb2.1) & (data$x8 <= lb2.2))
+condition6 <- condition3 & (((data$x8 >= lb3.1) & (data$x8 <= lb3.2)) | ((data$x8 >= lb3.3) & (data$x8 <= lb3.4)))
+
+# condition4 <- FALSE
+# condition5 <- FALSE
+# condition6 <- FALSE
+
+# Combine all conditions
+include_all <- condition4 | condition5 | condition6
+
+# Filter rows from the model matrix
+rbdata2 <- data[include_all, ]
+```
+
+```{r}
+benpred <- predict(lm(y ~ x9:x10:(
+                     x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata))
+
+zachpred <- predict(lm(y^2 ~ I(x8^2) + I(x1) + I(x1):I(x8^2) + x7 + x9:x7:x8 + x7:I(x8^2), data = rbdata2))
+
+sampred <- predict(lm(y ~ x8 + I(x8^2) + x4 + x8:x4))
+
+rdat2 <- rbdata2 %>%
+  mutate(mycolor = case_when(
+     x2==0 &  x3==0 &  x9==-1 &  x10==-1 ~ "Cubic Down",
+     x2==0 &  x3==0 &  x9==1 &  x10==1 ~ "Cubic Down",
+     x2==0 &  x3==0 &  x9==1 &  x10==-1 ~ "Cubic Up",
+     x2==0 &  x3==0 &  x9==-1 &  x10==1 ~ "Cubic Up",
+     x2==1 &  x3==0 &  x9==-1 &  x10==-1 ~ "Quintic Up",
+     x2==1 &  x3==0 &  x9==1 &  x10==1 ~ "Quintic Up",
+     x2==1 &  x3==0 &  x9==1 &  x10==-1 ~ "Quintic Down",
+     x2==1 &  x3==0 &  x9==-1 &  x10==1 ~ "Quintic Down",
+     x2==0 &  x3==1 &  x9==-1 &  x10==-1  &  x8>0 ~ "Quadratic Up Right",
+     x2==0 &  x3==1 &  x9==1 &  x10==1 &  x8>0~ "Quadratic Up Right",
+     x2==0 &  x3==1 &  x9==1 &  x10==-1  &  x8<0 ~ "Quadratic Up Left",
+     x2==0 &  x3==1 &  x9==-1 &  x10==1 &  x8<0~ "Quadratic Up Left",
+     x2==0 &  x3==1 &  x9==-1 &  x10==1 &  x8>0~ "Quadratic Down Right",
+     x2==0 &  x3==1 &  x9==1 &  x10==-1 &  x8>0~ "Quadratic Down Right",
+     x2==0 &  x3==1 &  x9==-1 &  x10==-1 &  x8<0~ "Quadratic Down Left",
+     x2==0 &  x3==1 &  x9==1 &  x10==1 &  x8<0~ "Quadratic Down Left",
+  ))
+
+rdat2 <- rdat2 %>%
+  mutate( x11 = ifelse(mycolor=="Quadratic Down Right", 1, 0),
+          x12 = ifelse(mycolor=="Quadratic Up Right", 1, 0),
+          x13 = ifelse(mycolor=="Cubic Down", 1, 0),
+          x14 = ifelse(mycolor=="Cubic Up", 1, 0),
+          x15 = ifelse(mycolor=="Quintic Down", 1, 0),
+          x16 = ifelse(mycolor=="Quintic Up", 1, 0),
+          x17 = ifelse(mycolor=="Quadratic Down Left", 1, 0),
+          x18 = ifelse(mycolor=="Quadratic Up Left", 1, 0))
+
+saunderspred <- predict(lm(y ~  x11 +  x11: x8 +   x11:I( x8^2) + #Quadratic Down Right
+             x12 +    x12: x8 +  x12:I( x8^2) +  #Quadratic Up Right
+             x17 +  x17: x8 +  x17:I( x8^2) +   #Quadratic Down Left
+             x18 +  x18: x8 +  x18:I( x8^2) +   #Quadratic Up Left
+             x13: x8 +   x13:I( x8^3) +        #Cubic Down
+             x14: x8 +   x14:I( x8^3) +        #Cubic Up
+             x15: x8 +   x15:I( x8^3) +    x15:I( x8^5) +     #Quintic Down
+             x16: x8 +   x16:I( x8^3) +    x16:I( x8^5)     #Quintic Up
+            , data=rdat2))
+
+```
+
+```{r}
+summary(benpred)
+```
+
+```{r}
+summary(zachpred)
+```
+
+```{r}
+summary(sampred)
+```
+
+```{r}
+summary(saunderspred)
+```
 
 
 
