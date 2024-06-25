@@ -12,18 +12,14 @@ format:
 date: "2024-06-10"
 ---
 
-```{r}
-#| echo: false
-library(tidyverse)
-library(dplyr)
-library(gapminder)
 
+::: {.cell}
 
-```
+:::
 
-```{r}
+::: {.cell}
 
-
+```{.r .cell-code}
 gm_clean <- gapminder %>% filter(country != "Kuwait")
 
 gm3 <- gm_clean %>% group_by(continent,year) %>% summarise(meanGdp = weighted.mean(gdpPercap,pop),pop=mean(pop))
@@ -41,6 +37,9 @@ ggplot(gm_clean,aes(x=year, y=gdpPercap, group = country, color = continent, siz
   labs(size = "Population (in 10,000)")+
   geom_point(data = gm3, mapping= aes(x = year, y = meanGdp, group = continent, size = pop/10000), color="black")+
   geom_line(data = gm3, mapping = aes(x = year, y = meanGdp, group = continent), color="black", size = .2)
-  
-
 ```
+
+::: {.cell-output-display}
+![](gapminder-pt-2_files/figure-html/unnamed-chunk-2-1.png){width=672}
+:::
+:::

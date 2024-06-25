@@ -1,7 +1,15 @@
 ---
 title: "Combining Heights"
-format: html
-editor: visual
+execute:
+  keep-md: 
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-05"
 ---
 
 ```{r}
@@ -259,7 +267,6 @@ heights.lm <- lm(height.in ~ birth_year, data=heights)
 summary(heights.lm)
 ```
 
-
 ```{r}
 
 # Define colors for each study group
@@ -294,3 +301,16 @@ ggplot(heights, aes(x = birth_year, y = height.in, color = study)) +
 Getting this data in the proper format was challenging. Figuring out german translations, as well sifting through different data formats was required to get the data into a valid format. One of the data sets in this case doesn't have a distinction between female and male data, meaning there may be female heights in the data alongside the male data.
 
 A simple linear regression shows that the heights appear to be decreasing, but a linear model has a really low r squared value, meaning the model is not useful.There is not really any clear analysis to be drawn from the data. I don't think the data is clean or full enough to make a meaningful conclusion. We would need more data from each country, and that data would have to have more integrity.
+
+!!!!!!!!
+    Write at least two paragraphs to address the following:
+        How does the story told by this data compare to the story told by the data in the previous task? Do they agree or do they contradict? If they contradict, reason through the contradiction and try to make sense of it.
+        How would you respond to the assertion that humans are getting taller over time based on the datasets in these two tasks involving height?
+        Be sure to provide an overall conclusion about where you stand on the question.
+
+    Render the .qmd file. Push all the files created in the rendering process into your GitHub repository.
+
+Submit
+
+In I-learn submit a link to the .md file on GitHub.
+

@@ -1,0 +1,82 @@
+---
+title: "String Stuff"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06-24"
+---
+
+```{r}
+pacman::p_load(tidyverse,dplyr,readr,reader)
+```
+
+
+```{r}
+d <- readr::read_lines("https://byuistats.github.io/M335/data/randomletters.txt")
+```
+
+```{r}
+df <- data.frame(strings = d)
+```
+
+```{r}
+# Remove all occurrences of 'a' and 'e'
+no_e_a <- df %>%
+  mutate(
+    strings = str_replace_all(strings, "a", ""),
+    strings = str_replace_all(strings, "e", "")
+  )
+
+# no_e_a$strings
+```
+
+```{r}
+str_count(tolower(dat), pattern = "e|a")
+```
+
+
+```{r}
+jim <- df %>%
+  mutate(
+    jim = str_locate_all(strings, "jim")
+  )
+
+jim$jim
+```
+
+```{r}
+str_locate_all(tolower(dat),pattern = "aaa")
+```
+
+```{r}
+list_version <- str_split(dat,pattern = "")
+list_version <- str_split(dat,pattern = " ")
+df_version <- unlist(list_version)
+```
+
+```{r}
+str_split(dat,pattern=)
+```
+
+```{r}
+# Any 3 letters repeated
+#\\1 duplicates of a given letter
+str_extract_all(tolower(dat), pattern = "[(a-z)]\\1\\1")
+```
+
+```{r}
+# 'letters' is a predefined R vector
+# 'LETTERS' is the uppercase
+
+# Optional additional library
+install.packages("stringi")
+```
+
+
+

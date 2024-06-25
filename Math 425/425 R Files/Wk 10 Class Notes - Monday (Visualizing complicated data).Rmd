@@ -1,0 +1,64 @@
+---
+title: "Wk 10 Class Notes - Monday (Visualizing complicated data)"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06-24"
+---
+
+```{r}
+library(tidyverse)
+library(mosaic)
+View(Births78)
+```
+
+```{r}
+B78 <- Births78 %>% mutate(weekend = ifelse(wday %in% c("Sat", "Sun"), 1,0))
+pairs(B78, panel=panel.smooth, col=as.factor(B78$weekend))
+```
+```{r}
+
+```
+
+
+
+```{r}
+ggplot(B78,aes(x=day_of_year,y=births,col=weekend)) +
+  geom_point() +
+  facet_wrap(interaction(B78$weekend)) +
+  geom_smooth(method="loess", span= 0.5)
+```
+```{r}
+
+```
+
+Expert opinion - crazy good data. No, tell them what they want to hear. Good idea, but don't trust them just because they say you should...
+
+How do we attack the data? esp if we can't even see the pairs plant?
+
+If I can't see it, I don't believe it, when it comes to data.
+
+In God we trust, all others bring data.
+
+"What am I looking at?"
+Try to see what your model is doing according to the data. Draw it.
+
+When you push into high dimensional datasets, unless you can visualize it, how do you move forwards? You're gonna be lost.
+
+Having sale price made the model prediction worse?
+
+R^2 vs Interpretation vs Visualization
+The higher R^2 can lose interpretation and visualization
+Interpretable and visualizable models could be less complicated.
+
+Kills interpretation:
+- Transformations
+- Anything that's not a line?
+- Log is interpretable
+- Pretty much anything else is not

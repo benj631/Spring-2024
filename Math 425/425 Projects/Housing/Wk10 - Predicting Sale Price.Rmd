@@ -1,0 +1,99 @@
+---
+title: "Predicting Sale Price"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06-24"
+---
+
+```{r}
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(mosaic)
+library(car)
+```
+
+
+```{r}
+housing <- read_csv("train.csv")
+```
+
+```{r}
+View(housing)
+```
+
+
+
+```{r}
+housing <- housing %>%
+  mutate(
+    Alley = as.character(Alley),  # Assuming 'alley' is a column in dataframe t
+    Alley = ifelse(is.na(Alley), "No Alley Access", Alley),  # Replace NA values with "No Alley Access"
+    Alley = as.factor(Alley)  # Convert Alley to factor (if needed)
+  ) %>%
+  mutate(
+    Fence = as.character(Fence),  # Assuming 'Fence' is a column in dataframe t
+    Fence = ifelse(is.na(Fence), "No Fence", Fence),  # Replace NA values with "No Fence"
+    Fence = as.factor(Fence)  # Convert Fence to factor (if needed)
+  )
+
+
+housing <- housing %>% rename(FirstFloorSF = `1stFlrSF`)
+housing <- housing %>% rename(SecondFloorSF = `2ndFlrSF`)
+
+colnames(housing)
+View(housing)
+```
+
+```{r}
+# Watch for dropped columns
+lm.1stflr <- lm(SalePrice ~ FirstFloorSF , data=housing)
+lm.alley <- lm(SalePrice ~ Alley, data=housing)
+lm.fence <- lm(SalePrice ~ Fence, data=housing) # NA -> No alleyway
+```
+
+```{r}
+
+lm.sqft <- lm(SalePrice ~ TotalSF, data=housing)
+summary(lm.sqft)
+
+housing <- housing %>%
+  mutate(TotalSF = FirstFloorSF + SecondFloorSF + TotalBsmtSF,
+                RichNbrhd = case_when(Neighborhood %in% c("StoneBr", "NridgHt", "NoRidge") ~ 1,
+                                                          TRUE ~ 0))
+table(housing$RichNbrhd)
+lm.sqft.rich <- lm(SalePrice ~ TotalSF + RichNbrhd + TotalSF:RichNbrhd, data=housing)
+summary(lm.sqft.rich)
+
+b <- coef(lm.sqft.rich)
+```
+
+
+
+```{r}
+boxCox(lm.sqft.rich)
+```
+
+```{r}
+poor <- function(x) 2.704e+04 + 5.659e+01(x) + -1.207e+05(x) + 5.735e+01(0)
+rich <- function(x) 2.704e+04 + 5.659e+01(x) + -1.207e+05(x) + 5.735e+01(1)
+
+ggplot(housing, aes(x = TotalSF, y = SalePrice, color = as.factor(RichNbrhd))) +
+  geom_point() +  # Scatter plot with points colored by RichNbrhd
+  scale_color_manual(values = c("darkblue", "gold"), labels = c("Not Rich", "Rich")) +  # Define custom colors
+  stat_function(fun = function(x) 2.704e+04 + 5.659e+01 * x - 1.207e+05 * 0 + 5.735e+01 * 0 * x, color = "darkblue", size = 1) +  # Add custom regression line for poor neighborhoods
+  stat_function(fun = function(x) 2.704e+04 + 5.659e+01 * x - 1.207e+05 * 1 + 5.735e+01 * 1 * x, color = "gold", size = 1) +  # Add custom regression line for rich neighborhoods
+  theme_bw()  # Apply theme_bw
+```
+
+
+
+
+
