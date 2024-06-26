@@ -19,7 +19,8 @@ library(dplyr)
 library(mosaic)
 library(car)
 ```
-
+Fireplaces + Yearbuilt + I(Yearbuilt^2)
+TotalSF:YearBuilt + TotalSF:Fireplaces
 
 ```{r}
 housing <- read_csv("train.csv")

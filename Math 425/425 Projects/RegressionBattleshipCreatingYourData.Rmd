@@ -1,10 +1,16 @@
 ---
 title: "Regression Battleship - Creating your Data"
 author: "Ben Jacobs"
-output: 
-  html_document:
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
     theme: cerulean
-    code_folding: hide
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06" 
 ---
 
 ```{r message=FALSE, warning=FALSE}
@@ -299,6 +305,11 @@ plot(y~x8,rbdata)
 Provide a 2D scatterplot that shows both your *true* model (dashed lines) and *estimated* model (solid lines) on the same scatterplot. This should match your Desmos graph. 
 
 ```{r}
+# Reference
+
+test.lm <- lm(y ~ x9:x10:(
+                     x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata)
+
 y1 <- function(x){ 10 * x + 15 * x ^ 3}
 y2 <- function(x){-10 * x - 15 * x ^ 3}
 y3 <- function(x){-2.5 * x + 2.5 * x ^ 3 - 0.4 * x ^ 5}
@@ -306,7 +317,7 @@ y4 <- function(x){2.5 * x - 2.5 * x ^ 3 + 0.4 * x ^ 5}
 y5 <- function(x){8 * (x ^-1) - 6 * x + 2 * x ^ 3 + 2 * x ^ 5}
 y6 <- function(x){-8 * (x ^ -1) + 6 * x - 2 * x ^ 3 - 2 * x ^ 5}
 
-b <- coef (test.lm)
+b <- coef(test.lm)
 
 y7 <- function(x,x9=1,x10=1) {
   b[1] +
@@ -318,7 +329,7 @@ y8 <- function(x,x9=1,x10=1,x1=1,x2=1,x3=0,x4=0,x5=0,x6=1,x7=0) {
   b[1] +
   x9 * x10 * (
     b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
-    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+    b[7] * x^-1 * x3 + b[8] * x * x4
   )
 }
 
@@ -326,15 +337,14 @@ y9 <- function(x,x9=1,x10=1,x1=0,x2=0,x3=1,x4=1,x5=1,x6=1,x7=1) {
   b[1] +
   x9 * x10 * (
     b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
-    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[9] * x^3 * x5 + b[10] * x^5 * x6 * x7
   )
 }
 
-y10 <- function(x,x9=-1,x10=1,x1=0,x2=0,x3=0,x4=0,x5=0,x6=0,x7=0) {
+y10 <- function(x,x9=-1,x10=1) {
   b[1] +
   x9 * x10 * (
-    b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
-    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+    b[2] * x + b[3] * x^3
   )
 }
 
@@ -342,7 +352,7 @@ y11 <- function(x,x9=-1,x10=1,x1=1,x2=1,x3=0,x4=0,x5=0,x6=1,x7=0) {
   b[1] +
   x9 * x10 * (
     b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
-    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+    b[7] * x^-1 * x3 + b[8] * x * x4
   )
 }
 
@@ -350,24 +360,21 @@ y12 <- function(x,x9=-1,x10=1,x1=0,x2=0,x3=1,x4=1,x5=1,x6=1,x7=1) {
   b[1] +
   x9 * x10 * (
     b[2] * x + b[3] * x^3 + b[4] * x * x1 + b[5] * x^3 * x2 + b[6] * x^5 * x6 +
-    b[7] * x^-1 * x3 + b[8] * x * x4 + b[10] * x^3 * x5 + b[11] * x^5 * x6 * x7
+    b[7] * x^-1 * x3 + b[8] * x * x4 + b[9] * x^3 * x5 + b[10] * x^5 * x6 * x7
   )
 }
 
-ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9,x10))) +
+ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9*x10))) +
   geom_point(size=1)+ 
-  scale_y_continuous(lim=c(-75,+75)) +
-  stat_function(fun=y1, col = "black",size=1.5) +
-  stat_function(fun=y2, col = "forestgreen",size=1.5) +
-  stat_function(fun=y3, col = "orange",size=1.5) +
-  stat_function(fun=y4, col = "purple",size=1.5) +
-  stat_function(fun=y5, col = "red",size=1.5) +
-  stat_function(fun=y6, col = "purple",size=1.5)
-  stat_function(fun=y7, col = "grey",size=2)
-  # stat_function(fun=y8, col = "grey",size=100) +
-  # stat_function(fun=y9, col = "grey",size=100) +
-  # stat_function(fun=y10, col = "grey",size=100) +
-  # stat_function(fun=y11, col = "grey",size=100)
+  scale_y_continuous(lim=c(-25,+25)) +
+  stat_function(fun=y7, col = "gold",size=1.5) +
+  stat_function(fun=y8, col = "forestgreen",size=1.5) +
+  stat_function(fun=y9, col = "orange",size=1.5) +
+  stat_function(fun=y10, col = "purple",size=1.5) +
+  stat_function(fun=y11, col = "red",size=1.5) +
+  stat_function(fun=y12, col = "cyan",size=1.5)
+  #stat_function(fun=y7, col = "hotpink",size=2)
+  #stat_function(fun=y8, col = "blue",size=100) +
   
   
   
@@ -425,6 +432,7 @@ $$
 Once the Regression Battleship competition is completed, you will be given instructions on how to complete this section. The basic idea is to compare the three guesses at your true model (from two peers, and your teacher) to decide who won (i.e., who had the closest guess).
 
 ```{r}
+# Different Seed for Rbdata2
 set.seed(123) 
   
 n <- 100000
@@ -662,7 +670,44 @@ summary(sampred)
 summary(saunderspred)
 ```
 
+# Compute R-squared for each validation
 
+  # Get y-hat for each model on new data.
+  yht <- predict(lmt, newdata=thedata2)
+  yhs <- predict(lms, newdata=thedata2)
+  yhc <- predict(lmc, newdata=thedata2)
+  
+  # Compute y-bar
+  ybar <- mean(thedata2$y) #Yi is given by Ynew from the new sample of data
+  
+  # Compute SSTO
+  SSTO <- sum( (thedata2$y - ybar)^2 )
+  
+  # Compute SSE for each model using y - yhat
+  SSEt <- sum( (thedata2$y - yht)^2 )
+  SSEs <- sum( (thedata2$y - yhs)^2 )
+  SSEc <- sum( (thedata2$y - yhc)^2 )
+  
+  # Compute R-squared for each
+  rst <- 1 - SSEt/SSTO
+  rss <- 1 - SSEs/SSTO
+  rsc <- 1 - SSEc/SSTO
+  
+  # Compute adjusted R-squared for each
+  n <- length(thedata2$y) #sample size
+  pt <- length(coef(lmt)) #num. parameters in model
+  ps <- length(coef(lms)) #num. parameters in model
+  pc <- length(coef(lmc)) #num. parameters in model
+  rsta <- 1 - (n-1)/(n-pt)*SSEt/SSTO
+  rssa <- 1 - (n-1)/(n-ps)*SSEs/SSTO
+  rsca <- 1 - (n-1)/(n-pc)*SSEc/SSTO
+  
+
+my_output_table2 <- data.frame(Model = c("True", "Simple", "Complicated"), `Original R2` = c(summary(lmt)$r.squared, summary(lms)$r.squared, summary(lmo)$r.squared), `Orig. Adj. R-squared` = c(summary(lmt)$adj.r.squared, summary(lms)$adj.r.squared, summary(lmo)$adj.r.squared), `Validation R-squared` = c(rst, rss, rsc), `Validation Adj. R^2` = c(rsta, rssa, rsca))
+
+colnames(my_output_table2) <- c("Model", "Original $R^2$", "Original Adj. $R^2$", "Validation $R^2$", "Validation Adj. $R^2$")
+
+knitr::kable(my_output_table2, escape=TRUE, digits=4)
 
  
 
