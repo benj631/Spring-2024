@@ -16,11 +16,16 @@ editor:
     wrap: 72
 ---
 
-```{r message=FALSE, warning=FALSE}
+
+::: {.cell}
+
+```{.r .cell-code}
 library(pander)
 library(tidyverse)
 library(dplyr)
 ```
+:::
+
 
 #  {.tabset .tabset-pills}
 
@@ -35,7 +40,10 @@ True Model:
 Use the R-chunks below to create your simulated sample of data from your
 true regression model.
 
-```{r, comment=NA}
+
+::: {.cell}
+
+```{.r .cell-code}
 set.seed(120)
   
 n <- 100000
@@ -208,26 +216,89 @@ rbdata <- data[include_all, ]
 
 ############### END ENGINEERING ###############
 ```
+:::
 
-```{r}
+::: {.cell}
+
+```{.r .cell-code}
 write.csv(rbdata,"rbdata.csv",row.names=FALSE)
 ```
+:::
 
-```{r}
+::: {.cell}
+
+```{.r .cell-code}
 test.lm <- lm(y ~ x9:x10:(
                      x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata)
 
 summary(test.lm)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+
+Call:
+lm(formula = y ~ x9:x10:(x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + 
+    I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7), 
+    data = rbdata)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-11.9725  -2.6866   0.0741   2.6212  13.1253 
+
+Coefficients:
+                      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           -0.13829    0.07730  -1.789  0.07373 .  
+x9:x10:x8             10.37749    0.36799  28.200  < 2e-16 ***
+x9:x10:I(x8^3)       -15.22979    0.29849 -51.023  < 2e-16 ***
+x9:x10:x8:x1          -7.58667    0.51089 -14.850  < 2e-16 ***
+x9:x10:I(x8^3):x2     12.66249    0.36295  34.888  < 2e-16 ***
+x9:x10:I(x8^5):x6      0.40609    0.02659  15.270  < 2e-16 ***
+x9:x10:I(x8^-1):x3     8.24810    0.31546  26.146  < 2e-16 ***
+x9:x10:x8:x4         -16.90803    1.09970 -15.375  < 2e-16 ***
+x9:x10:I(x8^3):x5     17.81804    0.70455  25.290  < 2e-16 ***
+x9:x10:I(x8^5):x6:x7  -0.33408    0.10198  -3.276  0.00107 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3.926 on 2590 degrees of freedom
+Multiple R-squared:  0.7717,	Adjusted R-squared:  0.7709 
+F-statistic: 972.8 on 9 and 2590 DF,  p-value: < 2.2e-16
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 View(rbdata)
 nrow(rbdata)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+[1] 2600
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 plot(y~x8,rbdata)
 ```
+
+::: {.cell-output-display}
+![](RegressionBattleshipCreatingYourData_files/figure-html/unnamed-chunk-6-1.png){width=672}
+:::
+:::
+
 
 ## R Plot
 
@@ -235,7 +306,10 @@ Provide a 2D scatterplot that shows both your *true* model (dashed
 lines) and *estimated* model (solid lines) on the same scatterplot. This
 should match your Desmos graph.
 
-```{r}
+
+::: {.cell}
+
+```{.r .cell-code}
 # Reference
 
 test.lm <- lm(y ~ x9:x10:(
@@ -304,14 +378,21 @@ ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9*x10))) +
   stat_function(fun=y10, col = "purple",linewidth=1.5) +
   stat_function(fun=y11, col = "red",linewidth=1.5) +
   stat_function(fun=y12, col = "cyan",linewidth=1.5)
-  
 ```
 
-```{r}
+::: {.cell-output-display}
+![](RegressionBattleshipCreatingYourData_files/figure-html/unnamed-chunk-7-1.png){width=672}
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 test.lm <- lm(y ~ x9:x10:(
                      x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata)
-
 ```
+:::
+
 
 ### Line pair 1
 $$
@@ -349,7 +430,10 @@ Note - $x9$ and $x10$ would be, in the long equation, distributed to each term, 
 Let's compare the three guesses at the true model (from two peers, and
 your teacher) to decide who won (i.e., who had the closest guess).
 
-```{r}
+
+::: {.cell}
+
+```{.r .cell-code}
 # Different Seed for Rbdata2
 set.seed(123) 
   
@@ -520,8 +604,11 @@ include_all <- condition4 | condition5 | condition6
 # Filter rows from the model matrix
 rbdata2 <- data[include_all, ]
 ```
+:::
 
-```{r}
+::: {.cell}
+
+```{.r .cell-code}
 ben.lm <- lm(y ~ x9:x10:(
                      x8 + I(x8^3) + x8:x1 + I(x8^3):x2 + I(x8^5):x6 + I(x8^-1):x3 + x8:x4 + I(x8^3):x5 + I(x8^5):x6:x7),data=rbdata)
 
@@ -574,16 +661,55 @@ saunders.lm <- lm(y ~  x11 +  x11: x8 +   x11:I( x8^2) + #Quadratic Down Right
             , data=rdat2)
 
 saunderspred <- predict(saunders.lm)
-
 ```
+:::
+
 
 ## Zach's Guess
 
-```{r}
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(zach.lm)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+
+Call:
+lm(formula = y^2 ~ I(x8^2) + I(x1) + I(x1):I(x8^2) + x7 + x9:x7:x8 + 
+    x7:I(x8^2), data = rbdata2)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-219.15  -41.43   -9.55   30.26  857.46 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    -35.113      4.463  -7.868 5.15e-15 ***
+I(x8^2)        189.807      5.183  36.621  < 2e-16 ***
+I(x1)           47.596      6.525   7.294 3.90e-13 ***
+x7             123.516      9.074  13.613  < 2e-16 ***
+I(x8^2):I(x1) -186.684      5.412 -34.494  < 2e-16 ***
+I(x8^2):x7    -160.005      6.138 -26.070  < 2e-16 ***
+x7:x9:x8         2.786      3.511   0.793    0.428    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 103.8 on 2757 degrees of freedom
+Multiple R-squared:  0.4149,	Adjusted R-squared:  0.4136 
+F-statistic: 325.8 on 6 and 2757 DF,  p-value: < 2.2e-16
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 b <- coef(zach.lm)
 
 y1 <- function(x,x9=1,x10=1,x1=0,x2=0,x3=0,x4=0,x5=0,x6=0,x7=0) {
@@ -618,13 +744,52 @@ ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9*x10))) +
   stat_function(fun=y6, col = "purple",linewidth=1.5)
 ```
 
+::: {.cell-output-display}
+![](RegressionBattleshipCreatingYourData_files/figure-html/unnamed-chunk-12-1.png){width=672}
+:::
+:::
+
+
 # Sam's Guess
 
-```{r}
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(sam.lm)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+
+Call:
+lm(formula = y ~ x8 + I(x8^2) + x4 + x8:x4)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-50113    -18      1     19  19637 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)
+(Intercept)  -1.1173     1.2352  -0.905    0.366
+x8            0.2106     0.6085   0.346    0.729
+I(x8^2)       0.2011     0.3701   0.543    0.587
+x4            1.1513     1.5803   0.729    0.466
+x8:x4        -0.1558     1.0537  -0.148    0.882
+
+Residual standard error: 235.6 on 99995 degrees of freedom
+Multiple R-squared:  9.504e-06,	Adjusted R-squared:  -3.05e-05 
+F-statistic: 0.2376 on 4 and 99995 DF,  p-value: 0.9172
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 y1 <- function(x,x9=1,x10=1,x1=0,x2=0,x3=0,x4=0,x5=0,x6=0,x7=0) {
   b[1] + b[2] * x + b[3] * x^2 + b[4] * x4 + b[5] * x * x4
 }
@@ -658,13 +823,76 @@ ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9*x10))) +
   stat_function(fun=y6, col = "purple",linewidth=1.5)
 ```
 
+::: {.cell-output-display}
+![](RegressionBattleshipCreatingYourData_files/figure-html/unnamed-chunk-14-1.png){width=672}
+:::
+:::
+
+
 # Saunder's Guess
 
-```{r}
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(saunders.lm)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+
+Call:
+lm(formula = y ~ x11 + x11:x8 + x11:I(x8^2) + x12 + x12:x8 + 
+    x12:I(x8^2) + x17 + x17:x8 + x17:I(x8^2) + x18 + x18:x8 + 
+    x18:I(x8^2) + x13:x8 + x13:I(x8^3) + x14:x8 + x14:I(x8^3) + 
+    x15:x8 + x15:I(x8^3) + x15:I(x8^5) + x16:x8 + x16:I(x8^3) + 
+    x16:I(x8^5), data = rdat2)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-13.6163  -2.6215  -0.0784   2.6765  14.1680 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   0.01210    0.08346   0.145 0.884728    
+x11         -33.67801    1.95746 -17.205  < 2e-16 ***
+x12          36.10561    1.99828  18.068  < 2e-16 ***
+x17         -36.95060    2.08016 -17.763  < 2e-16 ***
+x18          35.50228    1.69884  20.898  < 2e-16 ***
+x11:x8       50.11926    3.46566  14.462  < 2e-16 ***
+x11:I(x8^2) -20.48120    1.33617 -15.328  < 2e-16 ***
+x8:x12      -52.02145    3.45963 -15.037  < 2e-16 ***
+I(x8^2):x12  20.61086    1.33478  15.441  < 2e-16 ***
+x8:x17      -54.74426    3.50345 -15.626  < 2e-16 ***
+I(x8^2):x17 -21.71147    1.31502 -16.510  < 2e-16 ***
+x8:x18       53.39005    3.08055  17.331  < 2e-16 ***
+I(x8^2):x18  21.53149    1.19970  17.947  < 2e-16 ***
+x8:x13       10.17250    0.53536  19.001  < 2e-16 ***
+x13:I(x8^3) -15.01533    0.42305 -35.493  < 2e-16 ***
+x8:x14       -9.96537    0.51132 -19.490  < 2e-16 ***
+I(x8^3):x14  15.05612    0.40753  36.945  < 2e-16 ***
+x8:x15       -1.63311    0.49188  -3.320 0.000911 ***
+I(x8^3):x15   1.99579    0.28768   6.938 4.96e-12 ***
+x15:I(x8^5)  -0.33826    0.03720  -9.094  < 2e-16 ***
+x8:x16        1.87970    0.49905   3.767 0.000169 ***
+I(x8^3):x16  -2.15789    0.28588  -7.548 5.97e-14 ***
+I(x8^5):x16   0.35564    0.03698   9.617  < 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 4.001 on 2741 degrees of freedom
+Multiple R-squared:  0.7718,	Adjusted R-squared:  0.7699 
+F-statistic: 421.3 on 22 and 2741 DF,  p-value: < 2.2e-16
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 palette(c("skyblue","orange","green","purple","steelblue","red","green3","black"))
 
 plot(y ~  x8, data=rdat2, col=as.factor(mycolor))
@@ -686,31 +914,94 @@ drawit(0,0,0,0,0,0,1,0,3)
 drawit(0,0,0,0,0,0,0,1,5)
 ```
 
+::: {.cell-output-display}
+![](RegressionBattleshipCreatingYourData_files/figure-html/unnamed-chunk-16-1.png){width=672}
+:::
+:::
+
+
 # Predictions
 
-```{r}
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(benpred)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+-25.36777  -2.43046  -0.21753  -0.04239   2.15116  24.52278 
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(zachpred)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ -35.11   13.58   25.97   69.54  121.70  321.91 
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(sampred)
 ```
 
-```{r}
+::: {.cell-output .cell-output-stdout}
+
+```
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+-1.1725 -0.9810 -0.4105 -0.2819  0.2695  1.5353 
+```
+
+
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 summary(saunderspred)
 ```
 
-```{r}
-# This is a hotfix and is not good
-rbdata2 <- rdat2
+::: {.cell-output .cell-output-stdout}
+
+```
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
+-25.161104  -2.297426   0.006556  -0.042738   2.312966  24.790983 
 ```
 
 
-```{r}
+:::
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
+# This is a hotfix and is not good
+rbdata2 <- rdat2
+```
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
 # Compute R-squared for each validation
 
 # Get y-hat for each model on new data.
@@ -760,8 +1051,22 @@ my_output_table2 <- data.frame(
 colnames(my_output_table2) <- c("Model", "Original $R^2$", "Original Adj. $R^2$", "Validation $R^2$", "Validation Adj. $R^2$")
 
 knitr::kable(my_output_table2, escape=TRUE, digits=4)
-
 ```
+
+::: {.cell-output-display}
+
+
+|Model    | Original $R^2$| Original Adj. $R^2$| Validation $R^2$| Validation Adj. $R^2$|
+|:--------|--------------:|-------------------:|----------------:|---------------------:|
+|Ben      |         0.7717|              0.7709|           0.7718|                0.7711|
+|Zach     |         0.4149|              0.4136|        -179.5922|             -179.9852|
+|Sam      |         0.0000|              0.0000|          -0.0112|               -0.0126|
+|Saunders |         0.7718|              0.7699|           0.7718|                0.7699|
+
+
+:::
+:::
+
 
 Something is wrong with the validation for Zach and Sam. I am not sure where that problem is arising. The validations should not change that drastically. It likely originates from the fact that Brother Saunder's data has a lot of mutations, but those shouldn't effect the validation...
 
