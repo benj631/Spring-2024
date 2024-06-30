@@ -1,0 +1,95 @@
+---
+title: "Regression Battleship - Creating your Data"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06" 
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+library(tidyverse)
+library(stringi)
+library(dplyr)
+library(rio)
+```
+
+```{r}
+scrdat <- rio::import("http://scriptures.nephi.org/downloads/lds-scriptures.csv.zip") %>% 
+  as_tibble()
+```
+
+```{r}
+View(scriptures_data)
+```
+
+
+
+```{r}
+str_count(scripture_text, "\\s+")
+
+```
+
+
+```{r}
+bom_nt %>% mutate(
+  word_count = str_count(sctripture_text)
+  # word_count = stri_count_words(scripture_text)
+  # word_count = str_count(scripture_text, "\\w+")
+) %>% 
+  group_by(volume_title) %>%
+    mutate(
+      avg_count = avg(str_count) 
+    )
+            
+
+```
+
+```{r}
+new_testament <- scrdat %>% filter(volume_title == "New Testament")
+book_of_mormon <- scrdat %>% filter(volume_title == "Book of Mormon")
+
+# Calculate average verse length (number of words)
+new_testament_avg_length <- new_testament %>%
+  mutate(word_count = str_count(scripture_text, "\\w+")) %>%
+  summarize(avg_verse_length = mean(word_count, na.rm = TRUE))
+
+book_of_mormon_avg_length <- book_of_mormon %>%
+  mutate(word_count = str_count(scripture_text, "\\w+")) %>%
+  summarize(avg_verse_length = mean(word_count, na.rm = TRUE))
+
+# Count occurrences of the word "Jesus"
+new_testament_jesus_count <- new_testament %>%
+  summarize(jesus_count = sum(str_count(scripture_text, "\\bJesus\\b"), na.rm = TRUE))
+
+book_of_mormon_jesus_count <- book_of_mormon %>%
+  summarize(jesus_count = sum(str_count(scripture_text, "\\bJesus\\b"), na.rm = TRUE))
+
+# Print results
+cat("Average verse length in the New Testament:", new_testament_avg_length$avg_verse_length, "words\n")
+cat("Average verse length in the Book of Mormon:", book_of_mormon_avg_length$avg_verse_length, "words\n")
+cat("Occurrences of the word 'Jesus' in the New Testament:", new_testament_jesus_count$jesus_count, "\n")
+cat("Occurrences of the word 'Jesus' in the Book of Mormon:", book_of_mormon_jesus_count$jesus_count, "\n")
+```
+```{r}
+bom_word_counts <- scrdat %>%
+  filter(volume_title == "Book of Mormon") %>%
+  mutate(word_count = str_count(scripture_text, "\\w+"))
+
+ggplot(bom_word_counts, aes(x = word_count, y = book_title)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Word Counts per Verse by Book in the Book of Mormon",
+       x = "Word Count per Verse",
+       y = "Book Title") +
+  theme_minimal()
+```
+

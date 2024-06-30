@@ -1,0 +1,130 @@
+---
+title: "Wk 10-3 Qualitative Variables in Regression & Outlier Analysis"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06-28"
+---
+
+```{r}
+pacman::p_load(tidyverse, dplyr)
+```
+
+```{r}
+plot(hp ~ qsec, data=mtcars, col=as.factor(cyl))
+```
+```{r}
+lm1 <- lm(hp ~ qsec + cyl + qsec:cyl, data=mtcars)
+
+summary(lm1)
+```
+```{r}
+lm2 <- 
+```
+
+
+```{r}
+points(lm1$fit ~ qsec, data= mtcars, col=as.factor(cyl), pch=16, cex=0.5)
+
+b <- coef(lm1)
+b
+
+drawit <- function(cyl=0, i=1){
+  curve(b[1] + b[2]* qsec + b[3]*cyl + b[4]*qsec*cyl,
+        add=TRUE, xname="qsec", col=pallette()[i])
+}
+
+drawit(cyl6=0, cyl8=0, i=1)
+drawit(cyl6=1, cyl8=0, i=2)
+drawit(cyl6=0, cyl8=1, i=3)
+
+```
+Simpler models can fit more situations.
+Let's say we're moving between overall quality- factor vs qualitative.
+
+As factors, number of parameters drops.
+Quantitative space- difference vs factors.
+
+You can keep things in your model that don't necessarily work.
+people still leave things in even though they're not exactly significant.
+Don't have to interpret entire model - Just need to prove that you could interpret. Interpret interesting situations, and prove that you could. Models will be so complex
+
+```{r}
+# View(starwars)
+
+# Species is a factor.
+
+star.lm <- lm(mass~height + species, data=starwars)
+summary(star.lm)
+```
+
+```{r}
+plot(mass ~ height, data=starwars, col=as.factor(species))
+
+b <- coef(star.lm)
+
+for (i in 3:length(b)){
+  abline(b[1] + b[i], b[2])
+}
+```
+
+```{r}
+ggplot(starwars, aes(x=height, y=mass)) +
+  geom_point() +
+  geom_smooth() + 
+  facet_wrap(~species)
+```
+Only droids and humans have enough data to calculate mass ~ weight...
+We've done something dangerous in assuming that every height/mass relationship has the same intercept and we only need 1 data point for the intercept, which we can change to fit.
+
+Don't use so many things that we fit one at a time.
+
+Without interactions, we might overfit each point.
+
+```{r}
+# Robust regression - ignores outliers to get rid of p values and r squared.
+# But you can ask- are our coefficients changing dramatically?
+# Tricubic weight function
+
+library(car)
+library(MASS)
+
+plot(weight ~ repwt,data=Davis)
+dav.lm <- lm(weight ~ repwt, data=Davis)
+
+# rlm -> Robust LM
+# Resistant to outliers.
+dav.rlm <- rlm(weight ~ repwt, data=Davis)
+
+abline(dav.lm)
+abline(dav.rlm, col="red")
+
+
+plot(dav.lm, which=c(1,4,5))
+```
+```{r}
+# Change their x value, guess a different value for the outliers.
+# Can use a switch approach but 
+
+plot(SalePrice ~ TotalSF, data=train)
+
+mylm <- lm(SalePrice ~ TotalSF, data = train)
+summary(mylm)
+abline(mylm)
+
+
+# Let the model guess ybar on the outliers, for everything else, stay the way.
+# X mutation.
+# Remove the power to sway the regression.
+# Do this prior to swaying the regression.
+train <- train %>%
+    mutate(TotalSF2 = ifelse(TotalSF > 7500, 2200, TotalSF))
+```
+

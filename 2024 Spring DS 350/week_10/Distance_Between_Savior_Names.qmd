@@ -1,0 +1,88 @@
+---
+title: "Regression Battleship - Creating your Data"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-06-28" 
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+library(tidyverse)
+library(stringi)
+library(dplyr)
+library(rio)
+library(readr)
+```
+
+
+```{r}
+bom_data <- rio::import("http://scriptures.nephi.org/downloads/lds-scriptures.csv.zip") %>%
+  as_tibble()
+
+# $ gets the data. pull as a function does the equivalent?...
+
+bom_text <- scriptures_data %>%
+  filter(volume_title == "Book of Mormon") %>%
+  pull(scripture_text) %>%
+  str_c(collapse = " ")
+```
+
+```{r}
+str_length(bom_text)
+```
+```{r}
+savior_names <- read_rds("https://byuistats.github.io/M335/data/BoM_SaviorNames.rds") %>% as_tibble()
+
+sav_names <- savior_names %>% pull(name) %>% str_c(collapse = "|")
+
+dist_between <- bom_text %>%
+  str_split(pattern = sav_names) %>%
+  unlist() %>%
+  str_count(" ") %>%
+  as_tibble() %>%
+  rename(n.between = value)
+
+```
+
+```{r}
+dist_between <- bom_text %>%
+  mutate(text = str_split(text, pattern = sav_names)) %>%
+  unnest(text) %>%
+  mutate(word_count = str_count(text, "\\w+")) %>%
+  filter(word_count > 0) %>%
+  select(word_count) %>%
+  rename(n.between = word_count)
+```
+
+```{r}
+dist_between <- bom_text %>%
+  rowwise() %>%
+  mutate(text_split = list(str_split(scripture_text, pattern = sav_names)[[1]])) %>%
+  unnest(text_split) %>%
+  mutate(word_count = str_count(text_split, "\\w+")) %>%
+  filter(word_count > 0) %>%
+  select(book_short_title, word_count) %>%
+  rename(n.between = word_count)
+```
+
+
+```{r}
+ggplot(dist_between, aes(y = book_short_title, x = n.between)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Word Counts Between Savior Names by Book in the Book of Mormon",
+       x = "Word Count Between Savior Names",
+       y = "Book Short Title") +
+  theme_minimal()
+
+```
+
