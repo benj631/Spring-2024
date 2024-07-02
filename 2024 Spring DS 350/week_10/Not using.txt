@@ -1,0 +1,33 @@
+
+```{r}
+distances <- bom_text %>%
+  group_by(book_short_title) %>%
+  mutate(savior_indices = list(which(str_detect(scripture_text, paste(sav_names, collapse = "|"))))) %>%
+  ungroup() %>%
+  rowwise() %>%
+  mutate(savior_distances = list(c(0, diff(unlist(savior_indices))))) %>%
+  unnest(cols = c(savior_indices, savior_distances)) %>%
+  filter(!is.na(savior_distances)) %>%
+  select(book_short_title, savior_distances)
+
+# Adding a simple index for each occurrence of Savior names within each book
+distances <- distances %>%
+  group_by(book_short_title) %>%
+  mutate(index = row_number()) %>%
+  ungroup()
+
+View(distances)
+```
+
+```{r}
+ggplot(distances, aes(x = index, y = savior_distances, color = book_short_title)) +
+  geom_jitter(width = 0.2, height = 0, alpha = 0.6) +
+  labs(title = "Distance Between Usage of Savior Names by Index in the Book of Mormon",
+       x = "Index of Savior Name Usage",
+       y = "Distance to Previous Usage",
+       color = "Book Short Title") +
+  theme_bw() +
+  scale_color_viridis_d()  # Example of using a different color scale
+```
+
+

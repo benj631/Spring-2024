@@ -1,0 +1,294 @@
+---
+title: "Week 7 Factors"
+output: 
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: show
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+
+```
+
+```{r include = FALSE}
+library(tidyverse, warn.conflicts = FALSE)
+```
+
+## What is a factor variable?
+
+A factor is an integer vector with a levels attribute that stores a set of mappings between integers and categorical values. When you view a factor, R displays not the integers, but the values associated with them.
+
+One of the primary benefits of treating a variable as a factor, instead of string, is that you can control the order of the levels, and you can easily combine/manipulate the levels.
+
+## Benefits of a factor variable
+
+Compared to what?
+
+Sometimes you can't even get the plot you want if your data is represented with numbers instead of a factor (or character string).
+
+Compared to character vectors, a factor vector allows you to control the order in which the categories, or values, of the vector is displayed in plots and tables. In addition, there are functions that expedite the collapsing and manipulating of categories when the variable is a factor (as opposed to a character string).
+
+To illustrate these benefits and techniques, we will us the `gss_cat` dataset, which comes when you load the `tidyverse` package.
+
+Get to know your data:
+
+```{r}
+gss_cat
+```
+
+## Age by year
+
+We want to look at side-by-side boxplots of `age` by `year.` One might think the following code should work, why doesn't it?:
+
+```{r}
+gss_cat %>% ggplot(aes(x = year, y = age)) + 
+  geom_boxplot()
+```
+
+The reason the code above does not work is because `year` and `age` are both numeric variables (integers types to be precise). You can convert (a.k.a. coerce) a factor to be a factor with the `factor()` function. In the code below we apply the `factor()` function to `year`.
+
+```{r}
+gss_cat %>% ggplot(aes(x = factor(year), y = age)) + 
+  geom_boxplot() 
+```
+
+From the resulting chart now we can see that the age of the respondents is gradually increasing over time.
+
+You can also define the levels of a factor, and specify the level order, at the same time you convert a variable to a factor. In the code below, a non-sensical order for years is used simply to illustrate how to do it, not because you would ever want to show years in this order necessarily.
+
+```{r}
+gss_cat %>% ggplot(aes(x = factor(year, levels = c("2014", "2008", "2012", "2004")), y = age)) + 
+  geom_boxplot() 
+```
+
+The resulting plot shows the factor levels in the order I specified in the `levels` argument of `factor()`. Can you guess what happened to the observations that belong to levels that I did not explicitly define?
+
+## Working With Variables that are Already Factors
+
+If you `glimpse(gss_cat)` you can see that `rincome` is already a factor variable. It has many levels. When I plot it I notice that I do not like the order. 
+
+```{r}
+gss_cat %>% ggplot(aes(x = rincome, y = age)) + 
+  geom_boxplot() +
+  coord_flip() #flip the coordinates so that the axis labels are legible
+```
+
+I would like to move *"Not applicable"* to be next to the other non-numeric responses. I can use the `fct_relevel()` function. This function comes from the `forcats` package which is loaded with the `tidyverse`. `forcats` stands for *for categorical variables*. 
+
+In the `fct_relevel()` function I specify the factor variable, then I list out the levels in the order I would like them, starting with the first level. Unlike `factor()` though, I don't have to list them all. When I stop listing them, the function assumes the rest of the levels are in the right order and leaves them as is. So the code below makes *Not applicable* and *Refused* to be the first and second levels.
+
+```{r}
+gss_cat %>% ggplot(aes(x = fct_relevel(rincome, "Not applicable", "Refused"), y = age)) + 
+  geom_boxplot() +
+  coord_flip() #flip the coordinates so that the axis labels are legible
+```
+
+The `forcats` package is relatively easy to use because you can simply type `fct_` and then the autofill shows you all the functions that are available to you. You can scroll through the options until you find the one that sounds like it will do what you need it to.
+
+## Exercise
+
+Practice using the autofill feature of `forcats` by typing `fct_` to find the right function.
+
+Can you put all the non-dollar type levels of rincome into one factor level called "other"? (There are multiple solutions) Check to see if your code worked by creating a plot or a table of the new `income1` column.
+
+```{r exercise1}
+newdata <- gss_cat %>% 
+  mutate(income1 = _________)
+```
+
+## fct_reorder()
+
+This plot looks at the age distribution of income based on a person's income.
+
+```{r}
+gss_cat %>% 
+  ggplot(mapping = aes(x = rincome, y = age)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+The sorting makes sense, but what if we wanted to sort the boxplots based on the median age? This can be accomplished with `fct_reorder()`.
+
+```{r}
+gss_cat %>% 
+  ggplot(mapping = aes(x = fct_reorder(rincome, age), y = age)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+**Did anything change? Did you get what you expected? **
+
+To help you explain how the ordering is working now, let's take a look at the median age for each `rincome` level:
+
+```{r}
+newdata %>% 
+  group_by(income1) %>% 
+  summarise(median(age))
+```
+
+How can you get rid of/ignore the NA's when calculating the median? You would need to use the `na.rm = TRUE` argument inside the median function. To pass that same argument to median from within `fct_reorder()` I simply include it as another input argument.
+
+```{r}
+gss_cat %>% 
+  ggplot(mapping = aes(x = fct_reorder(rincome, age, na.rm = TRUE), y = age)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+## Beyond the default of fct_reorder
+
+Notice from your plot and in the help file for `fct_reorder`, that the default function to order by is the median. However, you can change it so that the factor variable is reordered by any summary statistic. For example, let's reorder the boxplots by their 3rd quartile (or 75th percentile). The 3rd quartile is the top of the box in the boxplot.
+
+*In the code below I am including the names of the input arguments explicitly. This is not necessary. The .f, .x, and .fun argument inputs are implied by the order in which arguments are given, all other arguments need to be named explicitly as done below. Hopefully, putting the argument name before each argument input helps you connect the code with what is going on in the help file.*
+
+The `probs=` and `na.rm=` are part of the "..." arguments in the help file for `fct_reorder()`. They are actually inputs to whatever function you use for the ".fun=  " argument. 
+
+```{r third_quartile}
+gss_cat %>% 
+  ggplot(mapping = aes(x = fct_reorder(.f = ______, 
+                                       .x = ______, 
+                                       .fun = quantile,
+                                       ____ = .75,
+                                       na.rm = TRUE), 
+                       y = age)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+## Religion and TV?
+
+Look at the various levels of the `relig` variable, and see how common each level is in the dataset
+
+```{r}
+levels(gss_cat$relig)
+fct_count(gss_cat$relig)
+```
+
+In which level do you think members of the Church of Jesus Christ of Latter-Day Saints belong?
+
+Inside of a `mutate`, use the `fct_` autofill to find a function that will allow you to create a new factor variable whose levels are the 4 largest religions and an "other" category to contain all the rest.
+
+Save the new dataset as `tv`. Save the new variable inside of that new dataset as `big_relig`.
+
+```{r big_relig}
+#Fill in the * and the blank.
+tv <- gss_cat %>% 
+  mutate(big_relig = fct_*(relig, ______))
+```
+
+## fct_reorder2()
+
+Fill in the blanks to get a chart that shows the mean hours of TV watched for the levels of `big_relig` over time.
+
+```{r tv_by_year_by_relig}
+tv%>% group_by(_____, big_relig) %>% 
+  summarise(tv = mean(______, na.rm = T)) %>% 
+  ggplot(aes(x = year, y = tv, color = ______ )) +
+  geom_line() +
+  labs(title = "Mean Hours of TV watched: by year by religion")
+```
+
+To improve the chart, we might add some labels directly on the chart using `directlabels` or `ggrepel`. Another helpful thing would be to sort the color legend so it matches the order of the religions in the last year of the plot.
+
+The syntax for `fct_reorder2` is similar to `fct_reorder`.
+
+```{r fct_reorder2}
+tv %>% group_by(year, big_relig) %>% 
+  summarise(tv = mean(tvhours, na.rm = T)) %>% 
+  ggplot(aes(x = year, y = tv, color = fct_reorder2(big_relig, _______, ____ )) +
+  geom_line() +
+  labs(title = "Mean Hours of TV watched: by year by religion")
+```
+
+
+## Extra enrichment
+
+### Showing a percentage instead of a count 
+
+Instead of showing the count, or frequency, of each category, we would like to show the relative frequency, or in other words the proportion (e.g. the percent). Note I moved the aesthetics into the geom_bar, and I used a statistical transformation
+
+```{r}
+gss_cat %>% 
+  ggplot() + 
+  geom_bar(aes(x = rincome, y = stat(prop), group = 1)) +
+  coord_flip()
+```
+
+Let's change the x scale so that it shows as a percentage
+
+```{r}
+gss_cat %>% 
+    mutate(rincome = fct_other(rincome, drop = c("Not applicable", "No answer", "Don't know", "Refused"))) %>% 
+    ggplot() + 
+  geom_bar(aes(x = rincome, y = stat(prop), group = 1)) +
+    scale_y_*******(_____ = scales::percent_format(accuracy = 1)) +
+    coord_flip() 
+```
+
+
+
+## Solution chunks
+
+### Exercise
+
+```{r exercise1_solution, echo = TRUE, eval = FALSE}
+non_money_levels <- c("Refused", "Don't know", "No answer", "Not applicable")
+
+newdata <- gss_cat %>% 
+  mutate(income1 = fct_collapse(rincome, other = non_money_levels),
+
+# or an alternate solution
+
+         income2 = fct_other(rincome, drop = non_money_levels))
+```
+
+You may have been tempted to use a `fct_lump` function. The lump functions generally collapse categories based on information actually observed in the dataset, like the most common categories, or the order in which categories appear in the data, or similar things like that. Here we wanted to collapse the categories based on some criteria that cannot be calculated from inside the data directly.
+
+### fct_reorder()
+
+```{r third_quartile_solution, echo = TRUE, eval = FALSE}
+gss_cat %>% 
+  ggplot(mapping = aes(x = fct_reorder(.f = rincome, 
+                                       .x = age, 
+                                       .fun = quantile,
+                                       probs = .75,
+                                       na.rm = TRUE), 
+                       y = age)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+### Religion and tv
+
+```{r tv_solution, echo = TRUE, eval = FALSE}
+#Fill in the * and the blank.
+tv <- gss_cat %>% 
+  mutate(big_relig = fct_lump_n(relig, n=4))
+```
+
+### fct_reorder2
+
+```{r tv_by_year_by_relig_solution, echo = TRUE, eval = FALSE}
+tv %>% group_by(year, big_relig) %>% 
+  summarise(tv = mean(tvhours, na.rm = T)) %>% 
+  ggplot(aes(x = year, y = tv, color = big_relig )) +
+  geom_line() +
+  labs(title = "Mean Hours of TV watched: by year by religion")
+```
+
+### fct_reorder2 fixed
+
+```{r fct_reorder2_solution, echo = TRUE, eval = FALSE}
+tv %>% group_by(year, big_relig) %>% 
+  summarise(tv = mean(tvhours, na.rm = T)) %>% 
+  ggplot(aes(x = year, y = tv, color = fct_reorder2(big_relig, year, tvhours )) +
+  geom_line() +
+  labs(title = "Mean Hours of TV watched: by year by religion")
+```
+

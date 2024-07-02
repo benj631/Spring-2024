@@ -1,5 +1,5 @@
 ---
-title: "Regression Battleship - Creating your Data"
+title: "Distance Between Savior Names"
 author: "Ben Jacobs"
 execute:
   keep-md: TRUE
@@ -17,12 +17,24 @@ editor:
 ---
 
 ```{r setup, include=FALSE}
-library(tidyverse)
-library(stringi)
-library(dplyr)
-library(rio)
-library(readr)
+
+pacman::p_load(tidyverse,stringi,dplyr,rio,readr,stringr)
 ```
+
+
+
+
+# Savior's Names Distances in the Book of Mormon
+
+```{r}
+download.file(url = "https://byuistats.github.io/M335/data/BoM_SaviorNames.rds", destfile = "BoM_SaviorNames.rds", mode = "wb")
+savior_names <- read_rds("BoM_SaviorNames.rds") %>% as_tibble()
+
+sav_names <- savior_names %>% pull(name) %>% str_c(collapse = "|")
+
+```
+
+
 
 ```{r}
 bom_data <- rio::import("http://scriptures.nephi.org/downloads/lds-scriptures.csv.zip") %>%
@@ -35,19 +47,11 @@ bom_text <- bom_data %>%
 
 ```
 
-```{r}
-str_length(bom_text$scripture_text)
-
-```
 
 
 ```{r}
-savior_names <- read_rds(url("https://byuistats.github.io/M335/data/BoM_SaviorNames.rds")) %>% as_tibble()
-
-sav_names <- savior_names %>% pull(name) %>% str_c(collapse = "|")
-
+# str_length(bom_text$scripture_text)
 ```
-
 
 ```{r}
 # Calculate the number of words between occurrences of Savior names
@@ -65,12 +69,32 @@ dist_between <- bom_text %>%
 ```{r}
 # Create the box plot
 ggplot(dist_between, aes(y = book_short_title, x = n.between)) +
-  geom_boxplot() +
-  labs(title = "Distribution of Word Counts Between Savior Names by Book in the Book of Mormon",
+  scale_x_continuous(breaks = seq(0, max(dist_between$n.between), by = 10))+
+  geom_boxplot(fill="skyblue") +
+  labs(title = "Organized Distribution of Word Counts Between Savior Names by Book in the Book of Mormon",
        x = "Word Count Between Savior Names",
        y = "Book Short Title") +
-  theme_minimal()
+  
+  theme_bw()
 
 ```
 
+```{r}
+median_data <- dist_between %>%
+  group_by(book_short_title) %>%
+  summarize(median_n_between = median(n.between)) %>%
+  arrange(desc(median_n_between)) %>%
+  pull(book_short_title)
 
+# Reorder book_short_title factor levels based on median n.between
+dist_between$book_short_title <- factor(dist_between$book_short_title, levels = median_data)
+
+# Create the box plot
+ggplot(dist_between, aes(y = book_short_title, x = n.between)) +
+  geom_boxplot(fill = "skyblue") +
+  labs(title = "Distribution of Word Counts Between Savior Names by Book in the Book of Mormon",
+       x = "Word Count Between Savior Names",
+       y = "Book Short Title") +
+  scale_x_continuous(breaks = seq(0, max(dist_between$n.between), by = 10)) +
+  theme_bw()
+```
