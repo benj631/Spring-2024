@@ -1,0 +1,11 @@
+Please show the three math equations that are included in the "An Example" in the "Transformations" section of the Statistics-Notebook Linear Regression Explanation page.
+
+Create a section that shows the final graph with prediction intervals and your conclusion as the first tab in the document. See the instructions for more details about what I was looking for as your opening. I like how you walk us through your thinking, but start with the conclusion, then walk us through your thinking for the interested reader.
+
+Typo down towards the bottom of your document ". If we accept p values as significant at the 0.5 level" where 0.5 should be 0.05
+
+Should this be 225,000 when you write, "not many Honda Pilots were for sale past about 125,000 miles, just looking around" at least it looks that way based on your graph. Or maybe 150,000 would be a good cut off as not many dots are beyond that.
+
+There shouldn't be a dollar sign in these mileages, "probably selling it between $125-150,000 would be the best option, because who is going to buy it after that? If you sold it at, say, $135,000"
+
+These statements are not supported by your analysis, "What I do know, is that dealerships are expensive, and/or you shouldn’t buy a used Honda Pilot unless you get a really good deal." They might be good advice, but try to keep your advice to be data based, not opinion based.
