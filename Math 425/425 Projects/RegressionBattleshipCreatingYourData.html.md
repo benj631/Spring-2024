@@ -395,20 +395,22 @@ test.lm <- lm(y ~ x9:x10:(
 
 
 ### Line pair 1
+
 $$
 y = 10x - 15x^3
 $$
 
 ### Line pair 2
+
 $$
 y = -7.5x + 12.5x^3 + 0.4x^5
 $$
 
 ### Line pair 3
+
 $$
 y = 8x^{-1} - 16x + 17x^3 + 0.4x^5 - 0.2x^5
 $$
-
 
 ## Math Model
 
@@ -422,8 +424,8 @@ y = x_9 x_{10} \left(
     8x^{-1} x_3 + (-16)x x_4 + 17x^3 x_5 + (-0.2)x^5 x_6 x_7 +
     \varepsilon_i
 \right)
-$$
-Note - $x9$ and $x10$ would be, in the long equation, distributed to each term, but for simplicity they will be left factored out.
+$$ Note - $x9$ and $x10$ would be, in the long equation, distributed to
+each term, but for simplicity they will be left factored out.
 
 ## Results
 
@@ -665,7 +667,7 @@ saunderspred <- predict(saunders.lm)
 :::
 
 
-## Zach's Guess
+### Zach's Guess
 
 
 ::: {.cell}
@@ -750,7 +752,7 @@ ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9*x10))) +
 :::
 
 
-# Sam's Guess
+### Sam's Guess
 
 
 ::: {.cell}
@@ -829,7 +831,7 @@ ggplot(rbdata,aes(y=y,x=x8,col=interaction(x1,x2,x3,x4,x5,x6,x7,x9*x10))) +
 :::
 
 
-# Saunder's Guess
+### Saunder's Guess
 
 
 ::: {.cell}
@@ -920,7 +922,7 @@ drawit(0,0,0,0,0,0,0,1,5)
 :::
 
 
-# Predictions
+### Predictions
 
 
 ::: {.cell}
@@ -1068,8 +1070,12 @@ knitr::kable(my_output_table2, escape=TRUE, digits=4)
 :::
 
 
-Something is wrong with the validation for Zach and Sam. I am not sure where that problem is arising. The validations should not change that drastically. It likely originates from the fact that Brother Saunder's data has a lot of mutations, but those shouldn't effect the validation...
+Something is wrong with the validation for Zach and Sam. I am not sure
+where that problem is arising. The validations should not change that
+drastically. It likely originates from the fact that Brother Saunder's
+data has a lot of mutations, but those shouldn't effect the
+validation...
 
-# Winner:
+## Winner:
 
 Definitely Brother Saunders.

@@ -1,0 +1,112 @@
+---
+title: "Wk 3 Mobius and Quiz"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-07-02" 
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+pacman::p_load(tidyverse,dplyr,pander,car)
+```
+
+```{r}
+View(Orange)
+```
+
+```{r}
+o.lm <- lm(circumference ~ age,data=Orange)
+plot(circumference ~ age,data=Orange,pch=16,col="red")
+abline(o.lm)
+
+summary(o.lm)
+```
+
+```{r}
+# Calculate RMSE
+SSE <- sum(o.lm$residuals^2)
+
+# Calculate MSE
+n <- length(Orange$age)
+MSE <- SSE / (n - 2)
+
+# Calculate RMSE
+rmse <- sqrt(MSE)
+rmse
+```
+```{r}
+plot(o.lm,which=1:3)
+```
+1. Nonconstant Variance
+2. Looks good
+3. Very funky
+
+```{r}
+boxCox(o.lm)
+# Lamba = .5 -> sqrt
+```
+```{r}
+o.lm.s <- lm(sqrt(circumference) ~ age,data=Orange)
+summary(o.lm.s)
+
+bs <- coef(o.lm.s)
+b <- coef(o.lm)
+
+olm <- function(x){b[1] + b[2] * x}
+olms <- function(x){(bs[1] + bs[2] * x) ^ 2}
+
+ggplot(Orange, aes(x = age, y = circumference)) +
+  geom_point() +
+  stat_function(fun = olms, color = "blue") +
+  stat_function(fun = olm, color = "red") +
+  labs(title = "Circumference vs Age in Orange Trees with Fitted Curve",
+       x = "Age",
+       y = "Circumference") +
+  theme_bw()
+
+plot(o.lm.s, which=1:3)
+```
+
+
+```{r}
+# Square prediction to original units
+prediction <- predict(o.lm.s,data.frame(age=500))
+prediction <- prediction ^2
+prediction
+```
+# QUIZ
+
+```{r}
+clm <- lm(dist ~ speed, data=cars)
+clms <-  lm(sqrt(dist) ~ speed, data=cars)
+
+b <- coef(clm)
+bs <- coef(clms)
+
+clm.f <- function(x){b[1] + b[2] * x}
+clms.f <- function(x){(bs[1] + bs[2] * x) ^ 2}
+
+ggplot(cars, aes(x = speed, y = dist)) +
+  geom_point() +
+  stat_function(fun = clms.f, color = "blue") +
+  stat_function(fun = clm.f, color = "red") +
+  labs(title = "Circumference vs Age in Orange Trees with Fitted Curve",
+       x = "Age",
+       y = "Circumference") +
+  theme_bw()
+
+boxCox(clm)
+```
+## Notes
+
+residuals vs fitted plot, not the original plot... make sure you're looking at the original plot.

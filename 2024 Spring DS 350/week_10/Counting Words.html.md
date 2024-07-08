@@ -175,6 +175,45 @@ print(paste("Count of 'Jesus' in Book of Mormon:", jesus_count_bom))
 :::
 
 
+# Average Word Count by Chapter in the Book of Mormon
+
+
+::: {.cell}
+
+```{.r .cell-code}
+bom_text <- bom_text %>%
+  mutate(verse_length = str_extract_all(scripture_text, "\\w+") %>%
+                          lengths())
+
+bom_chapters <- bom_text %>%
+  group_by(book_title, chapter_number) %>%
+  mutate(avg_verse_length_by_chapter = mean(verse_length)) %>%
+  ungroup()
+```
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
+ggplot(bom_chapters, aes(x = chapter_number, y = avg_verse_length_by_chapter, color = book_title)) +
+  geom_point() +
+  facet_wrap(~ book_title, scales = "free") + 
+  geom_line(aes(group = chapter_number), alpha = 0.7) +  # Connect points by chapter within each facet
+  geom_smooth(method = "loess", se = FALSE, color = "black") +  # Add smoothed line
+  labs(title = "Average Verse Length Across Chapters in the Book of Mormon",
+       x = "Chapter Number",
+       y = "Average Verse Length (Number of Words)",
+       color = "Book Title") +
+  theme_bw()  
+```
+
+::: {.cell-output-display}
+![](Counting-Words_files/figure-html/unnamed-chunk-7-1.png){width=672}
+:::
+:::
+
+
+
 # Average Word Count by Verse in the Book of Mormon
 
 
@@ -212,7 +251,7 @@ ggplot(bom_text, aes(x = verse_count, y = verse_length, color = book_title)) +
 ```
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-7-1.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-9-1.png){width=672}
 :::
 :::
 
@@ -265,7 +304,7 @@ $`1 Nephi`
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-1.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-1.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -279,7 +318,7 @@ $`2 Nephi`
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-2.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-2.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -293,7 +332,7 @@ $Jacob
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-3.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-3.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -307,7 +346,7 @@ $Enos
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-4.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-4.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -321,7 +360,7 @@ $Jarom
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-5.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-5.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -335,7 +374,7 @@ $Omni
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-6.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-6.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -349,7 +388,7 @@ $`Words of Mormon`
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-7.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-7.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -363,7 +402,7 @@ $Mosiah
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-8.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-8.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -377,7 +416,7 @@ $Alma
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-9.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-9.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -391,7 +430,7 @@ $Helaman
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-10.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-10.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -405,7 +444,7 @@ $`3 Nephi`
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-11.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-11.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -419,7 +458,7 @@ $`4 Nephi`
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-12.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-12.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -433,7 +472,7 @@ $Mormon
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-13.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-13.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -447,7 +486,7 @@ $Ether
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-14.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-14.png){width=672}
 :::
 
 ::: {.cell-output .cell-output-stdout}
@@ -461,7 +500,7 @@ $Moroni
 :::
 
 ::: {.cell-output-display}
-![](Counting-Words_files/figure-html/unnamed-chunk-8-15.png){width=672}
+![](Counting-Words_files/figure-html/unnamed-chunk-10-15.png){width=672}
 :::
 
 ```{.r .cell-code}

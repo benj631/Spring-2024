@@ -223,38 +223,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 </section>
-<section id="average-word-count-by-verse-in-the-book-of-mormon" class="level1">
-<h1>Average Word Count by Verse in the Book of Mormon</h1>
+<section id="average-word-count-by-chapter-in-the-book-of-mormon" class="level1">
+<h1>Average Word Count by Chapter in the Book of Mormon</h1>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">#View(bom_text)</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a></span>
-<span id="cb18-3"><a href="#cb18-3"></a>bom_text <span class="ot">&lt;-</span> bom_text <span class="sc">%&gt;%</span></span>
-<span id="cb18-4"><a href="#cb18-4"></a>  <span class="fu">mutate</span>(<span class="at">verse_length =</span> <span class="fu">str_extract_all</span>(scripture_text, <span class="st">"</span><span class="sc">\\</span><span class="st">w+"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb18-5"><a href="#cb18-5"></a>                          <span class="fu">lengths</span>())</span>
-<span id="cb18-6"><a href="#cb18-6"></a>                      </span>
-<span id="cb18-7"><a href="#cb18-7"></a></span>
-<span id="cb18-8"><a href="#cb18-8"></a><span class="co"># Calculate verse count within each book_title</span></span>
-<span id="cb18-9"><a href="#cb18-9"></a>bom_text <span class="ot">&lt;-</span> bom_text <span class="sc">%&gt;%</span></span>
-<span id="cb18-10"><a href="#cb18-10"></a>  <span class="fu">group_by</span>(book_title) <span class="sc">%&gt;%</span></span>
-<span id="cb18-11"><a href="#cb18-11"></a>  <span class="fu">mutate</span>(<span class="at">verse_count =</span> <span class="fu">row_number</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb18-12"><a href="#cb18-12"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>bom_text <span class="ot">&lt;-</span> bom_text <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="fu">mutate</span>(<span class="at">verse_length =</span> <span class="fu">str_extract_all</span>(scripture_text, <span class="st">"</span><span class="sc">\\</span><span class="st">w+"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a>                          <span class="fu">lengths</span>())</span>
+<span id="cb18-4"><a href="#cb18-4"></a></span>
+<span id="cb18-5"><a href="#cb18-5"></a>bom_chapters <span class="ot">&lt;-</span> bom_text <span class="sc">%&gt;%</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a>  <span class="fu">group_by</span>(book_title, chapter_number) <span class="sc">%&gt;%</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a>  <span class="fu">mutate</span>(<span class="at">avg_verse_length_by_chapter =</span> <span class="fu">mean</span>(verse_length)) <span class="sc">%&gt;%</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">ggplot</span>(bom_text, <span class="fu">aes</span>(<span class="at">x =</span> verse_count, <span class="at">y =</span> verse_length, <span class="at">color =</span> book_title)) <span class="sc">+</span></span>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">ggplot</span>(bom_chapters, <span class="fu">aes</span>(<span class="at">x =</span> chapter_number, <span class="at">y =</span> avg_verse_length_by_chapter, <span class="at">color =</span> book_title)) <span class="sc">+</span></span>
 <span id="cb19-2"><a href="#cb19-2"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb19-3"><a href="#cb19-3"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> book_title, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span>  <span class="co"># Ensure scales are free for each facet</span></span>
-<span id="cb19-4"><a href="#cb19-4"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb19-5"><a href="#cb19-5"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb19-6"><a href="#cb19-6"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Verse Length Across Verses in the Book of Mormon"</span>,</span>
-<span id="cb19-7"><a href="#cb19-7"></a>       <span class="at">x =</span> <span class="st">"Verse Number"</span>,</span>
-<span id="cb19-8"><a href="#cb19-8"></a>       <span class="at">y =</span> <span class="st">"Verse Length (Number of Words)"</span>,</span>
-<span id="cb19-9"><a href="#cb19-9"></a>       <span class="at">color =</span> <span class="st">"Book Short Title"</span>) <span class="sc">+</span></span>
-<span id="cb19-10"><a href="#cb19-10"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> book_title, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span> </span>
+<span id="cb19-4"><a href="#cb19-4"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> chapter_number), <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span>  <span class="co"># Connect points by chapter within each facet</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span>  <span class="co"># Add smoothed line</span></span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Average Verse Length Across Chapters in the Book of Mormon"</span>,</span>
+<span id="cb19-7"><a href="#cb19-7"></a>       <span class="at">x =</span> <span class="st">"Chapter Number"</span>,</span>
+<span id="cb19-8"><a href="#cb19-8"></a>       <span class="at">y =</span> <span class="st">"Average Verse Length (Number of Words)"</span>,</span>
+<span id="cb19-9"><a href="#cb19-9"></a>       <span class="at">color =</span> <span class="st">"Book Title"</span>) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10"></a>  <span class="fu">theme_bw</span>()  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -264,43 +260,85 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
+</section>
+<section id="average-word-count-by-verse-in-the-book-of-mormon" class="level1">
+<h1>Average Word Count by Verse in the Book of Mormon</h1>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb20-2"><a href="#cb20-2"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb20-3"><a href="#cb20-3"></a></span>
-<span id="cb20-4"><a href="#cb20-4"></a><span class="co"># Define sunset color palette</span></span>
-<span id="cb20-5"><a href="#cb20-5"></a>sunset_colors <span class="ot">&lt;-</span> <span class="fu">colorRampPalette</span>(<span class="fu">c</span>(<span class="st">"#FFD700"</span>, <span class="st">"#FFA500"</span>, <span class="st">"#FF6347"</span>, <span class="st">"#FF4477"</span>,<span class="st">"#6622FF"</span>))</span>
-<span id="cb20-6"><a href="#cb20-6"></a></span>
-<span id="cb20-7"><a href="#cb20-7"></a><span class="co"># List of book titles to iterate over</span></span>
-<span id="cb20-8"><a href="#cb20-8"></a>book_titles <span class="ot">&lt;-</span> <span class="fu">unique</span>(bom_text<span class="sc">$</span>book_title)</span>
-<span id="cb20-9"><a href="#cb20-9"></a></span>
-<span id="cb20-10"><a href="#cb20-10"></a><span class="co"># Create a list to store plots</span></span>
-<span id="cb20-11"><a href="#cb20-11"></a>plots <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb20-12"><a href="#cb20-12"></a></span>
-<span id="cb20-13"><a href="#cb20-13"></a><span class="co"># Iterate over each book title</span></span>
-<span id="cb20-14"><a href="#cb20-14"></a><span class="cf">for</span> (title <span class="cf">in</span> book_titles) {</span>
-<span id="cb20-15"><a href="#cb20-15"></a>  </span>
-<span id="cb20-16"><a href="#cb20-16"></a>  <span class="co"># Filter data for current book title</span></span>
-<span id="cb20-17"><a href="#cb20-17"></a>  book_data <span class="ot">&lt;-</span> <span class="fu">filter</span>(bom_text, book_title <span class="sc">==</span> title)</span>
-<span id="cb20-18"><a href="#cb20-18"></a>  </span>
-<span id="cb20-19"><a href="#cb20-19"></a>  <span class="co"># Plot for current book title</span></span>
-<span id="cb20-20"><a href="#cb20-20"></a>  plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(book_data, <span class="fu">aes</span>(<span class="at">x =</span> verse_count, <span class="at">y =</span> verse_length, <span class="at">color =</span> book_title)) <span class="sc">+</span></span>
-<span id="cb20-21"><a href="#cb20-21"></a>    <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="fu">sunset_colors</span>(<span class="fu">length</span>(book_titles))[<span class="fu">which</span>(book_titles <span class="sc">==</span> title)]) <span class="sc">+</span>  <span class="co"># Use custom sunset color</span></span>
-<span id="cb20-22"><a href="#cb20-22"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb20-23"><a href="#cb20-23"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Verse Length Across Verses in the Book of Mormon ("</span>, title, <span class="st">")"</span>, <span class="at">sep =</span> <span class="st">""</span>),</span>
-<span id="cb20-24"><a href="#cb20-24"></a>         <span class="at">x =</span> <span class="st">"Verse Number"</span>,</span>
-<span id="cb20-25"><a href="#cb20-25"></a>         <span class="at">y =</span> <span class="st">"Verse Length (Number of Words)"</span>,</span>
-<span id="cb20-26"><a href="#cb20-26"></a>         <span class="at">color =</span> <span class="st">"Book Short Title"</span>) <span class="sc">+</span></span>
-<span id="cb20-27"><a href="#cb20-27"></a>    <span class="fu">theme_bw</span>()</span>
-<span id="cb20-28"><a href="#cb20-28"></a>  </span>
-<span id="cb20-29"><a href="#cb20-29"></a>  <span class="co"># Store plot in the list</span></span>
-<span id="cb20-30"><a href="#cb20-30"></a>  plots[[title]] <span class="ot">&lt;-</span> plot</span>
-<span id="cb20-31"><a href="#cb20-31"></a>}</span>
-<span id="cb20-32"><a href="#cb20-32"></a></span>
-<span id="cb20-33"><a href="#cb20-33"></a><span class="co"># Display all plots (optional)</span></span>
-<span id="cb20-34"><a href="#cb20-34"></a><span class="fu">print</span>(plots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">#View(bom_text)</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a>bom_text <span class="ot">&lt;-</span> bom_text <span class="sc">%&gt;%</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="fu">mutate</span>(<span class="at">verse_length =</span> <span class="fu">str_extract_all</span>(scripture_text, <span class="st">"</span><span class="sc">\\</span><span class="st">w+"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a>                          <span class="fu">lengths</span>())</span>
+<span id="cb20-6"><a href="#cb20-6"></a>                      </span>
+<span id="cb20-7"><a href="#cb20-7"></a></span>
+<span id="cb20-8"><a href="#cb20-8"></a><span class="co"># Calculate verse count within each book_title</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a>bom_text <span class="ot">&lt;-</span> bom_text <span class="sc">%&gt;%</span></span>
+<span id="cb20-10"><a href="#cb20-10"></a>  <span class="fu">group_by</span>(book_title) <span class="sc">%&gt;%</span></span>
+<span id="cb20-11"><a href="#cb20-11"></a>  <span class="fu">mutate</span>(<span class="at">verse_count =</span> <span class="fu">row_number</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb20-12"><a href="#cb20-12"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">ggplot</span>(bom_text, <span class="fu">aes</span>(<span class="at">x =</span> verse_count, <span class="at">y =</span> verse_length, <span class="at">color =</span> book_title)) <span class="sc">+</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> book_title, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span>  <span class="co"># Ensure scales are free for each facet</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Verse Length Across Verses in the Book of Mormon"</span>,</span>
+<span id="cb21-7"><a href="#cb21-7"></a>       <span class="at">x =</span> <span class="st">"Verse Number"</span>,</span>
+<span id="cb21-8"><a href="#cb21-8"></a>       <span class="at">y =</span> <span class="st">"Verse Length (Number of Words)"</span>,</span>
+<span id="cb21-9"><a href="#cb21-9"></a>       <span class="at">color =</span> <span class="st">"Book Short Title"</span>) <span class="sc">+</span></span>
+<span id="cb21-10"><a href="#cb21-10"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb22-3"><a href="#cb22-3"></a></span>
+<span id="cb22-4"><a href="#cb22-4"></a><span class="co"># Define sunset color palette</span></span>
+<span id="cb22-5"><a href="#cb22-5"></a>sunset_colors <span class="ot">&lt;-</span> <span class="fu">colorRampPalette</span>(<span class="fu">c</span>(<span class="st">"#FFD700"</span>, <span class="st">"#FFA500"</span>, <span class="st">"#FF6347"</span>, <span class="st">"#FF4477"</span>,<span class="st">"#6622FF"</span>))</span>
+<span id="cb22-6"><a href="#cb22-6"></a></span>
+<span id="cb22-7"><a href="#cb22-7"></a><span class="co"># List of book titles to iterate over</span></span>
+<span id="cb22-8"><a href="#cb22-8"></a>book_titles <span class="ot">&lt;-</span> <span class="fu">unique</span>(bom_text<span class="sc">$</span>book_title)</span>
+<span id="cb22-9"><a href="#cb22-9"></a></span>
+<span id="cb22-10"><a href="#cb22-10"></a><span class="co"># Create a list to store plots</span></span>
+<span id="cb22-11"><a href="#cb22-11"></a>plots <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb22-12"><a href="#cb22-12"></a></span>
+<span id="cb22-13"><a href="#cb22-13"></a><span class="co"># Iterate over each book title</span></span>
+<span id="cb22-14"><a href="#cb22-14"></a><span class="cf">for</span> (title <span class="cf">in</span> book_titles) {</span>
+<span id="cb22-15"><a href="#cb22-15"></a>  </span>
+<span id="cb22-16"><a href="#cb22-16"></a>  <span class="co"># Filter data for current book title</span></span>
+<span id="cb22-17"><a href="#cb22-17"></a>  book_data <span class="ot">&lt;-</span> <span class="fu">filter</span>(bom_text, book_title <span class="sc">==</span> title)</span>
+<span id="cb22-18"><a href="#cb22-18"></a>  </span>
+<span id="cb22-19"><a href="#cb22-19"></a>  <span class="co"># Plot for current book title</span></span>
+<span id="cb22-20"><a href="#cb22-20"></a>  plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(book_data, <span class="fu">aes</span>(<span class="at">x =</span> verse_count, <span class="at">y =</span> verse_length, <span class="at">color =</span> book_title)) <span class="sc">+</span></span>
+<span id="cb22-21"><a href="#cb22-21"></a>    <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="fu">sunset_colors</span>(<span class="fu">length</span>(book_titles))[<span class="fu">which</span>(book_titles <span class="sc">==</span> title)]) <span class="sc">+</span>  <span class="co"># Use custom sunset color</span></span>
+<span id="cb22-22"><a href="#cb22-22"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb22-23"><a href="#cb22-23"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Verse Length Across Verses in the Book of Mormon ("</span>, title, <span class="st">")"</span>, <span class="at">sep =</span> <span class="st">""</span>),</span>
+<span id="cb22-24"><a href="#cb22-24"></a>         <span class="at">x =</span> <span class="st">"Verse Number"</span>,</span>
+<span id="cb22-25"><a href="#cb22-25"></a>         <span class="at">y =</span> <span class="st">"Verse Length (Number of Words)"</span>,</span>
+<span id="cb22-26"><a href="#cb22-26"></a>         <span class="at">color =</span> <span class="st">"Book Short Title"</span>) <span class="sc">+</span></span>
+<span id="cb22-27"><a href="#cb22-27"></a>    <span class="fu">theme_bw</span>()</span>
+<span id="cb22-28"><a href="#cb22-28"></a>  </span>
+<span id="cb22-29"><a href="#cb22-29"></a>  <span class="co"># Store plot in the list</span></span>
+<span id="cb22-30"><a href="#cb22-30"></a>  plots[[title]] <span class="ot">&lt;-</span> plot</span>
+<span id="cb22-31"><a href="#cb22-31"></a>}</span>
+<span id="cb22-32"><a href="#cb22-32"></a></span>
+<span id="cb22-33"><a href="#cb22-33"></a><span class="co"># Display all plots (optional)</span></span>
+<span id="cb22-34"><a href="#cb22-34"></a><span class="fu">print</span>(plots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>$`1 Nephi`</code></pre>
@@ -308,7 +346,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -319,7 +357,7 @@ $`2 Nephi`</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -330,7 +368,7 @@ $Jacob</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-3.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -341,7 +379,7 @@ $Enos</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-4.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -352,7 +390,7 @@ $Jarom</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-5.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-5.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -363,7 +401,7 @@ $Omni</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-6.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-6.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -374,7 +412,7 @@ $`Words of Mormon`</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-7.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-7.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -385,7 +423,7 @@ $Mosiah</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-8.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-8.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -396,7 +434,7 @@ $Alma</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-9.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-9.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -407,7 +445,7 @@ $Helaman</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-10.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-10.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -418,7 +456,7 @@ $`3 Nephi`</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-11.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-11.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -429,7 +467,7 @@ $`4 Nephi`</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-12.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-12.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -440,7 +478,7 @@ $Mormon</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-13.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-13.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -451,7 +489,7 @@ $Ether</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-14.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-14.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -462,13 +500,13 @@ $Moroni</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Counting-Words_files/figure-html/unnamed-chunk-8-15.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Counting-Words_files/figure-html/unnamed-chunk-10-15.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a><span class="co"># Access individual plots by book title, e.g., plots$"1 Ne."</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="co"># Access individual plots by book title, e.g., plots$"1 Ne."</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>

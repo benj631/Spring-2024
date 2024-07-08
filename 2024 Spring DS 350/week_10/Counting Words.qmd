@@ -86,6 +86,34 @@ print(paste("Count of 'Jesus' in Book of Mormon:", jesus_count_bom))
 # --> 184
 ```
 
+# Average Word Count by Chapter in the Book of Mormon
+
+```{r}
+bom_text <- bom_text %>%
+  mutate(verse_length = str_extract_all(scripture_text, "\\w+") %>%
+                          lengths())
+
+bom_chapters <- bom_text %>%
+  group_by(book_title, chapter_number) %>%
+  mutate(avg_verse_length_by_chapter = mean(verse_length)) %>%
+  ungroup()
+
+```
+
+```{r}
+ggplot(bom_chapters, aes(x = chapter_number, y = avg_verse_length_by_chapter, color = book_title)) +
+  geom_point() +
+  facet_wrap(~ book_title, scales = "free") + 
+  geom_line(aes(group = chapter_number), alpha = 0.7) +  # Connect points by chapter within each facet
+  geom_smooth(method = "loess", se = FALSE, color = "black") +  # Add smoothed line
+  labs(title = "Average Verse Length Across Chapters in the Book of Mormon",
+       x = "Chapter Number",
+       y = "Average Verse Length (Number of Words)",
+       color = "Book Title") +
+  theme_bw()  
+```
+
+
 # Average Word Count by Verse in the Book of Mormon
 
 ```{r}
