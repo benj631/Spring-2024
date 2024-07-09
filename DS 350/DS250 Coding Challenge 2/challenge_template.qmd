@@ -1,0 +1,147 @@
+---
+title: "challenge template"
+format:
+  html:
+    self-contained: true
+    code-fold: true
+---
+
+```{r}
+#| warning: false
+#| message: false
+
+pacman::p_load(tidyverse,dplyr,lubridate)
+library(readxl)
+
+```
+
+```{r}
+d2019_10 <- read_excel("cpiaverageprices201910.xlsx", col_names = TRUE)  %>% drop_na()
+d2019_11 <- read_excel("cpiaverageprices201911.xlsx", col_names = TRUE)  %>% drop_na()
+d2019_12 <- read_excel("cpiaverageprices201912.xlsx", col_names = TRUE)  %>% drop_na() 
+d2020_01 <- read_excel("cpiaverageprices202001.xlsx", col_names = TRUE)  %>% drop_na() 
+d2020_02 <- read_excel("cpiaverageprices202002.xlsx", col_names = TRUE)  %>% drop_na() 
+d2020_03 <- read_excel("cpiaverageprices202003.xlsx", col_names = TRUE)  %>% drop_na() 
+
+```
+
+```{r}
+
+array <- list(d2019_10, d2019_11, d2019_12, d2020_01)
+
+# Loop through each data frame in the list and convert specific columns to numeric
+for (dataframe in array) {
+  dataframe$...3 <- as.numeric(dataframe$...3)
+}
+
+array2 <- list(d2020_02, d2020_03)
+
+for (dataframe in array2) {
+  dataframe$...2 <- as.numeric(dataframe$...2)
+}
+
+
+```
+
+```{r}
+
+View(d2019_10)
+View(d2019_11)
+View(d2019_12)
+View(d2020_01)
+View(d2020_02)
+View(d2020_03)
+
+names(d2020_03)
+```
+
+```{r}
+# Calculate mean values for each month
+mean_october <- mean(d2019_10$...3, na.rm = TRUE)
+mean_november <- mean(d2019_11$...3, na.rm = TRUE)
+mean_december <- mean(d2019_12$...3, na.rm = TRUE)
+mean_january <- mean(d2020_01$...3, na.rm = TRUE)
+mean_february <- mean(d2020_02$...2, na.rm = TRUE)
+mean_march <- mean(d2020_03$...2, na.rm = TRUE)
+
+# Create a data frame with mean values and months as rows
+new_df <- data.frame(
+  Month = c("October", "November", "December", "January", "February", "March"),
+  Mean = c(mean_october, mean_november, mean_december, mean_january, mean_february, mean_march)
+)
+
+new_df$Mean <- round(new_df$Mean, digits = 2)
+
+# Convert Month to factor with desired order
+new_df$Month <- factor(new_df$Month, levels = c("October", "November", "December", "January", "February", "March"))
+
+
+# Print the new data frame
+print(new_df)
+
+```   
+```{r}
+ggplot(new_df, aes(x = Month, y = Mean, group = 1)) +  # Group by a constant to connect all points
+  geom_point() +                        # Add points
+  geom_line(linetype = "dashed",col="red") +      # Connect points with dashed line
+  labs(x = "Time Period", y = "Average Prices", title = "CPI food price averages") +  # Labels and title
+  theme_bw() +                          # Apply black and white theme 
+  theme(panel.border = element_blank(),
+        panel.grid.minor = element_blank())
+  
+```
+
+```{r}
+d2019_10 <- read_excel("cpiaverageprices201910.xlsx", col_names = TRUE)  %>% drop_na()
+d2019_11 <- read_excel("cpiaverageprices201911.xlsx", col_names = TRUE)  %>% drop_na()
+d2019_12 <- read_excel("cpiaverageprices201912.xlsx", col_names = TRUE)  %>% drop_na() 
+d2020_01 <- read_excel("cpiaverageprices202001.xlsx", col_names = TRUE)  %>% drop_na() 
+d2020_02 <- read_excel("cpiaverageprices202002.xlsx", col_names = TRUE)  %>% drop_na() 
+d2020_03 <- read_excel("cpiaverageprices202003.xlsx", col_names = TRUE)  %>% drop_na()
+```
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+# File paths (adjust these paths to your actual file paths)
+file_paths <- c("cpiaverageprices201910.xlsx", "cpiaverageprices201911.xlsx",
+                "cpiaverageprices201912.xlsx", "cpiaverageprices202001.xlsx",
+                "cpiaverageprices202002.xlsx", "cpiaverageprices202003.xlsx")
+
+# Function to read and process each file
+read_and_process <- function(file_path) {
+  # Read Excel file and drop NA rows
+  df <- read_excel(file_path, col_names = TRUE) %>%
+    drop_na()
+  
+  # Extract month and mean price
+  month <- str_extract(file_path, "\\d{4}(\\d{2})")  # Extract month from file name
+  mean_price <- mean(df$...3)  # Calculate mean price
+  
+  # Return month and mean price as a named list
+  return(list(month = month, mean_price = mean_price))
+}
+
+# Initialize an empty list to store results
+monthly_means <- list()
+
+# Loop through each file path and process
+for (file_path in file_paths) {
+  result <- read_and_process(file_path)
+  monthly_means[[result$month]] <- result$mean_price
+}
+
+# Convert list to a dataframe
+monthly_means_df <- as.data.frame(t(monthly_means))
+names(monthly_means_df) <- c("October_mean", "November_mean", "December_mean", 
+                             "January_mean", "February_mean", "March_mean")
+
+# Print the resulting dataframe
+View(monthly_means_df)
+
+
+
+```
+
+

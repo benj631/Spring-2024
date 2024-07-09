@@ -1,0 +1,34 @@
+---
+title: "Midterm Analysis"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-08"
+---
+
+
+
+```{r}
+pacman::p_load(tidyverse,dplyr,readr)
+```
+
+
+```{r}
+m425 <- read_csv("Math425PastGrades.csv")
+```
+
+```{r}
+pairs(m425, panel=panel.smooth)
+
+```
+
+
+

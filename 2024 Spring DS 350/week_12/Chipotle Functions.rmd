@@ -1,0 +1,88 @@
+---
+title: "Chipotle Functions"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-08"
+---
+
+```{r}
+pacman::p_load(tidyverse,dplyr,lubridate,stringi,stringr)
+```
+
+```{r}
+library(tidyverse)
+
+# Your input string
+
+string1 <- '{"Monday":94,"Tuesday":76,"Wednesday":89,"Thursday":106,"Friday":130,"Saturday":128,"Sunday":58}'
+
+# Remove curly braces and split by comma
+split_string <- str_remove_all(string1, "[{}]") %>%
+  str_split(",") %>%
+  unlist() # Atomic vector instead of list
+
+# Split by colon, remove quotes, and create a data frame
+data <- tibble(
+  Day = map_chr(split_string, ~str_split(.x, ":")[[1]][1] %>% str_remove_all('"')),
+  Visits = map_int(split_string, ~str_split(.x, ":")[[1]][2] %>% str_remove_all('"') %>% as.integer())
+)
+
+View(data)
+
+# a-Z includes the ascii from a-Z
+# "[:alpha:]" includes all letters
+```
+
+
+```{r}
+
+
+Extract_Weekly_Visits <- function(string) {
+  split_string <- str_remove_all(string, "[{}]") %>%
+    str_split(",") %>%
+    unlist() # Atomic vector instead of list
+
+  # Split by colon, remove quotes, and create a data frame
+  tib <- tibble(
+    Day = map_chr(split_string, ~str_split(.x, ":")[[1]][1] %>% str_remove_all('"')),
+    Visits = map_int(split_string, ~str_split(.x, ":")[[1]][2] %>% str_remove_all('"') %>% as.integer())
+  )
+
+  return(tib)
+}
+
+result <- Extract_Weekly_Visits(string1)
+result
+
+```
+
+```{r}
+
+Most_Popular_Day <- function(string) {
+  data <- Extract_Weekly_Visits(string)
+  
+  # Find the maximum number of visits
+  max_visits <- max(data$Visits)
+  
+  # Find the day(s) with the maximum number of visits
+  popular_days <- data %>% filter(Visits == max_visits) %>% pull(Day)
+  
+  # Return the most popular day(s) as a comma-separated string if there are ties
+  return(paste(popular_days, collapse = ", "))
+}
+
+most_popular_day <- Most_Popular_Day(string)
+print(most_popular_day)
+```
+
+
+

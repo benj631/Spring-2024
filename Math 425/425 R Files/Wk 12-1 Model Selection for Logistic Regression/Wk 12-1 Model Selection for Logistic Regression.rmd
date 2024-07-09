@@ -1,0 +1,110 @@
+---
+title: "Math 425 Data"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "2024-07-08"
+---
+
+```{r}
+# install.packages("ResourceSelection")
+pacman::p_load(tidyverse,dplyr,lubridate,readr,ResourceSelection)
+```
+
+
+```{r}
+m425 <- read.csv("Math425PastGrades.csv")
+```
+
+
+```{r}
+# 'Pass' or skip final exam, NAs in final exam column
+# Midterm NA skips, midterm dropped, not showed up in the end
+# Theory_Sampling_Dists
+# NAs are custom cases
+# All 9 are weird exceptions
+
+# Use best subsets, as long as there aren't too many columns
+```
+
+
+```{r}
+m425 <- m425 %>%
+  mutate(Finalo70 = ifelse(FinalExam >70,1,0))
+  
+pairs(m425, panel=panel.smooth, pch=16, col=rgb(.1,.1,.1,.1))
+
+glm1 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425, family=binomial)
+summary(glm1)
+
+glm2 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425, family=binomial)
+summary(glm2)
+
+glm3 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425[,-1], family=binomial)
+summary(glm3)
+
+glm4 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425[,-1], family=binomial)
+summary(glm4)
+
+```
+
+
+
+```{r}
+
+m425 %>%
+  select(
+    Finalo70,
+    Midterm,
+    AssessmentQuizzes,
+    Theory_SamplingDists,
+    AttendedAlmostAlways, 
+    MagicTwoGroups
+  ) %>%
+    na.omit() %>%
+      ggplot(m425, aes(x=Midterm, y=Finalo70, color=interaction())) +
+      geom_jitter(width=0,height=.05) +
+      geom_point(aes(y=glm4$fitted.values), cex=.5) +
+      facet_wrap(~interaction(AttendedAlmostAlways,MagicTwoGroups)) +
+      geom_smooth(method="glm", formula=y~x, se=T, method.args=lists(family="binomial"))
+```
+
+```{r}
+glm.gg <- glm(Finalo70 ~, data-m425, family=binomial)
+summary(glm.gg)
+
+# Uses ResourceSelection
+# Tests for goodness of fit
+# Null: logistic regression is good
+# Large p value - we can keep the logistic regression
+# Small p value - bad idea to use logistic regression
+
+predict(glm4, data.frame(Midterm=70, AttendedAlmostAlways="Y", MagicTwoGroups=2, AssessmentQuizzes=52, Theory_SamplingDists = 15), type="response") # Response, not log odds
+
+
+hoslem.test(glm4$y, glm4$fit, g=10)
+```
+```{r}
+set.seed(151)
+
+keep <- sample(1:nrow(m425), 100)
+
+mytrain <- m425[keep,]
+mytest <- m425[-keep]
+
+glm.train <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + Theory_Assignments ,data=mytrain, family=binomial)
+
+prediction <- predict(glm.train, mytest, type="reponse")
+
+callit <- ifelse(predictions >0.6, 1, 0) # Confusion
+
+table(callit, mytest$Finalo70)
+```
+

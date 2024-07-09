@@ -1,0 +1,116 @@
+---
+title: "Wk 11 - 2 More Logistic Regression"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+---
+```{r}
+pacman::p_load(tidyverse,dplyr,manipulate,mosaic)
+```
+
+```{r}
+pairs(mtcars, panel=panel.smooth)
+```
+
+# Logistic
+
+intercept: shifts where it 'starts'
+slope: changes how fast it shifts from start to finish
+
+We don't have r^2 to measure fit
+
+AIC and BIC are useful.
+
+AIC - if I add a new variable, how do I measure if I'm gaining ground?
+He made a crazy one, here's a simplified one:
+
+nln(SSE) - nln(n) + 2p
+
+As the model gets better, SSE goes down
+As you take the log of a smaller and smaller number, you get a negative number
+Approaches -infinity as you get closer and closer to 0
+get a large negative number
+
+ln(n) -> as n increases, ln(n) increases in positive
+
+0 on SSE is negative infinity, -(positive), get a lower score
+p is parameters
++2p means you gain points
+(think about golf)
+
+Good AIC changes based on the data set. AIC is not comparable across data sets.
+Within a given data set, lower AIC model is better.
+
+As we run the models, our AIC is gonna decrease.
+
+BIC is similar thing, bayesian version.
+
+AIC is industry standard??? because who knows why
+
+Logistic doesn't have SSE but it still sort of calculates it.
+
+## High Dimension
+
+Can't color or facet data in a meaningful way.
+Need drawit function to show and model stuff.
+
+```{r}
+mt2 <- mtcars %>%
+    mutate(y = ifelse(mpg > 20,1,0))
+
+glm.cube <- glm(y ~ qsec + I(qsec^2) + I(qsec^3),
+                data=mt2, family=binomial)
+
+summary(glm.cube)
+```
+
+
+```{r}
+#cutoff 123
+mt3 <- mtcars %>%
+  mutate(y=ifelse(hp >123,1,0))
+
+glm.quad <- glm(y ~ gear + I(gear^2),
+                data=mt3, family=binomial)
+
+summary(glm.quad)
+
+plot(y ~ gear, data=mt3, col=rgb(.1,.1,.1,.1), pch=16)
+b <- coef(glm.quad)
+
+curve(exp(b[1] + b[2]*x + b[3]*x^2)/(1+exp(b[1] + b[2]*x + b[3]*x^2)),add=TRUE)
+```
+
+```{r}
+plot(gasbill>100 ~ month, data = Utilities,)
+plot(mpg ~ qsec, data=mtcars, col=as.factor(am), pch=16)
+```
+
+
+```{r}
+glm.2l <- glm(y ~ qsec + am + qsec::am,
+              data=mt2, family = binomial)
+
+summary(glm.2l)
+
+palette(c"skyblue" "orange")
+plot(y+rnorm(16, 0,0,.01) ~ qsec, data= mt2, col=as.factor(am), pch = 16)
+
+b <- coef(glm.2l)
+x2=0
+curve(exp(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2)/(1+exp(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2))
+x2=1
+curve(exp(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2)/(1+exp(b[1] + b[2]*x + b[3]*x2 + b[4]*x*x2))
+
+```
+
+
+

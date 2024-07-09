@@ -1,0 +1,21 @@
+---
+title: "Chipotle  Purrr"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-08"
+---
+
+
+```{r}
+pacman::p_load(tidyverse,dplyr,lubridate,stringi,stringr)
+```
+
