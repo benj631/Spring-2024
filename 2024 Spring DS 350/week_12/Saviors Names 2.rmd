@@ -1,0 +1,145 @@
+---
+title: "Saviour's Names Part 2"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-12"
+---
+
+```{r}
+pacman::p_load(tidyverse,stringi,stringr,readr,lubridate)
+```
+
+```{r}
+scriptures_data <- rio::import("http://scriptures.nephi.org/downloads/lds-scriptures.csv.zip") %>%   as_tibble()
+```
+
+```{r}
+bom_text <- scriptures_data %>% 
+  filter(volume_title == "Book of Mormon") %>%
+  pull(scripture_text) %>%
+  str_c(collapse = " ")
+```
+
+```{r}
+sav_names <- read_rds("https://byuistats.github.io/M335/data/BoM_SaviorNames.rds") %>%
+  pull(name) %>%
+  str_c(collapse = "|")
+```
+
+```{r}
+
+dist_between <- bom_text %>%
+  str_split(pattern=sav_names) %>%
+  unlist() %>%
+  stri_count_words() %>%
+  as_tibble() %>%
+  rename(n.between = value)
+```
+
+```{r}
+# Function
+
+bom_text <- scriptures_data %>% 
+  filter(volume_title == "Book of Mormon") %>%
+  pull(scripture_text) %>%
+  str_c(collapse = " ")
+
+sav_names <- read_rds("https://byuistats.github.io/M335/data/BoM_SaviorNames.rds") %>%
+  pull(name) %>%
+  str_c(collapse = "|")
+
+dist_between <- bom_text %>%
+  str_split(pattern = sav_names) %>%
+  unlist() %>%
+  stri_count_words() %>%
+  as_tibble() %>%
+  rename(n.between = value)
+
+```
+
+```{r}
+# If you compact things into a data frame, you can map the function onto each of the books in the bom
+
+group_by(book_title) %>%
+  nest()
+
+nested_bom[[2]][1]
+
+# OR the tidy way
+
+nested_bom %>%
+  pluck("data",1)
+```
+
+
+## As a function
+
+
+
+```{r}
+get_scripture_tibble <- function(bom_tib,pattern_for_split){
+  
+  bom_text <- bom_tib %>% 
+    pull(scripture_text) %>%
+    str_c(collapse = " ")
+
+  dist_between <- bom_text %>%
+    str_split(pattern = pattern_for_split) %>%
+    unlist() %>%
+    stri_count_words() %>%
+    as_tibble() %>%
+    rename(n.between = value)
+  
+  return(dist_between)
+}
+```
+
+```{r}
+bom <- scriptures_data %>% filter(volume_title == "Book of Mormon")
+
+bom_dist <- get_scripture_tibble(bom,sav_names)
+
+print(bom_dist)
+```
+
+
+```{r}
+nested_bom <- scriptures_data %>%
+  filter(volume_title == "Book of Mormon") %>%
+  group_by(book_title) %>%
+  nest()
+
+# get_scripture_tibble(nested_bom %>% pluck(2,1),sav_names)
+
+books_data <- nested_bom %>%
+  mutate(
+    dist_between = map(data,get_scripture_tibble,sav_names)
+  ) %>% unnest(dist_between) %>%
+  select(book_title, n.between) %>%
+  group_by(book_title) %>%
+  mutate(
+    ave_dist = mean(n.between)
+  )
+
+
+
+# print(nested_bom %>% pluck("dist_between", 1))
+ 
+```
+
+```{r}
+ggplot(books_data, aes(x=book_title, y=n.between)) +
+  geom_boxplot() +
+  theme_bw()
+```
+
+

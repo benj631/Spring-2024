@@ -1,0 +1,147 @@
+---
+title: "R Binom Logistic Stuff"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-12"
+---
+
+```{r}
+pacman::p_load(tidyverse,dplyr)
+```
+
+
+
+```{r}
+set.seed(1)
+
+n <- 100
+x <- runif(n, 0, 10)
+
+
+beta0 <- -6
+beta1 <- 1.2
+
+
+pi_i <- exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))
+  
+
+y <- rbinom(n, 1, pi_i)
+
+mydata <- data.frame(y, x)
+
+myglm <- glm(y ~ x, data=mydata, family="binomial")
+summary(myglm)
+
+b <- coef(myglm)
+
+plot(y ~ x, data=mydata, pch=16, cex=2, col=rgb(0,0.8,0,.1))
+curve(exp(b[1] + b[2]*x)/(1+exp(b[1] + b[2]*x)), add=TRUE, col="green3", lwd=2)
+abline(h=0.5, v=5, lty=2, col="gray")
+curve(exp(beta0 + beta1*x)/(1+exp(beta0 + beta1*x)), add=TRUE, col="green3", lty=2)
+legend("topleft", bty='n', legend=c("Estimated","True"), lty=c(1,2), col="green3")
+```
+
+```{r}
+set.seed(2)
+
+n <- 100
+x <- runif(n, 0, 10)
+
+
+β0 <- 6
+β1 <- -3.5
+β2 <- .35
+
+
+pi_i <- exp(β0 + β1* x + β2 * x^2)/(1 + exp(β0 + β1* x +β2 * x^2))
+  
+y <- rbinom(n, 1, pi_i)
+
+mydata <- data.frame(y, x)
+
+myglm2 <- glm(y ~ x + I(x^2), data=mydata, family="binomial")
+summary(myglm2)
+
+β <- coef(myglm2)
+
+plot(y ~ x, data=mydata, pch=16, cex=2, col=rgb(.6,0,1,.1))
+curve(exp(β[1] + β[2]*x + β[3] * x^2 )/(1 + exp(β[1] + β[2]*x + β[3]*x^2)), add=TRUE, col="purple", lwd=2)
+abline(h=0.5, v=5, lty=2, col="gray")
+curve(exp(β0 + β1*x + β2 * x^2)/(1+exp(β0 + β1*x + β2 * x^2)), add=TRUE, col="purple", lty=2)
+legend("topleft", bty='n', legend=c("Estimated","True"), lty=c(1,2), col="purple")
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Define parameters
+n <- 1000
+beta0 <- 10
+beta1 <- -1.4
+beta2 <- -1.8
+beta3 <- -2.1
+
+# Generate the data
+x <- runif(n,0,10)
+x2 <- sample(c(0, 1), n, replace = TRUE)
+
+pi_i <- exp(beta0 + beta1 * x + beta2 * x2 + beta3 * x * x2) / (1 + exp(beta0 + beta1 * x + beta2 * x2 + beta3 * x * x2))
+y <- rbinom(n, 1, pi_i)
+
+mydata <- data.frame(y, x, x2)
+
+# Fit the logistic regression model
+myglm3 <- glm(y ~ x + x2 + x:x2, data = mydata, family = "binomial")
+summary(myglm3)
+
+# Extract coefficients
+b <- coef(myglm3)
+
+# Define the true and estimated logistic functions
+true_curve <- function(x, x2) { exp(beta0 + beta1 * x + beta2 * x2 + beta3 * x * x2) / (1 + exp(beta0 + beta1 * x + beta2 * x2 + beta3 * x * x2)) }
+estimated_curve <- function(x, x2) { exp(b[1] + b[2] * x + b[3] * x2 + b[4] * x * x2) / (1 + exp(b[1] + b[2] * x + b[3] * x2 + b[4] * x * x2)) }
+
+# Generate points for the curve
+curve_data <- data.frame(
+  x = seq(min(x), max(x), length.out = 1000),
+  x2 = 0
+)
+curve_data$true_0 <- true_curve(curve_data$x, curve_data$x2)
+curve_data$estimated_0 <- estimated_curve(curve_data$x, curve_data$x2)
+
+curve_data_1 <- data.frame(
+  x = seq(min(x), max(x), length.out = 1000),
+  x2 = 1
+)
+curve_data_1$true_1 <- true_curve(curve_data_1$x, curve_data_1$x2)
+curve_data_1$estimated_1 <- estimated_curve(curve_data_1$x, curve_data_1$x2)
+
+# Create the ggplot
+ggplot(mydata, aes(x = x, y = y)) +
+  geom_point(data = subset(mydata, x2 == 0), aes(x = x), alpha = 0.1, color = "red", size = 2) +
+  geom_point(data = subset(mydata, x2 == 1), aes(x = x), alpha = 0.1, color = "skyblue", size = 2) +
+  geom_line(data = curve_data, aes(x = x, y = true_0), color = "red", linetype = "dashed") +
+  geom_line(data = curve_data, aes(x = x, y = estimated_0), color = "red", size = 1) +
+  geom_line(data = curve_data_1, aes(x = x, y = true_1), color = "skyblue", linetype = "dashed") +
+  geom_line(data = curve_data_1, aes(x = x, y = estimated_1), color = "skyblue", size = 1) +
+  labs(title = "Logistic Regression with True and Estimated Curves",
+       x = "x", y = "y") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+```
+
+
