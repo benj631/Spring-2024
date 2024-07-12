@@ -1,0 +1,195 @@
+---
+title: "House Selling Prices"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(readr)
+library(car)
+library(plotly)
+library(reshape2)
+library(DT)
+library(tidyverse)
+library(mosaic)
+train <- read.csv("train.csv", header=TRUE, stringsAsFactors = TRUE)
+
+
+## mutations
+
+train <- train %>%
+  mutate(Alley = as.character(Alley),
+         Alley = replace_na(Alley, "No Alley Access"),
+         Alley = as.factor(Alley)) %>%
+  mutate(Fence = as.character(Fence),
+         Fence = replace_na(Fence, "No Fence"),
+         Fence = as.factor(Fence))
+
+
+
+
+## Validation data sets
+set.seed(121)
+
+num_rows <- 1000 #1460 total
+keep <- sample(1:nrow(train), num_rows)
+
+mytrain <- train[keep, ] #Use this in the lm(..., data=mytrain) it is like "rbdata"
+
+mytest <- train[-keep, ] #Use this in the predict(..., newdata=mytest) it is like "rbdata2"
+
+
+```
+
+
+
+
+```{r}
+lm.1stflr <- lm(SalePrice ~ X1stFlrSF, data=train)
+summary(lm.1stflr)
+
+lm.alley <- lm(SalePrice ~ Alley, data=train)
+summary(lm.alley)
+
+lm.fence <- lm(SalePrice ~ Fence, data=train)
+summary(lm.fence)
+```
+```{r}
+lm.1stflr <- lm(SalePrice ~ X1stFlrSF, data=train)
+summary(lm.1stflr)
+
+lm.2ndflr <- lm(SalePrice ~ X2ndFlrSF, data=train)
+summary(lm.2ndflr)
+
+lm.basement <- lm(SalePrice ~ TotalBsmtSF, data=train)
+summary(lm.basement)
+
+
+#Put them all together into a high dimensional multiple regression model
+
+lm.sqft.all <- lm(SalePrice ~ X1stFlrSF + X2ndFlrSF + TotalBsmtSF, data=train)
+summary(lm.sqft.all)
+
+
+
+
+#Or use mutate and create a new "TotalSF" variable that allows for a simple linear regression model that is just as powerful, but far easier to graph and interpret.
+
+train <- train %>%
+  mutate(TotalSF = X1stFlrSF + X2ndFlrSF + TotalBsmtSF)
+
+lm.sqft <- lm(SalePrice ~ TotalSF, data=train)
+summary(lm.sqft)
+
+
+
+
+#Notice as well how mutate can be used to change complicated variables into simple on-off switches.
+
+train <- train %>%
+  mutate(TotalSF = X1stFlrSF + X2ndFlrSF + TotalBsmtSF,
+                RichNbrhd = case_when(Neighborhood %in% c("StoneBr", "NridgHt", "NoRidge") ~ 1,
+                                                          TRUE ~ 0))
+
+lm.sqft.rich <- lm(SalePrice ~ TotalSF + RichNbrhd + TotalSF:RichNbrhd, data=train)
+summary(lm.sqft.rich)
+
+
+#Perform the multiple regression
+air_lm <- lm.sqft.rich
+
+
+#Setup Axis
+axis_x <- seq(min(train$TotalSF), max(train$TotalSF), by = 500)
+axis_y <- seq(min(train$RichNbrhd), max(train$RichNbrhd), by = 0.1)
+
+#Sample points
+air_surface <- expand.grid(TotalSF = axis_x, RichNbrhd = axis_y, KEEP.OUT.ATTRS=F)
+air_surface$Z <- predict.lm(air_lm, newdata = air_surface)
+air_surface <- acast(air_surface, RichNbrhd ~ TotalSF, value.var = "Z") #y ~ x
+
+#Create scatterplot
+plot_ly(train,
+        x=~TotalSF,
+        y=~RichNbrhd,
+        z=~SalePrice, 
+        mode="markers", type="scatter3d")  %>%
+  add_trace(z = air_surface,
+            x = axis_x,
+            y = axis_y,
+            type = "surface")
+
+
+
+b <- coef(lm.sqft.rich)
+b
+
+drawit <- function(RichNbrhd=0, i=1){
+  curve(b[1] + b[2]*TotalSF + b[3]*RichNbrhd + b[4]*TotalSF*RichNbrhd, add=TRUE, col=palette()[i], xname="TotalSF")
+}
+
+palette(c("skyblue","orange"))
+plot(SalePrice ~ TotalSF, data=train, col=as.factor(RichNbrhd))
+
+drawit(RichNbrhd = 0, 1)
+drawit(RichNbrhd = 1, 2)
+```
+
+
+```{r}
+
+lm.rid <- lm(SalePrice ~ TotalSF + YearBuilt + I(YearBuilt^2) + Fireplaces + TotalSF:YearBuilt + TotalSF:Fireplaces, data=train)
+summary(lm.rid)
+
+palette(c("yellow2","orange","cyan","firebrick"))
+plot(SalePrice ~ TotalSF, data=train, col=as.factor(Fireplaces))
+
+b <- coef(lm.rid)
+b
+
+drawit <- function(YearBuilt = 2000, Fireplaces = 1, i=1){
+  curve(b[1] + b[2]*TotalSF + b[3]*YearBuilt + b[4]*YearBuilt^2 + b[5]*Fireplaces + b[6]*TotalSF*YearBuilt + b[7]*TotalSF*Fireplaces, add=TRUE, xname="TotalSF", col=palette()[i])
+}
+
+drawit(YearBuilt = 2000, Fireplaces = 0, i=1)
+drawit(YearBuilt = 2000, Fireplaces = 1, i=2)
+drawit(YearBuilt = 2000, Fireplaces = 2, i=3)
+drawit(YearBuilt = 2000, Fireplaces = 3, i=4)
+```
+
+When the house has zero fireplaces and was built in the year 2000, then each additional square foot increases (the predicted) value of the home by \$69.11.
+
+However, for each additional fireplace the house has, the value of each square foot is decreased by \$6.88
+
+
+```{r}
+palette(c("yellow2","orange","cyan","firebrick"))
+plot(SalePrice ~ YearBuilt, data=train, col=as.factor(Fireplaces))
+
+b <- coef(lm.rid)
+b
+
+
+drawit <- function(TotalSF = 2000, Fireplaces = 1, i=1, lty=1){
+  curve(b[1] + b[2]*TotalSF + b[3]*YearBuilt + b[4]*YearBuilt^2 + b[5]*Fireplaces + b[6]*TotalSF*YearBuilt + b[7]*TotalSF*Fireplaces, add=TRUE, xname="YearBuilt", col=palette()[i], lty=lty)
+}
+
+drawit(TotalSF = 2000, Fireplaces = 0, i=1)
+drawit(TotalSF = 2000, Fireplaces = 1, i=2)
+drawit(TotalSF = 2000, Fireplaces = 2, i=3)
+drawit(TotalSF = 2000, Fireplaces = 3, i=4)
+
+
+drawit(TotalSF = 3000, Fireplaces = 0, i=1, lty=2)
+drawit(TotalSF = 3000, Fireplaces = 1, i=2, lty=2)
+drawit(TotalSF = 3000, Fireplaces = 2, i=3, lty=2)
+drawit(TotalSF = 3000, Fireplaces = 3, i=4, lty=2)
+```
+
+This is where your brain shuts down. Trying to interpret a quadratic...
+
+For houses that are 2,000 square feet and have zero fireplaces, each year newer the house is adds

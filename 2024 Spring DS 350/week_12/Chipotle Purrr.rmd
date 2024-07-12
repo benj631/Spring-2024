@@ -16,6 +16,70 @@ date: "2024-07-08"
 
 
 ```{r}
-pacman::p_load(tidyverse,dplyr,lubridate,stringi,stringr)
+pacman::p_load(tidyverse,dplyr,lubridate,readr,stringi,stringr,purrr)
+```
+
+```{r}
+chptl <- read_csv('https://byuistats.github.io/M335/data/chipotle_reduced.csv')
+```
+
+
+```{r}
+glimpse(chptl)
+```
+
+```{r}
+Extract_Weekly_Visits <- function(string) {
+  split_string <- str_remove_all(string, "[{}]") %>%
+    str_split(",") %>%
+    unlist() # Atomic vector instead of list
+
+  # Split by colon, remove quotes, and create a data frame
+  tib <- tibble(
+    Day = map_chr(split_string, ~str_split(.x, ":")[[1]][1] %>% str_remove_all('"')),
+    Visits = map_int(split_string, ~str_split(.x, ":")[[1]][2] %>% str_remove_all('"') %>% as.integer())
+  )
+
+  return(tib)
+}
+```
+
+
+```{r}
+# Add a column where every element in it gets a new tibble
+
+# function takes first data type as input,
+#
+
+chptl_day_visits <- chptl %>%
+  mutate(
+    n_visits_per_day = map(popularity_by_day, Extract_Weekly_Visits)
+  )
+  
+```
+
+```{r}
+# chptl_day_visits[["n_visits_per_day"]][2]
+
+# ctrl shift c -> group comments
+
+# Return the tibble, at the specified point
+chptl_day_visits %>% pluck("n_visits_per_day",3)
+
+# Creates duplicate rows if you unnest alone
+chptl_day_visits %>%
+    unnest(cols = "n_visits_per_day") %>% 
+    select(Day, Visits) %>%
+    group_by(Day) %>%
+    summarise(
+      ave_visits_per_day = mean(Visits, na.rm=TRUE)
+    ) %>%
+    arrange(desc(ave_visits_per_day))
+```
+```{r}
+# Counts, frequencies, bar charts
+# Confidence interval bar charts.
+
+
 ```
 

@@ -20,7 +20,8 @@ pacman::p_load(tidyverse,dplyr,lubridate,readr,ResourceSelection)
 
 
 ```{r}
-m425 <- read.csv("Math425PastGrades.csv")
+# Strings As Factors = TRUE prevents issues with the pair plot
+m425 <- read.csv("Math425PastGrades.csv", stringsAsFactors=TRUE)
 ```
 
 
@@ -37,20 +38,30 @@ m425 <- read.csv("Math425PastGrades.csv")
 
 ```{r}
 m425 <- m425 %>%
-  mutate(Finalo70 = ifelse(FinalExam >70,1,0))
-  
+  mutate(Finalo70 = ifelse(FinalExam > 70, 1, 0))
+
 pairs(m425, panel=panel.smooth, pch=16, col=rgb(.1,.1,.1,.1))
 
-glm1 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425, family=binomial)
+glm1 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, 
+            data=m425, family=binomial)
 summary(glm1)
 
-glm2 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425, family=binomial)
+
+glm2<- glm(Finalo70 ~ Midterm + AssessmentQuizzes + Theory_SamplingDists, 
+            data=m425, family=binomial)
 summary(glm2)
 
-glm3 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425[,-1], family=binomial)
+glm3 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists + Midterm:AssessmentQuizzes, 
+            data=m425, family=binomial)
 summary(glm3)
 
-glm4 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + MagicTwoGroups + Theory_SamplingDists, data=m425[,-1], family=binomial)
+
+glm3 <- glm(Finalo70 ~ ., 
+            data=m425[,-1], family=binomial)
+summary(glm3)
+
+glm4 <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + Theory_SamplingDists + AttendedAlmostAlways + MagicTwoGroups + Midterm:MagicTwoGroups + AttendedAlmostAlways:MagicTwoGroups, 
+            data=m425, family=binomial)
 summary(glm4)
 
 ```
@@ -68,43 +79,96 @@ m425 %>%
     AttendedAlmostAlways, 
     MagicTwoGroups
   ) %>%
-    na.omit() %>%
-      ggplot(m425, aes(x=Midterm, y=Finalo70, color=interaction())) +
-      geom_jitter(width=0,height=.05) +
-      geom_point(aes(y=glm4$fitted.values), cex=.5) +
-      facet_wrap(~interaction(AttendedAlmostAlways,MagicTwoGroups)) +
-      geom_smooth(method="glm", formula=y~x, se=T, method.args=lists(family="binomial"))
+  na.omit() %>%
+      ggplot(aes(x=Midterm, y=Finalo70, color=interaction(AttendedAlmostAlways, MagicTwoGroups))) + 
+        geom_jitter(width=0, height=0.05) + 
+        geom_point(aes(y=glm4$fitted.values), cex=0.5) + 
+        facet_wrap(~interaction(AttendedAlmostAlways, MagicTwoGroups)) + 
+        geom_smooth(method="glm", formula=y~x, se=T, method.args=list(family="binomial"))
 ```
 
 ```{r}
-glm.gg <- glm(Finalo70 ~, data-m425, family=binomial)
-summary(glm.gg)
-
-# Uses ResourceSelection
-# Tests for goodness of fit
-# Null: logistic regression is good
-# Large p value - we can keep the logistic regression
-# Small p value - bad idea to use logistic regression
-
-predict(glm4, data.frame(Midterm=70, AttendedAlmostAlways="Y", MagicTwoGroups=2, AssessmentQuizzes=52, Theory_SamplingDists = 15), type="response") # Response, not log odds
-
-
 hoslem.test(glm4$y, glm4$fit, g=10)
+
+predict(glm4, data.frame(Midterm=70, AttendedAlmostAlways="Y", MagicTwoGroups=2, AssessmentQuizzes=52, Theory_SamplingDists=15), type="response")
+
+glm.gg <- glm(Finalo70 ~ Midterm + 
+                AttendedAlmostAlways + Midterm:AttendedAlmostAlways + 
+                MagicTwoGroups + Midterm:MagicTwoGroups + 
+                AttendedAlmostAlways:MagicTwoGroups + AttendedAlmostAlways:MagicTwoGroups:Midterm, 
+              data=m425, family=binomial)
+summary(glm.gg)
 ```
+
 ```{r}
 set.seed(151)
-
 keep <- sample(1:nrow(m425), 100)
 
-mytrain <- m425[keep,]
-mytest <- m425[-keep]
+mytrain <- m425[keep, ]
+mytest <- m425[-keep, ]
 
-glm.train <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + Theory_Assignments ,data=mytrain, family=binomial)
+glm.train <- glm(Finalo70 ~ Midterm + AssessmentQuizzes + Theory_SamplingDists + AttendedAlmostAlways + MagicTwoGroups + Midterm:MagicTwoGroups + AttendedAlmostAlways:MagicTwoGroups, 
+            data=mytrain, family=binomial)
 
-prediction <- predict(glm.train, mytest, type="reponse")
+predictions <- predict(glm.train, mytest, type="response")
 
-callit <- ifelse(predictions >0.6, 1, 0) # Confusion
+callit <- ifelse(predictions > 0.6, 1, 0)
 
-table(callit, mytest$Finalo70)
+table(callit, mytest$Finalo70) #confusion matrix
+
+23/26 #percent correctly classified
 ```
 
+```{r}
+m425.2 <- m425 %>%
+  select(Finalo70, Midterm, AssessmentQuizzes, Theory_SamplingDists, AttendedAlmostAlways, MagicTwoGroups) %>%
+    na.omit()
+
+b <- coef(glm4)
+```
+
+
+e^a / 1 + e ^ a   *  e^-a / e^-a  = 
+
+Logistic: 1/(e^-a + 1)
+
+
+```{r}
+# Switch variables -> 0 , 1
+
+drawit <- function(Midterm, AQ = 37, TS=9, Att=0, Mag=1) {
+  b[1] + b[2] * Mid + b[3] *AQ + b[4] * TS + b[5] * ATT + b[6] * Mag + b[7] * Midterm*Mag + b[8] * Att * Mag
+}
+```
+
+```{r}
+# 2D Smooths
+# Magic group 2 people seem to fit it
+# Magic group 1 people don't?...
+
+ggplot(m425.2, aes(x=Midterm, y=Finalo70) + 
+  geom_smooth(method='glm', method.args=list(family="binomial"), aes(color=interaction(AttendedAlmostAlways, MagicTwoGroups))) +
+  geom_jitter(width=0, height=0.05, color=interaction(AttendedAlmostAlways, MagicTwoGroups))) + 
+  geom_point(aes(y=glm4$fitted.values), cex=0.5, color=interaction(AttendedAlmostAlways, MagicTwoGroups)) + 
+  stat_function(fun=drawit(x), args=list(AQ=37, TS=9,Att=0,Mag=1), aes(color = "N.1")) +
+  stat_function(fun=drawit(x), args=list(AQ=50, TS=9,Att=1,Mag=1), aes(color = "Y.1")) +
+  stat_function(fun=drawit(x), args=list(AQ=75, TS=9,Att=0,Mag=1), aes(color = "N.1")) + 
+  stat_function(fun=drawit(x), args=list(AQ=37, TS=9,Att=0,Mag=2), aes(color = "N.1")) +
+  stat_function(fun=drawit(x), args=list(AQ=50, TS=9,Att=0,Mag=2), aes(color = "N.1")) +
+  stat_function(fun=drawit(x), args=list(AQ=75, TS=9,Att=1,Mag=2), aes(color = "Y.1")) +
+  facet_wrap(~interaction(AttendedAlmostAlways,MagicTwoGroups))
+```
+Interpretation
+
+# exp(b)
+# exp(b[2]+b[7]*1)^4
+# exp(b[2] +b[7]*2)^4
+
+Holding all other variables constant, each extra question scored correctly on the midterm increases the odds of getting over a 70 on the final by 2.3% for the students in Magic Group 1. (Because the midterm only interacted with magic two groups)
+
+Assessment Quizzes
+
+Holding all other variables constant, (ceteris paribus) each extra percentage point increase in the Assessment Quizzes Raw Score raises the odds of getting over a 70 on the final by  'r exp(b[3]) '%
+
+Holding all other variables constant, for students who attend class almost always and scored a 50 on the midterm, if you are in group 1 you have a 1% higher chance of getting over a 70% on the final than group 2.  But 
+exp(b[6] + b[7] * 50 + b[8] * 1)

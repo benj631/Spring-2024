@@ -1,0 +1,66 @@
+---
+title: "Function Stuff"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-08"
+---
+
+```{r}
+pacman::p_load(tidyverse,dplyr,readr,stringi,stringr)
+```
+
+
+```{r}
+# Start with a working piece of Code
+scriptures_data <- rio::import("http://scriptures.nephi.org/downloads/lds-scriptures.csv.zip") %>% 
+  as_tibble()
+```
+
+
+```{r}
+# {{}} to call a column name
+# ... instead of telling it just 1 variable, we might want more variables.
+
+
+phrase_pct <- function(phrase,filter_variable,book_array) {
+
+pct_word_count <- scriptures_data %>%
+    filter(volume_title %in% c("Book of Mormon", "Old Testament")) %>%
+    mutate(
+      verse_length = str_count(scripture_text, pattern = "[:space:]") + 1,
+      string_counts = str_count(tolower(scripture_text), pattern = phrase),
+      num_words = stri_count_words(scripture_text)
+    ) %>% 
+  group_by({{filter_variable}}) %>% 
+  summarise(
+    pct_of_verses = 100*sum(string_counts)/n(),
+    tot_words = sum(num_words)
+    ) %>%
+  filter(pct_of_verses > 0)
+
+
+ggplot(pct_word_count, aes(x=pct_of_verses, y = reorder(book_title, pct_of_verses), fill=book_title)) +
+  geom_col() +
+  theme_bw() +
+  theme(
+    legend.position = "null"
+  ) +
+  labs(
+    x = "Percent of Verses",
+    y = "Book",
+    title = "Percent of 'and it came to pass' phrase in each book"
+  )
+}
+
+phrase_pct('begat',volume_title,c("Book of Mormon", "Old Testament"))
+```
+

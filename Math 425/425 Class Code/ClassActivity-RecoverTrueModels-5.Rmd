@@ -1,0 +1,109 @@
+---
+title: "Recovering a True Model"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, message=FALSE, warning=FALSE}
+rbdata_beg <- read.csv("rbdata_beginner-1.csv", header=TRUE, stringsAsFactors = TRUE)
+rbdata_int <- read.csv("rbdata_intermediate.csv", header=TRUE, stringsAsFactors = TRUE)
+rbdata_adv <- read.csv("rbdata_advanced.csv", header=TRUE, stringsAsFactors = TRUE)
+```
+
+## Part 1 - Recovering a True Model (Beginner Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{\beta_0 + \beta_1 X_{3i} + \beta_2 X_{5i} + \beta_3 X_{3i} X_{5i} }_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = 92.34 + -8.57 X_{3i} + 6.1 X_{5i} + 0.99 X_{3i} X_{5i}
+$$
+
+with our estimate of $\sigma$ as 1.979
+
+```{r}
+View(rbdata_beg)
+pairs(rbdata_beg, panel=panel.smooth, col=as.factor(rbdata_beg$X3))
+
+lm1 <- lm(Y ~ X3*X5, data=rbdata_beg)
+summary(lm1)
+```
+
+
+## Part 2 - Recovering a True Model (Intermediate Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{...}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = ...
+$$
+
+with our estimate of $\sigma$ as ...
+
+```{r}
+
+```
+
+
+
+## Part 3 - Recovering a True Model (Advanced Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{...}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = ...
+$$
+
+with our estimate of $\sigma$ as ...
+
+```{r}
+View(rbdata_adv)
+pairs(rbdata_adv, panel=panel.smooth)
+#x4, x5, x8 all look interesting.
+pairs(rbdata_adv, panel=panel.smooth, col=as.factor(rbdata_adv$x4))
+pairs(rbdata_adv, panel=panel.smooth, col=as.factor(rbdata_adv$x5))
+pairs(rbdata_adv, panel=panel.smooth, col=as.factor(rbdata_adv$x8))
+
+
+ggplot(rbdata_adv, aes(x=x2, y=y, color=interaction(x4,x5,x8))) + 
+  geom_point() +
+  facet_wrap(~interaction(x4,x5,x8))
+
+lm1 <- lm(y ~ x2*x4*x5*x8*I(x2^2), data=rbdata_adv)
+summary(lm1)
+
+lm2 <- lm(y ~  x2 + I(x2^2) +
+           x4 + x4:x2 + x4:I(x2^2) + 
+            x5 + x5:x2 + x5:I(x2^2) + 
+            x8 + x8:x2 + x8:I(x2^2) + x8:I(x2^3) + x8:I(x2^4) + 
+            x4:x8 + x4:x8:x2 + x4:x8:I(x2^2) + x4:x8:I(x2^3) + x4:x8:I(x2^4),
+          data=rbdata_adv)
+summary(lm2)
+
+
+ggplot(rbdata_adv, aes(x=x2, y=y, color=interaction(x4,x5,x8))) + 
+  geom_point(pch=1) +
+  geom_point(aes(y=lm2$fit), cex=0.5) + 
+  facet_wrap(~interaction(x4,x5,x8))
+
+
+```
