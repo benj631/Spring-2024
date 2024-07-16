@@ -1,0 +1,432 @@
+---
+title: "Skills Quiz: Different Types of Models"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+
+## Instructions
+
+Use this file to keep a record of your work as you complete the "Skills Quiz: Different Types of Models" assignment in Canvas.
+
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse,dplyr, mosaicData)
+```
+
+
+----
+
+<!-- Note: The {} after each Problem and Part header allows you to keep track of what work you have completed. Write something like {Done} once you complete each problem and your html file will then show you a nice summary of what you have "done" already. -->
+
+
+
+## Problem 1 {}
+
+Consider the scatterplot shown here of a single residence's monthly gas bill according to the month of the year. See `?Utilities` for more details on the data.
+
+```{r}
+
+gb <- lm(gasbill ~ month + I(month^2), data=Utilities)
+β <- coef(gb)
+
+# Plot the original data points
+plot(gasbill ~ month, data=Utilities, main="Single Residence in Minnesota", 
+     xlab="Month of the Year", ylab="Monthly Gas Bill (US Dollars)")
+
+# Add the quadratic curve using the curve function
+curve(β[1] + β[2] * x + β[3] * x^2, add=TRUE, col="red")
+
+summary(gb)
+
+```
+
+
+
+
+
+### Part (a)
+
+Add the estimated regression function to the scatterplot above and state the function below.
+
+<div class="YourAnswer">
+
+$$
+  Y = 284 - 76 * x + 5.4 x^2
+$$
+
+</div>
+
+### Part (b)
+
+Diagnose the appropriateness of this regression model. How well does it fit the data? 
+
+<span style="font-size:.8em;">Be sure to provide diagnostic plots and supporting arguments for your claims.</span>
+
+<div class="YourAnswer">
+
+Questionably
+
+```{r}
+View(Utilities)
+plot(gb,which=1:3)
+```
+
+</div>
+
+
+### Part (c)
+
+What range of possible gas bill amounts do you predict for the September bill? How confident are you in your prediction?
+
+<div class="YourAnswer">
+
+```{r}
+pred_conf_int <- predict(gb, newdata = data.frame(month = 9),
+                         interval = "prediction", level = 0.95)
+
+# Display the confidence interval
+
+pred_conf_int
+```
+
+Type your answer here...
+
+</div>
+
+
+### Part (d)
+
+Compute the mean of just September's gas bills and draw a horizontal reference line for this mean on your scatterplot. How does this mean compare to your prediction in Part (c)?
+
+<div class="YourAnswer">
+
+```{r}
+plot(gasbill ~ month, data=Utilities, main="Single Residence in Minnesota", 
+     xlab="Month of the Year", ylab="Monthly Gas Bill (US Dollars)")
+
+abline(h=mean(Utilities$gasbill),col="red")
+```
+
+```{r}
+sep_gb <- Utilities %>% filter(month==9)
+sep_pred <- predict(gb, newdata = data.frame(month = 9))
+
+print(mean(sep_gb$gasbill))
+
+# Difference in mean vs prediction
+print( mean(sep_gb$gasbill) - sep_pred)
+```
+
+
+Type your answer here...
+
+</div>
+
+
+
+
+### Part (e)
+
+State the values of $R^2$, $MSE$, and the residual standard error. What do each of these values tell us about the regression model?
+
+<div class="YourAnswer">
+
+```{r}
+summary(gb)
+```
+```{r}
+model = gb
+rss <- sum(residuals(model)^2)
+# df = n - 2, df is already - 2, lose df for more parameters
+df <- df.residual(model)
+mse <- rss / df
+mse
+```
+
+Type your answer here...
+
+</div>
+
+<br />
+
+
+
+## Problem 2
+
+View the `mtcars` dataset and corresponding help file `?mtcars`.
+
+Perform a regression that predicts the miles per gallon `mpg` of the vehicle based on the quarter mile time `qsec` and transmission type `am` of the vehicle.
+
+
+### Part (a)
+
+Plot the data and your fitted regression model.
+
+<div class="YourAnswer">
+
+```{r}
+View(mtcars)
+```
+
+```{r}
+mtc.lm <- lm(mpg ~ qsec + am + qsec:am,data=mtcars)
+summary(mtc.lm)
+```
+
+```{r}
+# alt 225 for beta
+ß <- coef(mtc.lm)
+
+y1 <- function(x) ß[1] + ß[2] * x + ß[3] * 0 + ß[4] * x * 0
+y2 <- function(x) ß[1] + ß[2] * x + ß[3] * 1 + ß[4] * x * 1
+
+# Plotting
+ggplot(mtcars, aes(x = qsec, y = mpg, color = factor(am))) +
+  geom_point() +
+  stat_function(fun = y1, aes(color = "Automatic")) +
+  stat_function(fun = y2, aes(color = "Manual")) +
+  #scale_color_manual(values = c("blue", "red"), labels = c("Automatic", "Manual")) +
+  labs(x = "Quarter Mile Time (qsec)", y = "Miles per Gallon (mpg)") +
+  theme_bw()
+```
+
+
+</div>
+
+
+### Part (b)
+
+State the fitted regression model.
+
+<div class="YourAnswer">
+
+$$
+ \hat{Y} = -9 + 1.4*X_1 + -14.5 * X_2 + 1.3 * X_1*X_2 + \epsilon_i
+$$
+
+</div>
+
+### Part (c)
+
+Use `summary(...)` to perform an appropriate t test to determine if the interaction term is needed in this regression model.
+
+<div class="YourAnswer">
+
+```{r}
+
+```
+
+Type your answer here...
+
+</div>
+
+
+### Part (d)
+
+Diagnose the appropriateness of this regression model. How well does it fit the data? 
+
+<span style="font-size:.8em;">Be sure to provide diagnostic plots and supporting arguments for your claims.</span>
+
+<div class="YourAnswer">
+
+```{r}
+plot(mtc.lm,which=1:3)
+```
+
+Type your answer here...
+
+</div>
+
+
+### Part (e)
+
+State the $R^2$ and residual standard error values for this model. What do these values show?
+
+<div class="YourAnswer">
+
+```{r}
+.722 #r^2
+3.343 # RSE
+```
+
+Type your answer here...
+
+</div>
+
+<br />
+
+
+
+## Problem 3
+
+View the `mtcars` dataset and corresponding help file `?mtcars`.
+
+Perform a regression that predicts the quarter mile time `qsec` of the vehicle based on the displacement of the engine `disp` and transmission type `am` of the vehicle according to the model:
+
+$$
+  \underbrace{Y_i}_\text{qsec} = \beta_0 + \beta_1 \underbrace{X_{1i}}_\text{disp} + \beta_2 X_{1i}^2 + \beta_3 \underbrace{X_{2i}}_\text{am == 1} + \beta_4 X_{1i}X_{2i} + \beta_5 X_{1i}^2X_{2i} + \epsilon_i
+$$
+
+where $\epsilon_i \sim N(0, \sigma^2)$.
+
+### Part (a)
+
+Plot the data and your fitted regression model.
+
+<div class="YourAnswer">
+
+```{r}
+  mtc2.lm <- lm(qsec ~ disp + am + disp:am + I(disp^2) + I(disp^2):am, data=mtcars)
+  summary(mtc2.lm)
+```
+
+```{r}
+ß <- coef(mtc2.lm)
+
+# Define functions for predicted values
+y1 <- function(x) ß[1] + ß[2] * x + ß[3] * 0 + ß[4] * x^2 + ß[5] * x * 0 + ß[6] * x^2 * 0
+y2 <- function(x) ß[1] + ß[2] * x + ß[3] * 1 + ß[4] * x^2 + ß[5] * x * 1 + ß[6] * x^2 * 1
+
+# Plotting
+ggplot(mtcars, aes(x = disp, y = qsec, color = factor(am))) +
+  geom_point() +
+  stat_function(fun = y1, aes(color = "Automatic")) +
+  stat_function(fun = y2, aes(color = "Manual")) +
+  #   scale_color_manual(values = c("blue", "red"), labels = c("Automatic", "Manual")) +
+  labs(x = "Engine Displacement (disp)", y = "Quarter Mile Time (qsec)") +
+  theme_bw()
+```
+
+Type your answer here...
+
+</div>
+
+### Part (b)
+
+State the fitted regression model.
+
+<div class="YourAnswer">
+
+$$
+  \hat{Y}_i = ...
+$$
+
+</div>
+
+
+### Part (c)
+
+Use `summary(...)` to perform appropriate t tests to determine which interaction terms are needed in this regression model.
+
+<div class="YourAnswer">
+
+```{r}
+#Type your code here...
+```
+
+</div>
+
+### Part (d)
+
+Diagnose the appropriateness of this regression model. How well does it fit the data? 
+
+<span style="font-size:.8em;">Be sure to provide diagnostic plots and supporting arguments for your claims.</span>
+
+
+<div class="YourAnswer">
+
+```{r}
+plot(mtc2.lm,which=1:3)
+```
+
+Type your answer here...
+
+</div>
+
+### Part (e) 
+
+Drop the "least significant" term from the model. This is a silly statement really, but is an accepted practice when searching for a "best" model in regression analysis. What has changed?
+
+<div class="YourAnswer">
+
+```{r}
+mtc2.lm <- lm(qsec ~ disp + am + I(disp^2) + I(disp^2):am, data=mtcars)
+summary(mtc2.lm)
+```
+
+Type your answer here...
+
+</div>
+
+
+## Q4
+
+```{r}
+ß1 <- -2
+ß2 <- 3
+ß3 <- 4
+ß4 <- 4
+ß5 <- 2
+ß6 <- -7
+
+x2 <- sample(c(0,1),100,replace=TRUE)
+
+# Define the functions
+fun <- function(x) ß1 + ß2 * x + ß3 * x2 + ß4 * x^2 + ß5 * x2 + ß6 * x^2 * x2
+
+sigma <- .001 #change to whatever positive number you want
+epsilon_i <- rnorm(n, 0, sigma)
+
+
+# Generate data
+set.seed(123)  # Setting seed for reproducibility
+n <- 100
+x <- runif(n, -2, 2)
+y = fun(x) + epsilon_i
+
+plotdata <- data.frame(x, y, x2)
+
+tq.lm <- lm(y ~ x + x2 + x:x2 + I(x^2) + I(x^2):x2, data=plotdata)
+ß <- coef(tq.lm)
+
+y1 <- function(x) ß[1] + ß[2] * x + ß[3] * 0 + ß[4] * x^2 + ß[5] * 0 + ß[6] * x^2 * 0
+y2 <- function(x) ß[1] + ß[2] * x + ß[3] * 1 + ß[4] * x^2 + ß[5] * 1 + ß[6] * x^2 * 1
+
+# Plotting
+ggplot(plotdata, aes(x = x, y = y)) +
+  geom_point() +
+  labs(x = "X", y = "Y", title = "Generated Data Plot") +
+  stat_function(fun = y1, aes(color = "Automatic")) +
+  stat_function(fun = y2, aes(color = "Manual")) +
+  ylim(-10, 10) +
+  # scale_color_manual(values = c("blue", "red"), labels = c("Function 1", "Function 2")) +
+  theme_bw()
+```
+
+
+
+
+
+
+
+
+<style>
+
+.YourAnswer {
+  color: #317eac;
+  padding: 10px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: skyblue4;
+  border-radius: 5px;
+}
+
+</style>
+
+ 
+ 

@@ -1,0 +1,55 @@
+---
+title: "Scripts"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+## Confidence Intervals
+
+#### Prediction
+For individual values. The speed of cars on the road.
+Adds 1 standard deviation from confidence.
+```{r}
+# Prediction
+
+pred_conf_int <- predict(gb, newdata = data.frame(month = 9),
+                         interval = "prediction", level = 0.95)
+
+# Display the confidence interval
+
+pred_conf_int
+```
+
+#### Confidence
+
+For model or group values. The speed limit.
+```{r}
+pred_conf_int <- predict(gb, newdata = data.frame(month = 9),
+                         interval = "confidence", level = 0.95)
+
+# Display the confidence interval
+
+pred_conf_int
+```
+
+#### MSE
+
+```{r}
+rss <- sum(residuals(model)^2)
+# df = n - 2, df is already - 2, lose df for more parameters
+df <- df.residual(model)
+mse <- rss / df
+mse
+```
+
+### Create an x distribution
+
+```{r}
+n <- 100
+runif(n,-10, 10)
+```
+
