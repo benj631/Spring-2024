@@ -22,7 +22,6 @@ pacman::p_load(tidyverse,dplyr,pander,readr,DT)
 AW_Cloudy <- read_csv("Weather Prediction Data.csv")
 View(AW_Cloudy)
 ```
-# Residuals, Sum of Squares, and R-Squared {.tabset}
 
 In this document, I will explain the following: 
 
@@ -33,22 +32,24 @@ In this document, I will explain the following:
 5. R-squared,
 6. MSE & "Residual Standard Error"
 
-We will be using a data set of cloudy weather in April of 2023 and 2024 to illustrate these concepts. You can see the data below. 'DayNum' represents the numbered day of the year, and 'HighTemp' represents the highest recorded temperature on that day. Data was collected from timeanddate.com for the Rexburg area (Fanning Field)
+We will be using a data set of cloudy weather in April 2023 and 2024 to illustrate these concepts. You can see the data below. 'DayNum' represents the numbered day of the year, and 'HighTemp' represents the highest recorded temperature on that day. Data was collected from timeanddate.com for the Rexburg area (Fanning Field)
 
 ```{r}
 datatable(AW_Cloudy, options=list(lengthMenu = c(6,10,30)), extensions="Responsive")
 ```
 
 
-Click on a tab to view each concept explained.
+# Concepts
 
 ## Residuals
 
 ### Models
 
-There are different ways to model data. if we have Y as an output of X, different equations can show what our Y value will be for X. In statistics, actual values differ from what we expect them to be from the model.
+There are different ways to model data. If we have Y as an output of X, different equations can output expected Y values according to given X values. In statistics, actual values differ from what we expect them to be from a model. A good model will hopefully output predicted values close to the Y values of the data.
 
-One model for what Y will be (the high temperature for a given day, in the case of our data set) is just the average of the Y values we already have.
+Our data set contains temperature data from Cloudy days in April 2023 and 2024. We want to try to predict the high temperature on a given day using the day as the explanation. Using the day alone is intuitively not very helpful, but we can illustrate the concepts with this data.
+
+The mean of the Y values, or $\bar{Y}$ is used often as a benchmark for what Y values are. If we were to try to guess what a value is by using $\bar{Y}$, we would get something close to what that value is. But we can use models to try to explain the variations in the Y variable better than just guessing the average.
 
 ```{r}
 mean_aw <- mean(AW_Cloudy$HighTemp)
@@ -61,9 +62,9 @@ A residual is the distance from each actual Y value to our predicted Y value. Us
 'i' represents a specific data point. So our residual for a given data point is
 
 $$
-R_i = Y_i - $\hat{Y_i}$
+R_i = Y_i - \hat{Y_i}
 $$
-Here is a table showing the residual for each data point from the mean.
+Here is a table showing the residual for each data point in our April weather dataset from the mean.
 
 ```{r}
 AW_Cloudy$Residuals <- AW_Cloudy$HighTemp - mean_aw
@@ -94,90 +95,194 @@ ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
   ggtitle(expression(paste("Residuals from HighTemp Data Points to ", bar(Y)))) +  # Add title with mean
   theme_bw()
 ```
+## MSE
 
+A good model will help us make better guesses at $\hat{Y}$ based on some information, which we use as $X$ variables. We measure models against $\bar{Y}$ to see how well they can minimize residuals beyond just guessing the mean of the data.
 
-## SSE, SSR, and SSTO
-
-$\bar{Y}$ is not the best model we can use to explain or predict data points in a model. But every data set has a $\bar{Y}$, and we can use that as a baseline to measure how good a model is. We can do this by measuring how much of the error or residual from the mean is reduced by the model. This is what SSE, SSR, and SSTO help us do. They refer to certain parts of the residual for each point in reference to $\bar{Y}$, and we can use them to help determine how good a model is.
-
-### Linear Residuals vs Squared residuals.
-
-If we have a lot of data points, and use $\bar{Y}$ as the model, the sum of the distance from the residuals to the mean will always be 0.
-
-```{r}
-mean(AW_Cloudy$HighTemp) - sum(AW_Cloudy$Residuals)
-
-mean_aw <- mean(AW_Cloudy$HighTemp)
-
-# Calculate residuals for each row
-AW_Cloudy$Residuals <- AW_Cloudy$HighTemp - mean_aw
-
-# Compute sum of residuals and compare with mean
-sum_residuals <- sum(AW_Cloudy$Residuals)
-
-# Print results
-print(paste("Mean of HighTemp:", mean_aw))
-print(paste("Sum of Residuals:", sum_residuals))
-print(paste("Difference:", mean_aw - sum_residuals))
-```
-
-
-
-
-
-### SSTO
-
-SSTO, or Total Sum of Squares, measures
+To measure how good a model is, we can see how far away our guesses are from the actual Y values of the data points, or how big the residuals are. The following graph shows the residuals from each point in our data set to the mean, or $\bar{Y}$.
 
 ```{r}
 ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
   geom_point(size=3) +  # Add points
   geom_hline(yintercept = mean_aw, color = "red",linetype = "dashed") +  # Add horizontal line at mean
-  geom_segment(aes(x = DayNum, xend = DayNum, y = HighTemp, yend = mean_aw), color = "skyblue") +  # Add lines to mean  xlim(85, 125) + ylim(0, 63) +  # Set limits for x and y axes
+  geom_segment(aes(x = DayNum, xend = DayNum, y = HighTemp, yend = mean_aw), color = "skyblue",linetype = "dashed") +  # Add lines to mean  xlim(85, 125) + ylim(0, 63) +  # Set limits for x and y axes
   labs(x = "Day of the Year", y = "Highest Temperature Per Day") +  # Set axis labels
   ggtitle(expression(paste("Residuals from HighTemp Data Points to ", bar(Y)))) +  # Add title with mean
   theme_bw()
 ```
-## SSR
 
-The proportion of the residuals explained by the regression, or model.
-
+### Linear Residuals vs Squared Residuals.
 
 
-SSE stands for "Sum of Squared Errors", which measures the distance between 
+If we use $\bar{Y}$ as the model, the sum of the residuals to the mean will always be 0. Lines that pass through the data points will have some cancellation of residuals. We want to measure the sum of the distance, but we want to do it in a way where residuals on the top and bottom of the line don't cancel out.
 
+Squaring the residuals makes it so that instead of distances cancelling, we have an area that grows. So, we measure how good (or bad) the model is in a sort of residual area. Additionally, the residual are of data points that are further from the model grow quadratically, so data points that have Y values further from our model's predicted Y value are penalized more. This encourages models that care about all the data points, not just models that work for the majority of the data points.
+
+the Mean Squared Error is the average size of the squared length of the residuals from the datapoints to the model's predicted value for the data. We can use the Mean Squared Error to measure how good a model is.
+
+Mean Squared Error can be calculated with this equation:
+
+$$
+\text{MSE} = \frac{\sum_{i=1}^{n} (Y_i - \hat{Y}_i)^2}{{n}}
+$$
+where:
+- $Y_i$ is the actual value.
+- $\hat{Y}$ is the predicted value and
+- $n$ is the number of data points in our data set.
+
+Here is a graphic showing the squared error for the HighTemp for the same data points in the data set:
+
+```{r}
+
+# Assuming AW_Cloudy is your data frame and mean_aw is the mean of the HighTemp variable
+mean_aw <- mean(AW_Cloudy$HighTemp)
+
+# Calculate the squared error and side length for each point
+AW_Cloudy$squared_error <- (AW_Cloudy$HighTemp - mean_aw)^2
+AW_Cloudy$side_length <- sqrt(AW_Cloudy$squared_error)
+
+# Calculate the mean squared error and its side length
+mean_squared_error <- mean(AW_Cloudy$squared_error)
+mean_side_length <- sqrt(mean_squared_error)
+
+ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
+  geom_point(size = 3) +  # Add points
+  geom_hline(yintercept = mean_aw, color = "red", linetype = "dashed") +  # Add horizontal line at mean
+  geom_segment(aes(x = DayNum, xend = DayNum, y = HighTemp, yend = mean_aw), color = "skyblue",linetype = "dashed") +  # Add lines to mean
+  geom_rect(data = AW_Cloudy, 
+            aes(xmin = DayNum, xmax = DayNum + side_length, 
+                ymin = ifelse(HighTemp >= mean_aw, mean_aw, HighTemp), 
+                ymax = ifelse(HighTemp >= mean_aw, HighTemp, mean_aw)), 
+            fill = "purple", alpha = 0.2) +  # Add squares to show squared error
+  # Add a square representing the average squared error
+  geom_rect(aes(xmin = 105, xmax = 105 + mean_side_length, 
+                ymin = 30, ymax = 30 + mean_side_length), 
+            fill = "lightgreen", alpha = 0.2) +
+  annotate("text", x = 102.5, y = 30 + mean_side_length + 2, label = "Average Squared Error", hjust = 0) +  # Add a label for the average squared error square
+  xlim(95, 125) + ylim(27, 55) +  # Set limits for x and y axes
+  labs(x = "Day of the Year", y = "Highest Temperature Per Day") +  # Set axis labels
+  ggtitle(expression(paste("Squared Errors from HighTemp Data Points to ", bar(Y)))) +  # Add title with mean
+  theme_bw()
+
+```
+Note that the residual areas appear rectangular because of the scale of the graph, but in the corresponding units of the graph, they would be squares.
+
+The MSE for this dataset is 'r mean_squared_error'.
+
+
+### Size of MSE
+
+The goal of a good model is to minimize MSE. MSE can be very big, if the data points are very spread out. MSE will grow very quickly as data points spread out. The MSE can be very small if the data points are very clustered, but unless the data is perfectly set in a straight line, using a straight line model will not get us to an MSE of 0.
+
+### RMSE
+
+We can take the square root of the MSE to get an estimate of the average size of the linear residuals in the original units of the data. It is only an estimate though, because the conversion through squaring and taking the square root of data does not create a 1 to 1 representation.
+
+## SSE, SSR, and SSTO
+
+We can measure how much of the error or residual from the mean is reduced by the model. SSE, SSR, and SSTO are terms that refer to certain parts of the residual for each point in reference to $\bar{Y}$, and we can use them to help understand how our residuals are being 'handled' or 'explained' by the models compared to $\bar{Y}$.
+
+Each of the distances of SSE, SSR, and SSTO are squared. Rather than individual data points though, these each are done for all the points together. This will be explained shortly.
+
+### SSTO
+
+SSTO, or Total Sum of Squares, measures the total residuals of the Y values to $\bar{Y}$ We can see this shown in the chart below:
+
+```{r}
+ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
+  geom_point(size=3) +  # Add points
+  geom_hline(yintercept = mean_aw, color = "red",linetype = "dashed") +  # Add horizontal line at mean
+  geom_segment(aes(x = DayNum, xend = DayNum, y = HighTemp, yend = mean_aw), color = "skyblue",linetype = "dashed") +  # Add lines to mean  xlim(85, 125) + ylim(0, 63) +  # Set limits for x and y axes
+  labs(x = "Day of the Year", y = "Highest Temperature Per Day") +  # Set axis labels
+  ggtitle(expression(paste("Residuals from HighTemp Data Points to ", bar(Y)))) +  # Add title with mean
+  theme_bw()
+```
+We can calculate it by squaring the sum of the difference between the Y values of the data points, and $\bar{Y}$.
+
+```{r}
+SSTO <- sum((AW_Cloudy$HighTemp - mean(AW_Cloudy$HighTemp))^2)
+SSTO
+```
+
+
+### SSR
+
+As stated earlier, we often want to measure the usefulness of a model against $\bar{Y}$. Let's create a model that tries to minimize the residuals of the data.
 
 ```{r}
 Combined_lm <- lm(HighTemp ~ DayNum, data= AW_Cloudy)
 summary(Combined_lm) %>% pander()
+```
 
+
+The proportion of the residuals explained by the regression, or model, is called The Sum of Squares Regression. You can think of this as the amount of the residual between $\bar{Y}$ and the regression line.
+
+
+
+```{r}
+# Fit the linear regression model
+Combined_lm <- lm(HighTemp ~ DayNum, data = AW_Cloudy)
+
+# Extract coefficients
 b <- coef(Combined_lm)
 
+# Mean of HighTemp
+mean_aw <- mean(AW_Cloudy$HighTemp)
+
+# Calculate predicted values from the regression model
+AW_Cloudy$predicted <- predict(Combined_lm)
+
+# Plot the data and regression line
 ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
-  geom_point() +  # Add points
-  geom_abline(intercept = b[1], slope = b[2], color = "red") +  # Add regression line
-  # geom_point(aes(x = 120, y = 51.0607), color = "red", size = 3) +
-  xlim(85, 125) + ylim(0, 63) +  # Set limits for x and y axes
+  geom_point(size = 3) +  # Add points
+  geom_abline(intercept = b[1], slope = b[2], color = "green") +  # Add regression line
+  geom_hline(yintercept = mean_aw, color = "red", linetype = "dashed") +  # Add horizontal line at mean
+  xlim(94, 120) + ylim(42, 60) +  # Set limits for x and y axes
   labs(x = "Day of the Year", y = "Highest Temperature Per Day") +  # Set axis labels
   ggtitle("April 2023 and 2024 Combined Data Model") +
-  theme_bw()
+  theme_bw() +
+  # Add dotted lines from the mean to the regression line at each x-value
+  geom_segment(aes(x = DayNum, y = mean_aw, xend = DayNum, yend = predicted), 
+               linetype = "dotted", color = "blue", size = 1)
+
+
 ```
+SSR is represented here by the blue dotted lines. We can see here that our regression is not really 'explaining away' much of the distance of the residuals. Ideally, we would want SSR to be as close to 1 as possible- which would mean that our chosen X variable was accounting for all the variance in Y, and our predictions using the model for Y would be perfectly accurate.
+
+### SSE
+
+SSE stands for "Sum of Squared Errors", which measures the distance between the model and the data points. Let's show that below, for our data.
+
+```{r}
+Combined_lm <- lm(HighTemp ~ DayNum, data = AW_Cloudy)
+
+# Extract coefficients
+b <- coef(Combined_lm)
+
+# Mean of HighTemp
+mean_aw <- mean(AW_Cloudy$HighTemp)
+
+# Calculate predicted values from the regression model
+AW_Cloudy$predicted <- predict(Combined_lm)
+
+# Plot the data and regression line
+ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
+  geom_point(size = 3) +  # Add points
+  geom_abline(intercept = b[1], slope = b[2], color = "green") +  # Add regression line
+  geom_hline(yintercept = mean_aw, color = "red", linetype = "dashed") +  # Add horizontal line at mean
+  xlim(94, 120) + ylim(42, 60) +  # Set limits for x and y axes
+  labs(x = "Day of the Year", y = "Highest Temperature Per Day") +  # Set axis labels
+  ggtitle("April 2023 and 2024 Combined Data Model") +
+  theme_bw() +
+  # Add dotted lines from the regression line to each data point
+  geom_segment(aes(x = DayNum, y = HighTemp, xend = DayNum, yend = predicted), 
+               linetype = "dotted", color = "blue", size = 1)
+```
+Ideally we would want to minimize this, and have it be as close to 0 as possible. If it were at 0, that would mean that our model was perfectly on top of the data points, and just as was said above, it would mean that our chosen X variable was accounting for all the variance in Y, and our predictions using the model for Y would be perfectly accurate.
 
 ## R-Squared
 
 
-## MSE
 
-To measure how good a model is, we can see how far away our guesses are from the actual data points, or how big the residuals are. The following graph shows the residuals from each point in our data set to the mean, or $\bar{Y}$.
-
-```{r}
-ggplot(data = AW_Cloudy, aes(x = DayNum, y = HighTemp)) +
-  geom_point(size=3) +  # Add points
-  geom_hline(yintercept = mean_aw, color = "red",linetype = "dashed") +  # Add horizontal line at mean
-  geom_segment(aes(x = DayNum, xend = DayNum, y = HighTemp, yend = mean_aw), color = "skyblue") +  # Add lines to mean  xlim(85, 125) + ylim(0, 63) +  # Set limits for x and y axes
-  labs(x = "Day of the Year", y = "Highest Temperature Per Day") +  # Set axis labels
-  ggtitle(expression(paste("Residuals from HighTemp Data Points to ", bar(Y)))) +  # Add title with mean
-  theme_bw()
-```
 
 
