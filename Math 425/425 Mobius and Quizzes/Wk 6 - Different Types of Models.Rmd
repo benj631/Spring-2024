@@ -408,11 +408,122 @@ ggplot(plotdata, aes(x = x, y = y)) +
   theme_bw()
 ```
 
+## QUIZ
+
+### Q1
+```{r}
+library(Ecdat)
+```
 
 
+## Code to make this graphic...
 
+> ggplot(Wages1, aes(x=school, y=wage)) + geom_point(color=rgb(.3,.3,.2,.4)) + geom_smooth(method="lm", formula= y ~ poly(x, 2, raw=TRUE), se=F, col=rgb(.3,.3,.2,.8)) + theme_bw() + labs(title="Best wages for highest schooling... or no schooling?", subtitle="Wages1 data, library(Ecdat)", x="Number of years of Schooling (school)", y="Current Hourly Wage in 1980's USD (wage)")
 
+ 
 
+## Code needed to obtain the solution...
+
+> summary(lm(wage ~ school + I(school^2), data=Wages1))
+
+Call:
+lm(formula = wage ~ school + I(school^2), data = Wages1)
+
+Residuals:
+Min 1Q Median 3Q Max
+-7.337 -1.998 -0.474 1.444 34.554
+
+Coefficients:
+                      Estimate    Std. Error     t value    Pr(>|t|)
+(Intercept)       6.13334      1.46274       4.193    2.82e-05 ***
+school            -0.68354      0.25743      -2.655    0.00796 **
+I(school^2)      0.05488       0.01129       4.859   1.23e-06 ***
+---
+Signif. codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.126 on 3291 degrees of freedom
+Multiple R-squared: 0.08636, Adjusted R-squared: 0.0858
+F-statistic: 155.5 on 2 and 3291 DF, p-value: < 2.2e-16
+
+ 
+
+ 
+
+## Code to draw the plot in base graphics...
+
+> plot(wage ~ school, data=Wages1, pch=16, col=rgb(.3,.3,.2,.4), main="Best wages for highest schooling... or no schooling?",  xlab="Number of years of Schooling (school)", ylab="Current Hourly Wage in 1980's USD (wage)")
+
+> mtext(side=3, text="Wages1 data, library(Ecdat)")
+
+> abline(v=seq(2,16,2), h=seq(0,40,10), lty=2, col=rgb(.2,.2,.2,.2))
+
+> wages.lm <- lm(wage ~ school + I(school^2), data=Wages1)
+
+> b <- coef(wages.lm)
+
+> curve(b[1] + b[2]*x + b[3]*x^2, add=TRUE, col=rgb(.3,.3,.2,.8), lwd=2)
+
+```{r}
+View(Wages1)
+wages.lm <- lm(wage ~ school + I(school^2),data=Wages1)
+summary(wages.lm)
+```
+### Q2
+it was groups 1 and 2, so it only added the presence of the intercept change.
+
+Since the equation only allows the y-intercept to be changed by the term, and there is no interaction term allowing the slope to change, then the correct answer is the plot that has lines with equal slopes. In other words, this model forces parallel lines. Only models that include an interaction term can have differing slopes.
+
+### Q3
+
+```{r}
+View(Loblolly)
+?Loblolly
+```
+
+```{r}
+ll.lm1 <- lm(height ~ age + I(age^2), data=Loblolly)
+ll.lm2 <- lm(height ~ age + I(age^2) + I(age^3),data=Loblolly)
+ll.lm3 <- lm(height ~ age + I(age^2) + I(age^3) + I(age^4),data=Loblolly)
+ll.lm4 <- lm(height ~ age + I(age^2) + I(age^3) + I(age^4) + I(age^5),data=Loblolly)
+```
+
+```{r}
+plot(ll.lm1, which=1:3)
+```
+
+```{r}
+plot(ll.lm2, which=1:3)
+```
+
+```{r}
+plot(ll.lm3, which=1:3)
+```
+
+```{r}
+plot(ll.lm4, which=1:3)
+```
+
+Running the codes:
+
+plot(lm(height ~ age + I(age^2), data=Loblolly), which=1)
+
+plot(lm(height ~ age + I(age^2) + I(age^3), data=Loblolly), which=1)
+
+plot(lm(height ~ age + I(age^2) + I(age^3) + I(age^4), data=Loblolly), which=1)
+
+plot(lm(height ~ age + I(age^2) + I(age^3) + I(age^4) + I(age^5), data=Loblolly), which=1)
+
+will show the last one has the "flattest" red line, witnessing the greatest "linear" fit of the data. If you wanted to resolve the lack of constant variance, you could then apply: 
+
+boxCox(lm(height ~ age + I(age^2) + I(age^3) + I(age^4) + I(age^5), data=Loblolly))
+
+and the resulting transformation looks quite nice:
+
+plot(lm(sqrt(sqrt(height)) ~ age + I(age^2) + I(age^3) + I(age^4) + I(age^5), data=Loblolly), which=1)
+
+except linearity is still lacking...
+
+plot(lm(sqrt(sqrt(height)) ~ age + I(age^2) + I(age^3) + I(age^4) + I(age^5), data=Loblolly), which=2)
 
 
 <style>

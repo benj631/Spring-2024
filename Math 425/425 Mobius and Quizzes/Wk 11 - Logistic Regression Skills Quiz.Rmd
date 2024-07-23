@@ -1,0 +1,21 @@
+---
+title: "Skills Quiz: Logistic Regression"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse,dplyr, mosaicData,pander,car)
+```
+
+
+```{r}
+
+```
+

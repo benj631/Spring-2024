@@ -1,0 +1,300 @@
+---
+title: "Skills Quiz: Different Types of Models"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+β
+
+## Instructions
+
+Use this file to keep a record of your work as you complete the "Skills Quiz: Different Types of Models" assignment in Canvas.
+
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse,dplyr, mosaicData,pander,car)
+```
+
+
+
+```{r}
+View(KidsFeet)
+```
+
+```{r}
+kf.lm <- lm(length ~ width + I(width^2), data=KidsFeet)
+summary(kf.lm)
+```
+
+```{r}
+
+plot(length ~ width, data=KidsFeet)
+new.data <- data.frame(width = seq(from = min(KidsFeet$width),
+                                 to = max(KidsFeet$width), length.out = 200))
+
+pred_lm <- predict(kf.lm, newdata = new.data)
+
+plot(length ~ width, data = KidsFeet)
+lines(pred_lm ~ new.data$width, col = "red")
+legend("topleft", c("quadratic"), col = c("red"), lty = 1)
+
+```
+
+
+```{r}
+kf2l.lm <- lm(length ~ width + sex, data=KidsFeet)
+summary(kf2l.lm)
+```
+```{r}
+kf2l.lm <- lm(length ~ width + sex, data = KidsFeet)
+
+# Extract coefficients
+ß <- coef(kf2l.lm)
+
+# Define prediction function for each sex level
+y_boy <- function(x) ß[1] + ß[2] * x  # for sex == B
+y_girl <- function(x) (ß[1] + ß[3]) + (ß[2] * x)  # for sex == G
+
+# Generate sequence of x values for plotting
+x_seq <- seq(min(KidsFeet$width), max(KidsFeet$width), length.out = 100)
+
+# Calculate predicted values
+y_pred_boy <- y_boy(x_seq)
+y_pred_girl <- y_girl(x_seq)
+
+# Plot using base R
+plot(KidsFeet$width, KidsFeet$length, pch = 19, 
+     col = ifelse(KidsFeet$sex == "G", "red", "blue"),
+     main = "Regression Lines for Different Sex Levels",
+     xlab = "Width", ylab = "Length")
+
+# Add regression lines
+lines(x_seq, y_pred_boy, col = "blue", lwd = 2)
+lines(x_seq, y_pred_girl, col = "red", lwd = 2)
+
+# Add legend
+legend("topright", legend = c("Boys (B)", "Girls (G)"),
+       col = c("blue", "red"), lty = 1, lwd = 2)
+
+```
+
+### Double Quadratic
+
+```{r}
+kf2l2.lm <- lm(length ~ width + I(width^2) + sex + I(width^2):sex, data = KidsFeet)
+summary(kf2l2.lm)
+
+```
+```{r}
+# Coefficients from the model
+ß <- c(48.36370, -6.63499, 0.44556, -2.59549, 0.03040)
+
+# Define prediction function for each sex level
+y_boy <- function(x) ß[1] + ß[2] * x + ß[3] * x^2  # for sex == B
+y_girl <- function(x) (ß[1] + ß[4]) + (ß[2] * x + ß[3] * x^2 + ß[5] * x^2)  # for sex == G
+# Generate sequence of x values for plotting
+x_seq <- seq(min(KidsFeet$width), max(KidsFeet$width), length.out = 100)
+
+# Calculate predicted values
+y_pred_boy <- y_boy(x_seq)
+y_pred_girl <- y_girl(x_seq)
+
+# Plot using base R
+plot(KidsFeet$width, KidsFeet$length, pch = 19, 
+     col = ifelse(KidsFeet$sex == "G", "red", "blue"),
+     main = "Regression Lines for Different Sex Levels (Quadratic Model)",
+     xlab = "Width", ylab = "Length")
+
+# Add regression lines
+lines(x_seq, y_pred_boy, col = "blue", lwd = 2)
+lines(x_seq, y_pred_girl, col = "red", lwd = 2)
+
+# Add legend
+legend("topright", legend = c("Boys (B)", "Girls (G)"),
+       col = c("blue", "red"), lty = 1, lwd = 2)
+
+```
+
+
+```{r}
+# Somehow highest R^2
+kfsimple.lm <- lm(length ~ width, data=KidsFeet)
+kfs.lm <- kfsimple.lm
+summary(kfs.lm)
+```
+```{r}
+plot(length ~ width, data=KidsFeet,pch= 16, col="blue")
+abline(kfs.lm)
+```
+
+## 2
+
+```{r}
+View(Loblolly)
+```
+
+```{r}
+ll.lm <- lm(height ~ age, data=Loblolly)
+
+plot(height ~ age, data=Loblolly)
+lines(lowess(Loblolly$age, Loblolly$height), col = "red", lwd = 2)
+abline(ll.lm)
+
+```
+
+The line is not a good fit because it doesn't go through the cluster centers.
+
+
+```{r}
+llq.lm <- lm(height ~ age + I(age^2),data=Loblolly)
+
+new.data <- data.frame(age = seq(from = min(Loblolly$age),
+                                 to = max(Loblolly$age), length.out = 200))
+
+
+plot(height ~ age, data=Loblolly)
+
+
+pred_lm <- predict(kf.lm, newdata = new.data)
+
+plot(height ~ age, data=Loblolly ,pch=16,col="firebrick4")
+lines(ll1.lm ~ new.data$width, col = "red")
+lines(lowess(Loblolly$age, Loblolly$height), col = "red", lwd = 2)
+abline(ll.lm)
+
+legend("topleft", c("quadratic"), col = c("red"), lty = 1)
+
+```
+
+```{r}
+ll.lm <- lm(height ~ age, data = Loblolly)
+llq.lm <- lm(height ~ age + I(age^2), data = Loblolly)
+
+# Prepare new data for prediction
+new.data <- data.frame(age = seq(from = min(Loblolly$age),
+                                 to = max(Loblolly$age), length.out = 200))
+
+# Predictions using the quadratic model
+pred_lm <- predict(llq.lm, newdata = new.data)
+
+# Plotting Loblolly dataset and predictions
+plot(height ~ age, data = Loblolly, pch = 16, col = "firebrick4",
+     main = "Height vs Age with Fits and Lowess Curve",
+     xlab = "Age", ylab = "Height")
+
+# Add quadratic fit
+lines(new.data$age, pred_lm, col = "red")
+
+# Add lowess smoothed curve
+lines(lowess(Loblolly$age, Loblolly$height), col = "blue", lwd = 2)
+
+# Add linear fit
+abline(ll.lm, col = "green4")
+
+# Add legend
+legend("topleft", legend = c("Quadratic Fit", "Lowess Curve", "Linear Fit"),
+       col = c("red", "blue", "green4"), lty = 1, lwd = 2)
+```
+
+### Q3
+
+```{r}
+?Utilities
+View(Utilities)
+```
+
+```{r}
+NoNotes <- Utilities %>% select(-notes)
+
+# Creating an alias for the dataset
+unn <- NoNotes
+
+# Plotting pairs with smoothed curves
+pairs(unn, panel = function(x, y, ...) {
+  points(x, y, ...)
+  panel.smooth(x, y, ...)
+})
+```
+
+Look at how kwh relates to elecbill
+
+```{r}
+unn.lm <- lm(elecbill ~ kwh, data=Utilities)
+pander(summary(unn.lm))
+```
+
+```{r}
+plot(unn.lm,which=1:3)
+```
+
+
+```{r}
+NoNotes <- Utilities %>% select(-notes)
+unn <- NoNotes
+
+# Fit a linear model
+unn2.lm <- lm(elecbill ~ kwh, data = unn)
+
+# Combine residuals, fitted values, and original data
+plot_data <- cbind(R = unn2.lm$residuals, Fit = unn2.lm$fitted.values, unn)
+
+# Create pairs plot including residuals and fitted values
+pairs(plot_data)
+```
+
+
+```{r}
+# Utilities Regression 2
+ur2.lm <- lm(elecbill ~ kwh + month + year,data= unn)
+summary(ur2.lm)
+```
+
+```{r}
+plot(ur2.lm,which=1:3)
+```
+
+```{r}
+ur3.lm <- lm(elecbill ~ kwh + month + year + I(month^2),data= unn)
+summary(ur3.lm)
+```
+```{r}
+plot(ur3.lm,which=1:3)
+```
+
+```{r}
+ur4.lm <- lm(elecbill ~ kwh + month + year + I(month^2) + temp + I(temp^2),data= unn)
+summary(ur4.lm)
+```
+```{r}
+ur5.lm <- lm(elecbill ~ kwh + year + temp + I(temp^2),data= unn)
+pander(summary(ur5.lm))
+```
+```{r}
+plot(ur5.lm,which=1:3)
+```
+
+```{r}
+boxCox(ur5.lm)
+```
+
+```{r}
+unn2 <- unn[-95, ]
+
+final.lm <- lm(elecbill ~ kwh + year + temp + I(temp^2),data= Utilities[-95,])
+summary(final.lm)
+```
+```{r}
+bad.lm <- lm(elecbill ~ year + I(month^2), data = Utilities)
+summary(bad.lm)
+```
+
+This is a pretty good model. However, one final comment. In order to use this model to predict the elecbill, we have to know the "temp" for the month of interest. Some reading about the data ?Utilities shows that "temp" is the "average temperature (F) for billing period". Similarly, kwh is the "electricity usage (kwh)" for the billing period. So... our model is only useful for predicting the bill a day or two before it arrives. If you wanted to predict the elecbill for each month during the coming year, you would be forced to move to a model that only used year and month... and the adjusted R-squared of this model: elecbill ~ year + I(month^2), data = Utilities is unfortunately a lot lower...  
+. So, remember, there is a balance between the usefulness of the model and the accuracy of the model. Our work came up with a model that was highly accurate, but by the time we would know all of the information needed to make our prediction, the bill would be arriving in our inbox.
+
+Fortunately, our model does give the customer great insight about how their final bill is created, and would allow them an opportunity (if we assume causation) to make changes to their habits that might change their overall bill. So, while not as useful for prediction, it is highly valuable for interpretation and insight.
