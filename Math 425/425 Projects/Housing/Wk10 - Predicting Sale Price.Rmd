@@ -9,6 +9,7 @@ format:
     theme: cerulean
     code-fold: true
     code-line-numbers: true
+    embed-resources: true
 date: "2024-06-24"
 ---
 

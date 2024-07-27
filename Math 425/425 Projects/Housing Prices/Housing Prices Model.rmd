@@ -1,0 +1,556 @@
+---
+title: "Midterm Analysis"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-22"
+---
+
+
+```{r}
+pacman::p_load(tidyverse,dplyr,readr)
+```
+
+```{r}
+housing <- read_csv("train.csv")
+```
+```{r}
+View(housing)
+```
+
+
+```{r}
+head(data)
+
+# Check for unique values in columns to understand how NA is represented
+sapply(housing, function(x) unique(x))
+
+str(housing)
+
+```
+
+```{r}
+remove_na_rows <- function(dataset) {
+  # Print the number of rows before cleaning
+  cat("Number of rows before cleaning: ", nrow(dataset), "\n")
+  
+  # Remove rows with any NA values
+  clean_dataset <- dataset[complete.cases(dataset), ]
+  
+  # Print the number of rows after cleaning
+  cat("Number of rows after cleaning: ", nrow(clean_dataset), "\n")
+  
+  return(clean_dataset)
+}
+
+# Example usage:
+# Assuming 'data' is your dataset
+cleaned_data <- remove_na_rows(housing)
+
+# Inspect the cleaned dataset
+head(cleaned_data)
+```
+
+
+
+```{r}
+names(housing)
+```
+```{r}
+# Assuming the dataset is named 'housing'
+library(dplyr)
+
+housing <- housing %>%
+  mutate(
+    MSSubClass = as.factor(MSSubClass),
+    MSZoning = as.factor(MSZoning),
+    LotFrontage = as.numeric(LotFrontage),
+    LotArea = as.numeric(LotArea),
+    Street = as.factor(Street),
+    # Alley = as.factor(Alley),
+    LotShape = as.factor(LotShape),
+    LandContour = as.factor(LandContour),
+    Utilities = as.factor(Utilities),
+    LotConfig = as.factor(LotConfig),
+    LandSlope = as.factor(LandSlope),
+    Neighborhood = as.factor(Neighborhood),
+    Condition1 = as.factor(Condition1),
+    Condition2 = as.factor(Condition2),
+    BldgType = as.factor(BldgType),
+    HouseStyle = as.factor(HouseStyle),
+    OverallQual = as.integer(OverallQual),
+    OverallCond = as.integer(OverallCond),
+    YearBuilt = as.integer(YearBuilt),
+    YearRemodAdd = as.integer(YearRemodAdd),
+    RoofStyle = as.factor(RoofStyle),
+    RoofMatl = as.factor(RoofMatl),
+    Exterior1st = as.factor(Exterior1st),
+    Exterior2nd = as.factor(Exterior2nd),
+    MasVnrType = as.factor(MasVnrType),
+    MasVnrArea = as.numeric(MasVnrArea),
+    ExterQual = as.factor(ExterQual),
+    ExterCond = as.factor(ExterCond),
+    Foundation = as.factor(Foundation),
+    BsmtQual = as.factor(BsmtQual),
+    BsmtCond = as.factor(BsmtCond),
+    BsmtExposure = as.factor(BsmtExposure),
+    BsmtFinType1 = as.factor(BsmtFinType1),
+    BsmtFinSF1 = as.numeric(BsmtFinSF1),
+    BsmtFinType2 = as.factor(BsmtFinType2),
+    BsmtFinSF2 = as.numeric(BsmtFinSF2),
+    BsmtUnfSF = as.numeric(BsmtUnfSF),
+    TotalBsmtSF = as.numeric(TotalBsmtSF),
+    Heating = as.factor(Heating),
+    HeatingQC = as.factor(HeatingQC),
+    CentralAir = as.factor(CentralAir),
+    Electrical = as.factor(Electrical),
+    `1stFlrSF` = as.numeric(`1stFlrSF`),
+    `2ndFlrSF` = as.numeric(`2ndFlrSF`),
+    LowQualFinSF = as.numeric(LowQualFinSF),
+    GrLivArea = as.numeric(GrLivArea),
+    BsmtFullBath = as.integer(BsmtFullBath),
+    BsmtHalfBath = as.integer(BsmtHalfBath),
+    FullBath = as.integer(FullBath),
+    HalfBath = as.integer(HalfBath),
+    BedroomAbvGr = as.integer(BedroomAbvGr),
+    KitchenAbvGr = as.integer(KitchenAbvGr),
+    KitchenQual = as.factor(KitchenQual),
+    TotRmsAbvGrd = as.integer(TotRmsAbvGrd),
+    Functional = as.factor(Functional),
+    Fireplaces = as.integer(Fireplaces),
+    FireplaceQu = as.factor(FireplaceQu),
+    GarageType = as.factor(GarageType),
+    GarageYrBlt = as.integer(GarageYrBlt),
+    GarageFinish = as.factor(GarageFinish),
+    GarageCars = as.integer(GarageCars),
+    GarageArea = as.numeric(GarageArea),
+    GarageQual = as.factor(GarageQual),
+    GarageCond = as.factor(GarageCond),
+    PavedDrive = as.factor(PavedDrive),
+    WoodDeckSF = as.numeric(WoodDeckSF),
+    OpenPorchSF = as.numeric(OpenPorchSF),
+    EnclosedPorch = as.numeric(EnclosedPorch),
+    `3SsnPorch` = as.numeric(`3SsnPorch`),
+    ScreenPorch = as.numeric(ScreenPorch),
+    PoolArea = as.numeric(PoolArea),
+    PoolQC = as.factor(PoolQC),
+    Fence = as.factor(Fence),
+    MiscFeature = as.factor(MiscFeature),
+    MiscVal = as.numeric(MiscVal),
+    MoSold = as.integer(MoSold),
+    YrSold = as.integer(YrSold),
+    SaleType = as.factor(SaleType),
+    SaleCondition = as.factor(SaleCondition)
+  )
+
+# Check the structure of the dataset to verify the changes
+str(housing)
+
+```
+
+
+```{r}
+housing <- housing %>% select(-Alley)
+```
+
+
+```{r}
+remove_na_rows <- function(dataset) {
+  # Remove rows with any NA values
+  clean_dataset <- dataset[complete.cases(dataset), ]
+  return(clean_dataset)
+}
+
+# Example usage:
+# Assuming 'data' is your dataset
+cleaned_data <- remove_na_rows(housing)
+```
+
+```{r}
+View(cleaned_data)
+```
+
+
+
+```{r}
+# Example of testing mapping on a single column
+dataset$OverallQual <- as.numeric(factor(dataset$OverallQual, levels = names(OverallQual_mapping), labels = OverallQual_mapping))
+
+# Check the result
+head(dataset$OverallQual)
+```
+
+
+
+```{r}
+# Define mappings for categorical variables
+
+# 1. OverallQual: Overall Quality
+OverallQual_mapping <- c(
+  "1" = 1,   # Very Poor
+  "2" = 2,   # Poor
+  "3" = 3,   # Fair
+  "4" = 4,   # Good
+  "5" = 5,   # Very Good
+  "6" = 6,   # Excellent
+  "7" = 7,   # Very Excellent
+  "8" = 8,   # Outstanding
+  "9" = 9    # Exceptional
+)
+
+# 2. OverallCond: Overall Condition
+OverallCond_mapping <- c(
+  "1" = 1,   # Very Poor
+  "2" = 2,   # Poor
+  "3" = 3,   # Fair
+  "4" = 4,   # Good
+  "5" = 5,   # Very Good
+  "6" = 6,   # Excellent
+  "7" = 7,   # Very Excellent
+  "8" = 8,   # Outstanding
+  "9" = 9    # Exceptional
+)
+
+# 3. YearBuilt: Year Built
+# YearBuilt is numeric and does not require mapping.
+
+# 4. YearRemodAdd: Year Remodelled or Added
+# YearRemodAdd is numeric and does not require mapping.
+
+# 5. MasVnrType: Masonry Veneer Type
+MasVnrType_mapping <- c(
+  "BrkCmn" = 1,   # Brick Common
+  "BrkFace" = 2,  # Brick Face
+  "CmentBd" = 3,  # Cement Board
+  "None" = 4,     # No Veneer
+  "Stone" = 5     # Stone
+)
+
+# 6. ExterCond: Condition of the Material on the Exterior
+# Same mapping as OverallCond_mapping
+
+# 7. ExterQual: Quality of the Material on the Exterior
+# Same mapping as OverallQual_mapping
+
+# 8. Foundation: Type of Foundation
+Foundation_mapping <- c(
+  "BrkTil" = 1,  # Brick & Tile
+  "CBlock" = 2,  # Cinder Block
+  "PConc" = 3,   # Poured Concrete
+  "Slab" = 4,    # Slab
+  "Stone" = 5,   # Stone
+  "Wood" = 6     # Wood
+)
+
+# 9. BsmtQual: Height of the Basement
+BsmtQual_mapping <- c(
+  "Ex" = 1,      # Excellent
+  "Gd" = 2,      # Good
+  "TA" = 3,      # Typical
+  "Fa" = 4,      # Fair
+  "Po" = 5,      # Poor
+  "NA" = 6       # No Basement
+)
+
+# 10. BsmtCond: General Condition of the Basement
+# Same mapping as BsmtQual_mapping
+
+# 11. BsmtExposure: Walkout or Garden Level Basement Walls
+BsmtExposure_mapping <- c(
+  "Gd" = 1,      # Good
+  "Av" = 2,      # Average
+  "Mn" = 3,      # Minimum
+  "No" = 4,      # No Exposure
+  "NA" = 5       # No Basement
+)
+
+# 12. BsmtFinType1: Quality of Basement Finished Area
+BsmtFinType1_mapping <- c(
+  "GLQ" = 1,     # Good Living Quarters
+  "ALQ" = 2,     # Average Living Quarters
+  "BLQ" = 3,     # Below Average Living Quarters
+  "LwQ" = 4,     # Low Quality
+  "Unf" = 5,     # Unfinished
+  "NA" = 6       # No Basement
+)
+
+# 13. BsmtFinType2: Quality of Basement Finished Area (if more than one is present)
+# Same mapping as BsmtFinType1_mapping
+
+# 14. Heating: Type of Heating
+Heating_mapping <- c(
+  "Floor" = 1,   # Floor
+  "GasA" = 2,    # Gas A
+  "GasW" = 3,    # Gas W
+  "Grav" = 4,    # Gravity
+  "OthW" = 5,    # Other
+  "Wall" = 6     # Wall
+)
+
+# 15. HeatingQC: Heating Quality and Condition
+# Same mapping as OverallQual_mapping
+
+# 16. CentralAir: Central Air Conditioning
+CentralAir_mapping <- c(
+  "Y" = 1,      # Yes
+  "N" = 2       # No
+)
+
+# 17. Electrical: Electrical System
+Electrical_mapping <- c(
+  "SBrkr" = 1,  # Standard Circuit Breakers
+  "FuseA" = 2,  # Fuse Box
+  "FuseF" = 3,  # Fuse Box (50 amp or less)
+  "FuseP" = 4,  # Fuse Box (60 amp or more)
+  "Mix" = 5     # Mixed
+)
+
+# 18. KitchenQual: Kitchen Quality
+# Same mapping as OverallQual_mapping
+
+# 19. Functional: Home Functionality
+Functional_mapping <- c(
+  "Typ" = 1,    # Typical
+  "Min1" = 2,   # Minor
+  "Min2" = 3,   # Minor Plus
+  "Mod" = 4,    # Moderate
+  "Maj1" = 5,   # Major 1
+  "Maj2" = 6,   # Major 2
+  "Sev" = 7,    # Severe
+  "Sal" = 8     # Salvage
+)
+
+# 20. Fireplaces: Number of Fireplaces
+# Fireplaces is numeric and does not require mapping.
+
+# 21. FireplaceQu: Fireplace Quality
+FireplaceQu_mapping <- c(
+  "Ex" = 1,      # Excellent
+  "Gd" = 2,      # Good
+  "TA" = 3,      # Typical
+  "Fa" = 4,      # Fair
+  "Po" = 5,      # Poor
+  "NA" = 6       # No Fireplace
+)
+
+# 22. GarageType: Garage Location
+GarageType_mapping <- c(
+  "2Types" = 1,  # Two types
+  "Attchd" = 2,  # Attached
+  "Basment" = 3, # Basement
+  "BuiltIn" = 4, # Built-in
+  "CarPort" = 5, # Carport
+  "Detchd" = 6,  # Detached
+  "NA" = 7       # No Garage
+)
+
+# 23. GarageFinish: Interior Finish of the Garage
+GarageFinish_mapping <- c(
+  "Fin" = 1,     # Finished
+  "RFn" = 2,     # Rough Finished
+  "Unf" = 3,     # Unfinished
+  "NA" = 4       # No Garage
+)
+
+# 24. GarageQual: Garage Quality
+GarageQual_mapping <- c(
+  "Ex" = 1,      # Excellent
+  "Gd" = 2,      # Good
+  "TA" = 3,      # Typical
+  "Fa" = 4,      # Fair
+  "Po" = 5,      # Poor
+  "NA" = 6       # No Garage
+)
+
+# 25. GarageCond: Garage Condition
+# Same mapping as GarageQual_mapping
+
+# 26. PavedDrive: Paved Driveway
+PavedDrive_mapping <- c(
+  "Y" = 1,      # Yes
+  "N" = 2,      # No
+  "P" = 3       # Partial
+)
+
+# 27. WoodDeckSF: Wood Deck Area in Square Feet
+# WoodDeckSF is numeric and does not require mapping.
+
+# 28. OpenPorchSF: Open Porch Area in Square Feet
+# OpenPorchSF is numeric and does not require mapping.
+
+# 29. EnclosedPorch: Enclosed Porch Area in Square Feet
+# EnclosedPorch is numeric and does not require mapping.
+
+# 30. 3SsnPorch: Three-Season Porch Area in Square Feet
+# 3SsnPorch is numeric and does not require mapping.
+
+# 31. ScreenPorch: Screen Porch Area in Square Feet
+# ScreenPorch is numeric and does not require mapping.
+
+# 32. PoolArea: Pool Area in Square Feet
+# PoolArea is numeric and does not require mapping.
+
+# 33. MiscVal: Miscellaneous Features Value
+# MiscVal is numeric and does not require mapping.
+
+# 34. MoSold: Month Sold
+MoSold_mapping <- c(
+  "1" = 1,   # January
+  "2" = 2,   # February
+  "3" = 3,   # March
+  "4" = 4,   # April
+  "5" = 5,   # May
+  "6" = 6,   # June
+  "7" = 7,   # July
+  "8" = 8,   # August
+  "9" = 9,   # September
+  "10" = 10, # October
+  "11" = 11, # November
+  "12" = 12  # December
+)
+
+# 35. YrSold: Year Sold
+# YrSold is numeric and does not require mapping.
+
+# 36. SaleType: Type of Sale
+SaleType_mapping <- c(
+  "WD" = 1,    # Warranty Deed
+  "CWD" = 2,   # Contract Deed
+  "VWD" = 3,   # Warranty Deed (Partial)
+  "New" = 4,   # New Construction
+  "COD" = 5,   # Court Deed
+  "Con" = 6,   # Conventional
+  "Oth" = 7,   # Other
+  "None" = 8   # No Sale
+)
+
+# 37. SaleCondition: Condition of Sale
+SaleCondition_mapping <- c(
+  "Normal" = 1, # Normal Sale
+  "Abnorml" = 2, # Abnormal Sale
+  "AdjLand" = 3, # Adjoining Land
+  "Alloca" = 4, # Allocation
+  "Family" = 5, # Family Sale
+  "Partial" = 6 # Partial Sale
+)
+
+```
+
+
+```{r}
+# Define mappings for categorical variables
+# (Mappings are already defined in your script)
+
+# Apply mappings to the dataset
+dataset <- HNoNa
+
+# Function to apply mapping
+apply_mapping <- function(column, mapping) {
+  if (all(is.na(column))) {
+    return(column)  # Return column as is if it's already NA
+  }
+  mapped_column <- as.numeric(factor(column, levels = names(mapping), labels = mapping))
+  return(mapped_column)
+}
+
+# Apply mappings using the function
+dataset$OverallQual <- apply_mapping(dataset$OverallQual, OverallQual_mapping)
+dataset$OverallCond <- apply_mapping(dataset$OverallCond, OverallCond_mapping)
+dataset$MasVnrType <- apply_mapping(dataset$MasVnrType, MasVnrType_mapping)
+dataset$ExterCond <- apply_mapping(dataset$ExterCond, OverallCond_mapping)
+dataset$ExterQual <- apply_mapping(dataset$ExterQual, OverallQual_mapping)
+dataset$Foundation <- apply_mapping(dataset$Foundation, Foundation_mapping)
+dataset$BsmtQual <- apply_mapping(dataset$BsmtQual, BsmtQual_mapping)
+dataset$BsmtCond <- apply_mapping(dataset$BsmtCond, BsmtQual_mapping)
+dataset$BsmtExposure <- apply_mapping(dataset$BsmtExposure, BsmtExposure_mapping)
+dataset$BsmtFinType1 <- apply_mapping(dataset$BsmtFinType1, BsmtFinType1_mapping)
+dataset$BsmtFinType2 <- apply_mapping(dataset$BsmtFinType2, BsmtFinType1_mapping)
+dataset$Heating <- apply_mapping(dataset$Heating, Heating_mapping)
+dataset$HeatingQC <- apply_mapping(dataset$HeatingQC, OverallQual_mapping)
+dataset$CentralAir <- apply_mapping(dataset$CentralAir, CentralAir_mapping)
+dataset$Electrical <- apply_mapping(dataset$Electrical, Electrical_mapping)
+dataset$KitchenQual <- apply_mapping(dataset$KitchenQual, OverallQual_mapping)
+dataset$Functional <- apply_mapping(dataset$Functional, Functional_mapping)
+dataset$FireplaceQu <- apply_mapping(dataset$FireplaceQu, FireplaceQu_mapping)
+dataset$GarageType <- apply_mapping(dataset$GarageType, GarageType_mapping)
+dataset$GarageFinish <- apply_mapping(dataset$GarageFinish, GarageFinish_mapping)
+dataset$GarageQual <- apply_mapping(dataset$GarageQual, GarageQual_mapping)
+dataset$GarageCond <- apply_mapping(dataset$GarageCond, GarageQual_mapping)
+dataset$PavedDrive <- apply_mapping(dataset$PavedDrive, PavedDrive_mapping)
+dataset$MoSold <- apply_mapping(dataset$MoSold, MoSold_mapping)
+dataset$SaleType <- apply_mapping(dataset$SaleType, SaleType_mapping)
+dataset$SaleCondition <- apply_mapping(dataset$SaleCondition, SaleCondition_mapping)
+
+# Review the first few rows of the dataset to check if mappings applied correctly
+head(dataset)
+
+# Update HNoNa with the mapped dataset
+HNoNa <- dataset
+
+```
+
+
+
+```{r}
+View(HNoNa)
+```
+
+
+```{r}
+h.lm <- lm(
+  SalePrice ~ 
+    MSSubClass + 
+    Street + 
+    LotShape + 
+    LandContour +
+    Utilities +
+    LotConfig + 
+    LandSlope + 
+    Neighborhood + 
+    Condition1 + 
+    Condition2 + 
+    BldgType +
+    HouseStyle +
+    RoofStyle + 
+    RoofMatl + 
+    Exterior1st + 
+    Exterior2nd + 
+    MasVnrType +
+    ExterQual + 
+    ExterCond + 
+    Foundation + 
+    BsmtQual + 
+    BsmtCond + 
+    BsmtExposure +
+    BsmtFinType1 + 
+    BsmtFinType2 + 
+    Heating + 
+    HeatingQC + 
+    CentralAir + 
+    Electrical +
+    KitchenQual + 
+    Functional + 
+    FireplaceQu + 
+    GarageType + 
+    GarageFinish + 
+    GarageQual +
+    GarageCond + 
+    PavedDrive + 
+    PoolQC + 
+    Fence + 
+    MiscFeature + 
+    SaleType +
+    SaleCondition, 
+      data = housing)
+
+
+summary(h.lm)
+```

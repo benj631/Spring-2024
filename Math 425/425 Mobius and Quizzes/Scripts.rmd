@@ -8,6 +8,36 @@ output:
     toc_float: true
 ---
 
+## Make Data
+
+### Make a Dataset
+
+```{r}
+dataset <- data.frame(
+  x=c(1,2,3,4,5),
+  y=c(-7.1,13,-7.4,4.1,-2.7) + 11
+  )
+```
+
+### Create an x distribution
+
+```{r}
+n <- 100
+runif(n,-10, 10)
+```
+
+
+#### MSE
+
+```{r}
+rss <- sum(residuals(model)^2)
+# df = n - 2, df is already - 2, lose df for more parameters
+df <- df.residual(model)
+mse <- rss / df
+mse
+```
+
+
 ## Confidence Intervals
 
 #### Prediction
@@ -36,22 +66,141 @@ pred_conf_int <- predict(gb, newdata = data.frame(month = 9),
 pred_conf_int
 ```
 
-#### MSE
+
+### PT QT
+
 
 ```{r}
-rss <- sum(residuals(model)^2)
-# df = n - 2, df is already - 2, lose df for more parameters
-df <- df.residual(model)
-mse <- rss / df
-mse
+library(mosaicData)
+View(RailTrail)
 ```
-
-### Create an x distribution
 
 ```{r}
-n <- 100
-runif(n,-10, 10)
+rt.lm <- lm(lowtemp ~ cloudcover, data=RailTrail)
+summary(rt.lm)
 ```
+
+
+#### P Value from T Value
+
+ß0
+
+```{r}
+model <- rt.lm
+
+# Extract residuals from the model
+residuals <- model$residuals
+
+# Determine the sample size (n)
+n <- length(residuals)
+
+
+design_matrix <- model.matrix(model)
+
+# Determine the number of predictors (k)
+# Subtract 1 to exclude the intercept
+k <- ncol(design_matrix) - 1
+
+df <- n - k - 1  # n = sample size, k = number of predictors
+
+# t-value
+t_value <- 15.823
+
+# p-value calculation
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value  # This should be very close to < 2e-16
+```
+
+ß1
+
+```{r}
+model <- rt.lm
+
+# Extract residuals from the model
+residuals <- model$residuals
+
+# Determine the sample size (n)
+n <- length(residuals)
+
+
+design_matrix <- model.matrix(model)
+
+# Determine the number of predictors (k)
+# Subtract 1 to exclude the intercept
+k <- ncol(design_matrix) - 1
+
+df <- n - k - 1  # n = sample size, k = number of predictors
+
+# t-value
+t_value <- 3.689
+
+# p-value calculation
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value  # This should be very close to < 0.000389
+```
+
+#### T from P-Value
+
+
+ß0
+
+Since the p-value is extremely small (< 2e-16), this corresponds to a very high t-value, which is already given (15.823).
+
+
+ß1
+
+
+```{r}
+p_value <- 0.000389
+
+# t-value calculation
+t_value <- qt(1 - p_value / 2, df)
+
+t_value  # This should be very close to 3.689
+```
+
+
+### P Values for Coefficient Estimates
+
+```{r}
+estimate <- 3.9324
+null_value <- 4.2
+standard_error <- 0.4155
+df <- 48
+
+# Calculate t-value
+t_value <- (estimate - null_value) / standard_error
+
+# Calculate p-value
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value
+```
+
+### Confidence Interval for True Regression Coefficients
+
+```{r}
+slope <- .2339
+se_slope <- .2524 #standard error
+df <- 115  # Replace this with your actual degrees of freedom
+
+# Critical t-value for 95% confidence
+t_critical <- qt(1 - 0.05 / 2, df)
+
+# Margin of Error
+margin_of_error <- t_critical * se_slope
+
+# Confidence Interval
+lower_bound <- slope - margin_of_error
+upper_bound <- slope + margin_of_error
+
+# Print the results
+cat("Slope Estimate: ", slope, "\n")
+cat("95% Confidence Interval: [", lower_bound, ", ", upper_bound, "]\n")
+```
+
 
 ### Plots in R
 
@@ -104,6 +253,201 @@ lines(x_seq, y_pred_girl, col = "red", lwd = 2)
 legend("topright", legend = c("Boys (B)", "Girls (G)"),
        col = c("blue", "red"), lty = 1, lwd = 2)
 
+```
+
+### Model Validation
+
+```{r}
+# Define a function to compute R-squared and adjusted R-squared
+compute_r_squared <- function(model, newdata) {
+  y_hat <- predict(model, newdata = newdata)
+  y_bar <- mean(newdata$y)
+  SSTO <- sum((newdata$y - y_bar)^2)
+  SSE <- sum((newdata$y - y_hat)^2)
+  n <- length(newdata$y)
+  p <- length(coef(model))
+  
+  r_squared <- 1 - SSE / SSTO
+  adj_r_squared <- 1 - (n - 1) / (n - p) * SSE / SSTO
+  
+  return(list(r_squared = r_squared, adj_r_squared = adj_r_squared))
+}
+
+# Apply the function to each model
+models <- list(Ben = test.lm, Zach = zach.lm, Sam = sam.lm, Saunders = saunders.lm)
+validation_results <- lapply(models, compute_r_squared, newdata = rbdata2)
+
+# Extract the results and create the output table
+original_r2 <- sapply(models, function(model) summary(model)$r.squared)
+original_adj_r2 <- sapply(models, function(model) summary(model)$adj.r.squared)
+validation_r2 <- sapply(validation_results, function(res) res$r_squared)
+validation_adj_r2 <- sapply(validation_results, function(res) res$adj_r_squared)
+
+my_output_table2 <- data.frame(
+  Model = names(models), 
+  `Original R2` = original_r2, 
+  `Orig. Adj. R-squared` = original_adj_r2, 
+  `Validation R-squared` = validation_r2, 
+  `Validation Adj. R^2` = validation_adj_r2
+)
+
+print(my_output_table2)
+```
+
+### Loess and Lowess
+
+Both LOESS (Locally Estimated Scatterplot Smoothing) and LOWESS (Locally Weighted Scatterplot Smoothing) are methods for smoothing scatterplot data, but they have different parameters to control the amount of smoothing. Here’s a comparison of their smoothing parameters:
+
+#### Loess Smoothing
+
+LOESS span
+
+    Definition: In LOESS, the span parameter (also known as alpha in some contexts) determines the proportion of the data used to fit each local regression. It represents the fraction of the total data points that are considered in each local neighborhood.
+    Effect: A smaller span value results in less smoothing (the fit is more sensitive to local data), whereas a larger span value results in more smoothing (the fit is influenced by a larger number of points, making it smoother).
+    Typical Values: Values typically range from 0.2 to 0.8. A span of 0.2 means that each local fit uses 20% of the data, while a span of 0.8 means each fit uses 80% of the data.
+
+```{r}
+# Create the scatter plot
+plot(cars$speed, cars$dist, main="LOESS Curve for Distance vs Speed",
+     xlab="Speed", ylab="Distance", pch=19, col="blue")
+
+# Fit the LOESS curve with 20% of the local points
+span_value <- 0.3
+loess_fit <- loess(dist ~ speed, data=cars, span=span_value)
+
+# Add the LOESS curve to the plot
+lines(cars$speed, predict(loess_fit), col="red", lwd=2)
+```
+
+#### LoWess Smoothing
+
+LOWESS f
+
+    Definition: In LOWESS, the f parameter controls the smoothing factor, which is the fraction of the data used for local fitting. It's similar to the span parameter in LOESS.
+    Effect: A smaller f value means less smoothing (the fit is more responsive to local variations), while a larger f value means more smoothing (the fit is smoother and less sensitive to local data variations).
+    Typical Values: Values for f are usually between 0.2 and 0.8. For example, f = 0.2 means that 20% of the data points are used to fit each local regression, and f = 0.8 means that 80% are used.
+
+```{r}
+plot(cars$speed, cars$dist, main="LOWESS Curve for Distance vs Speed",
+     xlab="Speed", ylab="Distance", pch=19, col="blue")
+
+# Fit the LOWESS curve with a specified smoothing parameter
+# f is the parameter controlling the amount of smoothing
+lowess_fit <- lowess(cars$speed, cars$dist, f = 0.2) # Adjust `f` as needed
+
+# Add the LOWESS curve to the plot
+lines(lowess_fit, col="red", lwd=2)
+```
+OR
+
+```{r}
+plot(dist ~ speed, data=cars, main="car data set")
+
+lines(lowess(cars$speed, cars$dist, f=.2))
+```
+
+### Robust Regression
+
+Resistant to Outliers. Less interpretable.
+
+```{r}
+library(car)
+library(MASS)
+
+plot(hp ~ wt, data=mtcars)
+
+mtc.lm <- lm(hp ~ wt, data=mtcars)
+mtc.rlm <- rlm(hp ~ wt, data=mtcars)
+
+abline(mtc.lm)
+abline(mtc.rlm, col="red")
+
+summary(mtc.lm)
+summary(mtc.rlm)
+
+
+# plot(dav.lm, which=c(1,4,5))
+```
+
+
+## Validation R^2
+
+```{r}
+Yhat <- -17 + 4.2*cars$speed
+Ybar <- mean(cars$dist)
+SSE <- sum( (Yhat - cars$dist)^2 )
+SSTO <- sum( (cars$dist - Ybar)^2 )
+1 - SSE/SSTO
+```
+
+
+## Log Odds
+
+We need to compute $e^{b_1}$
+
+in order to determine the effect on the odds that an extra point in the Analysis Total impacts the odds of getting an A in Math 325.
+
+This shows 3.134, which means the odds are being multiplied by 3.134 for each increase in Analysis Total. This means the odds are tripling for each extra point in the Analysis Total category.
+
+
+```{r}
+exp(1.1423)
+# -- > 3.133968
+```
+### Logistic Prediction
+
+
+View the Marriage data in R.
+
+This data set lists characteristics of 98 individuals (49 couples) at the time they were married. The age column lists the age of each individual. The prevcount column states how many times the individual was previously married prior to this marriage. So a prevcount of 2 means that person was previously married twice.
+
+Perform an analysis using this data that looks to see if the age of the individual at the time of marriage can predict if that person was previously married. 
+
+Then, suppose that Frank is getting married and is 27 years old. Based on your analysis, what is the probability that Frank was previously married?
+
+
+```{r}
+myglm <- glm(prevcount > 0 ~ age, data=Marriage, family=binomial)
+predict(myglm, data.frame(age=27), type="response")
+
+# --> 0.3232086
+```
+
+
+
+### 
+
+```{r}
+plot(hp ~ wt, data=mtcars)
+
+abline(rlm(hp ~ wt, data=mtcars), col="dodgerblue", lwd=2) #correct answer
+
+abline(lm(hp ~ wt, data=mtcars), col="green", lwd=2)
+
+abline(-.5, 35, col="orange", lwd=2)
+
+abline(-2, 50, col="firebrick", lwd=2)
+
+mtext(side=3, text="mtcars data set")
+```
+### Multivariate Plotting
+
+```{r}
+mylm <- lm(Ozone ~ Wind + Temp + Wind:Temp, data=airquality)
+
+b <- coef(mylm)
+
+plot(Ozone ~ Wind, data=airquality, cex=(Temp/max(Temp))^3+.2, xlim=c(0,22))
+curve(b[1] + b[2]*x + b[3]*90 + b[4]*x*90, add=TRUE)
+curve(b[1] + b[2]*x + b[3]*80 + b[4]*x*80, add=TRUE)
+curve(b[1] + b[2]*x + b[3]*70 + b[4]*x*70, add=TRUE, col="blue")
+curve(b[1] + b[2]*x + b[3]*100 + b[4]*x*100, add=TRUE)
+text(1,29,"A")
+text(1,65,"B")
+text(1,105,"C")
+text(1,140,"D")
+points(c(18,18),c(140,160), cex=c((56/97)^3+.2,1.2))
+text(x=c(18,18),y=c(140,160), pos=4, c("56 deg","97 deg"))
 ```
 
 

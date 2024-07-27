@@ -1,0 +1,517 @@
+---
+title: "Final Exam"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-23"
+---
+
+```{r}
+pacman::p_load(tidyverse,dplyr,car)
+```
+
+
+
+## Q1
+```{r}
+library(MASS)
+
+View(cats)
+
+?cats
+```
+
+```{r}
+cat.lm <- lm(Hwt ~ Bwt,data=cats)
+summary(cat.lm)
+```
+
+```{r}
+model <- cat.lm
+rss <- sum(residuals(model)^2)
+# df = n - 2, df is already - 2, lose df for more parameters
+df <- df.residual(model)
+mse <- rss / df
+mse
+sigma_estimate <- sqrt(mse)
+sigma_estimate
+```
+## Q2
+
+```{r}
+m <- 50
+s <- 1
+
+y = 3.86370 + -0.02532 * m + -5.88493 + 0.05708 * m
+y
+res <- exp^(y)/(1 + exp(y))
+
+res <- exp(-0.43323)/(1+exp(-0.43323))
+
+res
+```
+## Q3
+
+```{r}
+library(mosaic)
+plot(ccf ~ thermsPerDay, data=Utilities)
+```
+
+```{r}
+u.lm <- lm(ccf ~ thermsPerDay, data=Utilities)
+plot(u.lm,which=1:3)
+```
+### INCORRECT - ANSWER
+
+The most clear problem with this regression is the lack of constant variance. The increasing variance in the residuals vs. fitted values plot is a witness to this. As we learned during the semester, when the variance is not constant, it is the estimate of the variance () that is most impacted. The slope and intercept aren't too dramatically effected, especially when the data is close to zero on the x-axis like is this data. 
+
+## Q4
+
+```{r}
+View(Utilities)
+```
+
+```{r}
+u.lm <- lm(kwh ~ year + temp + year:temp,data=Utilities)
+summary(u.lm)
+plot(kwh ~ year,data=Utilities)
+
+b <- coef(u.lm)
+curve(b[1] + b[2]*x + b[3]*60 + b[4]*x*60, add=TRUE)
+print(b[1] + b[2]*2004 + b[3]*60 + b[4]*2004*60)
+print(b[1] + b[2]*2006 + b[3]*60 + b[4]*2006*60)
+
+
+```
+## Q5
+
+```{r}
+u.lm <- lm(temp ~ ccf, data=Utilities)
+summary(u.lm)
+```
+```{r}
+boxCox(u.lm)
+```
+-> sqrt transform, using ^2 to reintroduce
+
+
+### INCORRECT - ANSWER
+
+> ccf.lm <- lm(temp ~ ccf, data=Utilities)
+
+> boxCox(ccf.lm)
+
+Plot shows best choice to be between 0.4 to a little below 0.8. From our list of Y-transformations shown in the textbook, the square root, or 0.5 transformation would be the best option.
+
+```{r}
+plot(temp ~ ccf, data=Utilities)
+
+curve((8.523 - 0.021*x)^2, add=TRUE, col="skyblue")
+```
+NOTE: I didnt run summary on the sqrt() regression. ;-;
+
+## Q6
+
+```{r}
+
+plot(Utilities$month, Utilities$totalbill, main="LOESS Curve",
+     xlab="Month", ylab="Totalbill", pch=19, col="blue")
+
+# Fit the LOESS curve with 20% of the local points
+span_value <- 0.3
+loess_fit <- loess(totalbill ~ month, data=Utilities, span=span_value,degree=2)
+
+pred <- predict(loess_fit,newdata=data.frame(month=9))
+pred
+```
+## Q7
+lower lowess span values makes more squiggles
+
+## Q8
+
+```{r}
+library(mosaic)
+plot(totalbill ~ gasbill, data=Utilities)
+u.lm <- lm(totalbill ~ gasbill, data=Utilities)
+abline(u.lm,col="red")
+
+```
+
+
+```{r}
+pred <- predict(u.lm,newdata=data.frame(gasbill=150),interval="prediction",confidence=.95)
+pred
+```
+```{r}
+u.lm <-  lm(gasbill ~ ccf, data=Utilities)
+summary(u.lm)
+```
+```{r}
+pairs(airquality)
+```
+
+## Q10
+
+```{r}
+aq1.lm <-lm(Solar.R ~ Wind ,data=airquality)
+aq2.lm <-lm(Ozone ~ Temp ,data=airquality)
+aq3.lm <-lm(Wind ~ Temp ,data=airquality)
+aq4.lm <-lm(Ozone ~ Wind ,data=airquality)
+
+summary(aq1.lm)
+summary(aq2.lm)
+summary(aq3.lm)
+summary(aq4.lm)
+
+```
+## Q11
+
+```{r}
+pairs(Utilities)
+```
+
+```{r}
+u.lm <- lm(totalbill ~ gasbill, data=Utilities)
+summary(u.lm)
+```
+```{r}
+u1.lm <- lm(totalbill ~ gasbill + elecbill,data=Utilities)
+u2.lm <- lm(totalbill ~ gasbill + kwh,data=Utilities)
+u3.lm <- lm(totalbill ~ gasbill + temp,data=Utilities)
+u4.lm <- lm(totalbill ~ gasbill + year,data=Utilities)
+
+summary(u1.lm)
+summary(u2.lm)
+summary(u3.lm)
+summary(u4.lm)
+```
+
+### INCORRECT - ANSWER:
+
+> lm1 <- lm(totalbill ~ gasbill, data=Utilities)
+> pairs(cbind(R=lm1$res, fit=lm1$fit, Utilities))
+
+Looking at the plot in the top-right corner (2nd in from left) it is pretty clear that elecbill will provide incredible insight into predicting "totalbill" once gasbill has already been included in the regression. This makes sense as likely totalbill = gasbill + elecbill. In fact, it comes pretty close to being perfect:
+
+>summary(lm(totalbill ~ gasbill + elecbill, data=Utilities))
+
+
+NOTES:
+
+I knew elecbill was probably better because it made sense, but it makes the intercept coefficient insignificant.
+
+## Q12
+
+```{r}
+u.lm <- lm(elecbill ~ kwh, data=Utilities)
+summary(u.lm)
+```
+
+```{r}
+estimate <- .108754
+null_value <- .11
+standard_error <- .005816
+df <- 115
+
+# Calculate t-value
+t_value <- (estimate - null_value) / standard_error
+
+# Calculate p-value
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value
+```
+## Q13
+
+```{r}
+slope <- .2339
+se_slope <- .2524
+df <- 115  # Replace this with your actual degrees of freedom
+
+# Critical t-value for 95% confidence
+t_critical <- qt(1 - 0.05 / 2, df)
+
+# Margin of Error
+margin_of_error <- t_critical * se_slope
+
+# Confidence Interval
+lower_bound <- slope - margin_of_error
+upper_bound <- slope + margin_of_error
+
+# Print the results
+cat("Slope Estimate: ", slope, "\n")
+cat("95% Confidence Interval: [", lower_bound, ", ", upper_bound, "]\n")
+```
+## Q14
+
+```{r}
+library(pander)
+
+u.lm <- lm(totalbill ~ kwh + ccf + year, data=Utilities)
+pander(summary(u.lm))
+pred <- predict(u.lm,newdata=data.frame(ccf=1,year=2024))
+pred
+
+```
+
+## Q15
+
+```{r}
+u.lm <- lm(gasbill ~ thermsPerDay,data=Utilities)
+boxCox(u.lm)
+```
+```{r}
+plot(gasbill ~ thermsPerDay,data=Utilities)
+u.s.lm <- lm(sqrt(gasbill) ~ thermsPerDay,data=Utilities)
+b <- coef(u.s.lm)
+curve((b[1]+b[2]*x)^2,add=TRUE)
+```
+
+## Q16
+
+```{r}
+u.q.lm <- lm(temp ~ I(month^2),data=Utilities)
+u.q2.lm <- lm(temp ~ month + I(month^2),data=Utilities)
+
+summary(u.q.lm)
+summary(u.q2.lm)
+
+b <- coef(u.q.lm)
+b2 <- coef(u.q2.lm)
+
+plot(temp ~ month,data=Utilities)
+
+curve(b[1] + b[2]*x^2,col="blue",add=TRUE)
+curve(b2[1] + b2[2] *x + b2[3]*x^2,col="red",add=TRUE)
+
+
+```
+## Q17
+
+```{r}
+u.q3.lm <- lm(temp ~ month + I(month^2) + I(month^3),data=Utilities)
+
+summary(u.q3.lm)
+
+b <- coef(u.q3.lm)
+
+plot(temp ~ month,data=Utilities)
+
+curve(b[1] + b[2] *x + b[3]*x^2 + b[4]*x^3,col="darkgreen",add=TRUE)
+```
+## Q18
+
+```{r}
+View(Prestige)
+```
+
+```{r}
+Prestige2 <- mutate(Prestige, type = as.factor(ifelse(type == "prof", "prof","other")))
+
+p2.lm <- lm(income ~ prestige + type + prestige:type, data=Prestige2)
+summary(p2.lm)
+
+```
+### INCORRECT - ANSWER:
+
+The most important thing to notice in the plot is that the y-intercepts of the two lines are equal. 
+
+That requires that we choose the following for the lm... and the p-value is then the change in slope term type:prestige, which is 0.357 (not significant in this case).
+
+> lm.prestige2 <- lm(income ~ prestige + type:prestige, data=Pre)
+
+> summary(lm.prestige2)
+
+
+NOTES:
+Just use the p value from the prestige:typeprof term....
+
+## Q19
+
+```{r}
+estimate <- 213.37-116.74
+null_value <- 0
+standard_error <- 34.85
+df <- 94
+
+# Calculate t-value
+t_value <- (estimate - null_value) / standard_error
+
+# Calculate p-value
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value
+```
+```{r}
+estimate <- 213.37
+null_value <- 0
+standard_error <- 70.52
+df <- 94
+
+# Calculate t-value
+t_value <- (estimate - null_value) / standard_error
+
+# Calculate p-value
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value
+```
+```{r}
+?confint
+confint(p2.lm,level=.95)
+```
+## Q20
+
+```{r}
+?Chile
+View(Chile)
+```
+
+```{r}
+c.lm <- lm(income ~ population,data=Chile)
+summary(c.lm)
+```
+```{r}
+plot(income ~ population,data=Chile)
+abline(c.lm,col="purple")
+plot(c.lm,which=1:3)
+```
+```{r}
+cor(as.numeric(Chile$population),as.numeric(Chile$income))
+# This is broken?
+```
+
+## 21
+
+```{r}
+cars2 <- cars
+cars2$dist[16] <- 12
+
+View(cars)
+View(cars2)
+
+```
+
+
+```{r}
+plot(dist~ speed,data=cars)
+
+cars.lm <- lm(dist~ speed,data=cars)
+c2.lm <-lm(dist ~ speed,data=cars2)
+
+abline(cars.lm,col="red")
+abline(c2.lm,col="blue")
+```
+
+```{r}
+summary(cars.lm)
+summary(c2.lm)
+```
+## Q22
+
+```{r}
+thestuff1 <- function(x) { .56 - 0.21747*x + 2.05293 }
+thestuff2 <- function(x) { .56 + 0.21747*x + 2.05293 }
+thestuff3 <- function(x) { .56 - 0.21747*x - 2.05293 }
+thestuff4 <- function(x) { .56 + 0.21747*x - 2.05293 }
+
+curve((exp(thestuff1(x))/(1+exp(thestuff1(x)))),col="purple")
+curve((exp(thestuff2(x))/(1+exp(thestuff2(x)))),col="red")
+curve((exp(thestuff3(x))/(1+exp(thestuff3(x)))),col="blue")
+curve((exp(thestuff4(x))/(1+exp(thestuff4(x)))),col="green")
+```
+```{r}
+thestuff1 <- function(x) { .56 + -0.21747*x }
+thestuff2 <- function(x) { .56 + 0.21747*x }
+thestuff3 <- function(x) { .56 + -0.21747*x}
+thestuff4 <- function(x) { .56 + +0.21747*x }
+
+curve((exp(thestuff1(x))/(1+exp(thestuff1(x)))),col="purple")
+curve((exp(thestuff2(x))/(1+exp(thestuff2(x)))),col="red")
+curve((exp(thestuff3(x))/(1+exp(thestuff3(x)))),col="blue")
+curve((exp(thestuff4(x))/(1+exp(thestuff4(x)))),col="green")
+```
+```{r}
+thestuff1(0)
+thestuff2(0)
+thestuff3(0)
+thestuff4(0)
+```
+
+
+## Notes
+
+The logistic regression curves in the graph are dropping from left to right. This implies a negative slope term. Thus, only the two options using -0.21747 are possible answers. Next, we deduce that the red line (the one corresponding to summer) is higher than the black line (which must be baseline because Spring/Fall doesn't show up in the summary output). This implies that the "Summer" term must be positive, 2.05293. That leaves us with only one possible answer.
+
+ 
+If you are curious, here is the code that made the plot:
+
+```{r}
+glm1 <- glm(Temp > 80 ~ Wind + as.factor(Month %in% c(6,7,8)), data=airquality, family=binomial)
+summary(glm1)
+
+plot((Temp > 80) + (Month %in% 6:8)*.01 - 0.005 ~ Wind, data=airquality, col=as.factor(Month %in% 6:8), ylab="Probability of Temp > 80")
+legend("topright", cex=0.8, title="Month", legend=c("Spring/Fall", "Summer"), pch=16, col=palette())
+b <- coef(glm1); curve(1/(1+exp(-b[1] - b[2]*x)), add=TRUE, col=palette()[1])
+b <- coef(glm1); curve(1/(1+exp(-b[1] - b[2]*x - b[3] )), add=TRUE, col=palette()[2])
+
+ 
+```
+
+## Q23
+
+-no work shown-
+
+The Cook's Distance for observation #5 (as shown in the Cook's Distance plot) is VERY large compared to the other values. This implies that observation #5 is having a very large influence on the regression. Notice how the orange line doesn't seem to follow much of a pattern in the data and how observation "C" looks to be responsible (almost entirely) for the downward trend in the orange line. If point C were removed, the orange line would likely have positive slope or no slope at all. Thus, the large Cook's Distance for observation #5 must correspond to observation "C" in the scatterplot.
+
+ 
+
+
+## Q24
+
+```{r}
+pred <- 85.7380 + -0.1187 * 150 + -29.8786 + .2950 * 150
+pred
+```
+```{r}
+View(mtcars)
+?mtcars
+```
+
+
+```{r}
+mtc.log.lm <- lm(log(mpg) ~ wt,data=mtcars)
+summary(mtc.log.lm)
+```
+
+
+```{r}
+pred <- predict(mtc.log.lm,newdata=data.frame(wt=2.05),interval="prediction",level=.95)
+pred
+
+```
+
+```{r}
+exp(pred)
+```
+```{r}
+
+plot(mpg ~ wt,data=mtcars,pch=16,col="firebrick",ylim=c(0,50))
+abline(h=19.8)
+abline(h=35.2)
+
+b <- coef(mtc.log.lm)
+curve(exp(b[1]+b[2]*x),col="blue",add=TRUE)
+
+```
+
+## Final Notes
+
+I think I did pretty well, most of what I missed, I didn't know why.

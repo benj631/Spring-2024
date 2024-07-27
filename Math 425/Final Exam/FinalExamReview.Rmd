@@ -1,0 +1,143 @@
+---
+title: "Math 425 - Final Exam Review"
+output: 
+  html_document:
+    theme: cerulean
+---
+
+# Unit 1
+
+## Week 1: Simple Linear Regression
+
+Students should be able to:
+
+* State the normal error regression model $Y_i = \beta_0 + \beta_1 X_i + \epsilon_i$ where $\epsilon_i \sim N(0, \sigma^2)$ and diagram each element of the model on a 2D scatterplot. 
+* Distinguish between the meanings of the notations for $E\{Y_i\}$, $Y_i$, and $\widehat{Y}_i$.
+* Modify code in RStudio that simulates data from a normal error regression model in order to visualize the implications of $\sigma$, $n$, the spread of the $X_i$, $\beta_0$, and $\beta_1$ on the ability of an estimated regression model to recapture the true model.
+* Code in RStudio to fit a simple linear regression model with `lm(...)` and `summary(...)`.
+* Code in RStudio to visualize a simple linear regression on a scatterplot using `lm(...)` and either of `plot(...)` or `ggplot(...)`.
+* Interpret the contextual meaning of the slope and y-intercept for a given data set.
+
+## Week 2: Residuals, Sums of Squares, and R-squared
+
+Students should be able to:
+
+* Interpret the contextual meaning of a single residual: $r_i = Y_i - \hat{Y}_i$
+* Compute residuals both by hand and with RStudio.
+* Explain how residuals are used in least squares estimation of the slope and intercept in the normal error regression model.
+* State and interpret the formulas for the three sums of squares: SSE, SSR, and SSTO.
+* Interpret the meaning of variance for a single random variable.
+* Demonstrate the connection between a variance and a sum of squares.
+* State the definition of $R^2$ and interpret its meaning contextually.
+* Obtain the $R^2$ value by hand from knowledge of the SSE, SSR, and SSTO and from RStudio for a given simple linear regression.
+* State and interpret the equation for MSE.
+* State and interpret the equation for the residual standard error.
+* Compute the residual standard error using RStudio.
+* Explain the relationships between residual standard error, MSE, and $R^2$ and how they each provide different perspectives about the residuals.
+
+
+## Week 3: Diagnosing the Model & Model Transformations
+
+Students should be able to:
+
+* State the six regression assumptions of the normal error regression model (linear relation, normal errors, constant variance, fixed-x, independent errors, and no outliers present).
+* Interpret a residual vs fitted-values plot and the implications departures from linearity or constant variance have on the regression model estimates.
+* Interpret normal Q-Q Plots of the residuals and the implications departures from normality may have on the regression model estimates.
+* Interpret residuals vs order plots and the implications that patterns in this plot may have on the model estimates.
+* Apply the following Y-transformations: $Y' = \log(Y)$, $Y'=\sqrt{Y}$, $Y'=Y^2$, $Y'=1/Y$, $Y'=1/Y^2$, and $Y'=\sqrt{\sqrt{Y}} = Y^{1/4}$.
+* Identify an appropriate Y-transformation using the Box-Cox approach.
+* Write the $Y'$ equation and algebraically solve that equation back to the original $Y_i$ units.
+* Graph the simple linear regression resulting from a Y-transformation in both the transformed space for $Y'$ as well as in the original units for $Y$.
+* Interpret the meaning of the slope term from a $log(Y)$ transformation back in the original units for $Y$.
+* Experience applying an X-transformation.
+
+
+## Week 4: Hypothesis Tests for Model Parameters
+
+Students should be able to:
+
+* Simulate sampling distributions of $b_0$ and $b_1$ in RStudio from a normal error regression model. 
+* Interpret a sampling distribution and how a single sample of data can be used to estimate the standard deviation of a sampling distribution.
+* Identify the shape, center, and spread of the sampling distributions for $b_0$ and $b_1$ both theoretically and empirically.
+* Explain the use of the "standard error" of the slope and intercept in the calculation of test statistics and confidence intervals concerning the true model slope and intercept. 
+* Perform hypothesis tests for $\beta_0$ and $\beta_1$ using both the default output in RStudio and "manual" calculations for the t-statistic and p-values using the `pt(...)` function.
+* Create and interpret confidence intervals for $\beta_0$ and $\beta_1$ both using the `confint(...)` command in RStudio and the `qt(...)` function and standard error formulas.
+
+
+## Week 5: Confidence and Prediction Intervals
+
+Students should be able to:
+
+* Compute confidence intervals of $E\{Y_h\}$ for any $X_h$ using software.
+* Compute prediction intervals for $Y_h$ for any $X_h$ using software.
+* Identify scenarios in which a prediction interval for $Y_h$ or a confidence interval for $E\{Y_h\}$ is more appropriate for inference.
+* Visualize prediction and confidence intervals on a scatterplot in RStudio.
+* Interpret prediction intervals for $Y_h$.
+* Interpret confidence intervals for $E\{Y_h\}$.
+
+(Midterm testing Unit 1 material.)
+
+# Unit 2
+
+## Week 6: Different Types of Regression Models
+
+Students should be able to:
+
+* Include qualitative predictors as dummy variables (0, 1 variables) in regressions as demonstrated in the "Two Lines Model."
+* Interpret the effect of both quantitative and qualitative base terms and their interaction, as in the "Two Lines Model."
+* Extend the use of dummy variables to situations as found in the "Double Quadratic Model" from the Week 7 Skills Quiz.
+* Plot models, including the quadratic and cubic polynomial models and the "two lines" style models using 2D scatterplots.
+
+
+## Week 7: Lowess Curves & Model Selection
+
+* Select a "best" model using the R-squared criterion. 
+* Select a "best" model using the Adjusted R-squared criterion.
+* Create and interpret pairs plots.
+* Extend pairs plots for use as added variable plots using residuals and fitted values from a current regression to aid in model selection.
+* Graph a Lowess curve on a scatterplot in RStudio.
+* Identify an appropriate regression model (and/or verify the fit of a given regression model) using a lowess curve.
+* Explain how weighted regressions can be used in estimating the regression model parameters.
+* Explain how a lowess curve is generated using weighted regressions in both the x-direction and y-direction.
+* Demonstrate how R translates qualitative variables into dummy variables automatically. Further, explain the dangers of overfitting when using qualitative variables with many levels.
+
+
+## Weeks 8 & 9: Model Selection & Model Validation
+
+Students should be able to:
+
+* Simulate data from a normal error regression model of their own creation that demonstrates deep understanding of what makes model selection difficult when trying to uncover the "true" model.
+* Graph both the true model and the estimated model for simulated data.
+* Identify and graph regression models that are 2D-drawable from simulated (but unknown to the student) normal error regression models.
+* Validate a regression model using train and test data sets to measure the prediction error of the trained model on the test data.
+
+
+## Weeks 10 & 11: Model Selection in Real Life
+
+Students should be able to:
+
+* Identify, interpret, and graph complicated multiple regression models in the context of real data.
+
+
+
+## Week 12: Logistic Regression
+
+Students should be able to:
+
+* Fit a logistic regression model using `glm(...)` in R.
+* Explain the notation of the logistic regression model.
+* Use a pairs plot to select candidate explanatory variables in logistic regression.
+* Interpret estimated model coefficients and their effect on the odds.
+* Use a logistic model to make probability predictions on the outcomes for $Y_i$.
+* Validate a logistic regresion model using the PCC (Percent Correctly Classified).
+* Interpret the AIC and demonstrate its use in logistic regression model selection.
+
+## Week 13: Outlier Analysis and Robust Regression
+
+Students should be able to:
+
+* Interpret the Cook's Distance measurement for points in a regression.
+* Identify points that should be classified as overly influential on the regression parameter estimates and removed from a regression.
+* Apply robust regression to mitigate the effects of outliers.
+
+(Final Exam testing Unit 1 and Unit 2 material.)

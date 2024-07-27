@@ -1,0 +1,376 @@
+---
+title: "Midterm Decision"
+author: "Ben Jacobs"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-17"
+---
+
+
+## Midterm Decision Analysis
+
+```{r}
+pacman::p_load(tidyverse,dplyr,car,readr,purrr,broom,pander)
+```
+
+
+```{r}
+grades425 <- read_csv("Math425PastGrades.csv")
+BenGrades <- data.frame(
+  FinalExam = NA,
+  Midterm = 76,
+  Section = "Spring 2024",
+  Gender = "M",
+  AttendedAlmostAlways = "Y",
+  SpentTimeInOfficeHours = "Y",
+  Analysis_PredWeather = 14.2,
+  Theory_Residuals = 11,
+  Analysis_CarPrices = 13,
+  Theory_SamplingDists = 11,
+  SkillsQuizzes = 7/9,
+  AssessmentQuizzes = 7/9,
+  ClassActivitiesCompletedPerfectly = "Y",
+  SkillsQuizzesCompletedPerfectly = "N",
+  MagicTwoGroups = 1
+)
+```
+
+```{r}
+grades425 <- drop_na(grades425)
+```
+
+```{r}
+ConvertColumnToBinary <- function(dataset){
+  binary_columns <- c(
+    "AttendedAlmostAlways", "SpentTimeInOfficeHours",
+    "ClassActivitiesCompletedPerfectly", "SkillsQuizzesCompletedPerfectly"
+  )
+  
+  dataset <- dataset %>% 
+    mutate(across(all_of(binary_columns), ~ ifelse(trimws(.) == "Y", 1, 0))) %>% 
+    mutate(
+      MagicTwoGroups = as.numeric(MagicTwoGroups),
+      Gender = ifelse(trimws(Gender) == "M", 1, 0)
+    )
+  
+  return(dataset)
+}
+
+```
+
+```{r}
+SplitSectionColumn <- function(dataset) {
+  dataset <- dataset %>%
+    separate(Section, into = c("Track", "Year"), sep = " ") %>%
+    mutate(
+      Track = case_when(
+        Track == "Winter" ~ 2,
+        Track == "Spring" ~ 1, # Weakest?
+        Track == "Fall" ~ 3,
+        TRUE ~ NA_real_
+      ),
+      Year = as.numeric(Year)
+    )
+  
+  return(dataset)
+}
+
+```
+
+```{r}
+grades425 <- ConvertColumnToBinary(grades425)
+BenGrades <- ConvertColumnToBinary(BenGrades)
+
+grades425 <- SplitSectionColumn(grades425)
+BenGrades <- SplitSectionColumn(BenGrades)
+```
+
+```{r include=FALSE}
+# Define the response variable
+response_var <- "FinalExam"
+
+# Get the predictor variables (excluding the response variable)
+predictor_vars <- setdiff(names(grades425), response_var)
+
+# Initialize an empty data frame to store results
+results_df <- tibble(
+  Predictor = character(),
+  Intercept_P_Value = double(),
+  Slope_P_Value = double(),
+  R_Squared = double()
+)
+
+# Loop through predictor variables, run regressions, and collect results
+for (pred_var in predictor_vars) {
+  formula <- as.formula(paste(response_var, pred_var, sep = " ~ "))
+  model <- lm(formula, data = grades425)
+  
+  # Extract p-values for intercept and slope
+  tidy_model <- tidy(model)
+  intercept_p_value <- tidy_model %>%
+    filter(term == "(Intercept)") %>%
+    pull(p.value)
+  slope_p_value <- tidy_model %>%
+    filter(term == pred_var) %>%
+    pull(p.value)
+  
+  # Extract R-squared
+  r_squared <- summary(model)$r.squared
+  
+  # Append results to results_df
+  results_df <- bind_rows(results_df, tibble(
+    Predictor = pred_var,
+    Intercept_P_Value = intercept_p_value,
+    Slope_P_Value = slope_p_value,
+    R_Squared = r_squared
+  ))
+}
+
+# Print the results table
+print(results_df)
+```
+
+### Introduction
+
+Math 425 Students have the decision to keep or drop their midterm score. Using data from past math 425 students, can a model be made that can accurately inform a student as to whether they should keep or drop their midterm score?
+
+Using my model, I chose to keep my midterm. In hindsight, having taken the final exam, keeping my midterm was the wrong decision, as I scored higher on the final than the midterm. I'll show my decision making and the model I used.
+
+### Decision
+
+I decided to keep my midterm because it was over a 75%, and if the score of my final exam was anything over a 60%, getting my grade back up to a passing grade would be easier than if I didn't keep the midterm. My decision to keep my midterm score was to keep it as a safety net instead of to get the best grade possible in the class overall.
+
+In hindsight this was not the best decision because I got an 84 on the final exam, but that wasn't enough to get me to a higher grade level, so in the end the decision to keep my midterm was not meaningful.
+
+
+### Data
+
+### Pairs Plot
+
+We want to understand how a lot of factors relate to the Final Exam score. We'll use a pairs plot that only shows variables I picked in my final model. We will also exclude data with NA's, and also drop students for which the Final Exam had interesting circumstances that make analysis difficult, like if it was 0 when 0 indicates that the exam was dropped.
+
+
+```{r}
+g425no0 <- grades425 %>% filter(FinalExam != 0)
+g425 <- g425no0 %>% select(
+  FinalExam,
+  ClassActivitiesCompletedPerfectly,
+  Midterm,
+  Theory_SamplingDists,
+  AssessmentQuizzes,
+  ClassActivitiesCompletedPerfectly,
+  MagicTwoGroups)
+
+pairs(g425,panel=panel.smooth)
+```
+
+We can see here that there seem to be somewhat meaningful relationships between Final Exam and Midterm, Final Exam and Theory_SamplingDists, and Final Exam and Assessment Quizzes. The binary variables do have a positive correlation, but we don't need to interpret that.
+
+### Final Model and Interpretation
+
+```{r}
+Final.lm <- lm(FinalExam ~ 0 +
+  ClassActivitiesCompletedPerfectly +
+  Midterm +
+  Theory_SamplingDists +
+  AssessmentQuizzes + 
+  ClassActivitiesCompletedPerfectly +
+  MagicTwoGroups,
+  data = g425no0)
+
+pander(summary(switch2.lm))
+```
+
+$$
+\text{Outcome} =
+\beta_0 +
+\beta_1 \cdot \text{AttendedAlmostAlways} +
+\beta_2 \cdot \text{ClassActivitiesCompletedPerfectly} +
+\beta_3 \cdot \text{Midterm} +
+\beta_4 \cdot \text{Theory\\SamplingDists} +
+\beta_5 \cdot \text{AssessmentQuizzes} +
+\beta_6 \cdot \text{MagicTwoGroups}
+$$
+Here are the coefficients for each beta value:
+
+$$
+\begin{array}{rcl}
+\text{AttendedAlmostAlways} & : & -3.149 \\
+\text{ClassActivitiesCompletedPerfectly} & : & 7.719 \\
+\text{Midterm} & : & 0.3352 \\
+\text{Theory\\SamplingDists} & : & 1.041  \\
+\text{AssessmentQuizzes} & : & 0.1841  \\
+\text{MagicTwoGroups} & : & 11.7  \\
+\end{array}
+$$
+Note that AttendedAlmostAlways, ClassActivitiesCompletedPerfectly, and MagicTwoGroups are all binary variables, so they 'drop' in or out of the model depending on if the variable is true for the individual student.
+
+I used this model because it has a very high R^2 (almost questionably high), each p value is significant, and all the terms are individually interpretable.
+
+### My Own Predicted Score According to the Final
+
+
+```{r}
+#View(BenGrades)
+
+# Predict FinalExam for BenGrades
+predicted_final_exam <- predict(Final.lm, newdata = data.frame(
+  Midterm = 76,
+  Section = "Spring 2024",
+  Gender = "M",
+  AttendedAlmostAlways = 1,
+  SpentTimeInOfficeHours = 1,
+  Analysis_PredWeather = 14.2,
+  Theory_Residuals = 11,
+  Analysis_CarPrices = 13,
+  Theory_SamplingDists = 11,
+  SkillsQuizzes = 7/9,
+  AssessmentQuizzes = 7/9,
+  ClassActivitiesCompletedPerfectly = 1,
+  SkillsQuizzesCompletedPerfectly = "N",
+  MagicTwoGroups = 1)
+  ,interval="prediction",level=.95)
+
+# Output the predicted FinalExam score
+predicted_final_exam
+```
+
+According to the model, it predicted that I would get a 55, with a low possible score as 30, and a high possible score as a 79. I was outside of the model with a score of 84. So not only was this model wrong, it was also not useful. If I would have gotten what this model predicted, it would have been wise to keep my midterm- but I didn't, so the model was not helpful for the best outcome.
+
+#### Interpreting My Own Predicted Score According to the Model
+
+Here were my grades in the class when I made my model:
+
+###### Grades
+
+Midterm = 76,
+
+AttendedAlmostAlways = "Y",
+
+Theory_SamplingDists = 11,
+
+AssessmentQuizzes = 7/9,
+
+ClassActivitiesCompletedPerfectly = "Y",
+
+MagicTwoGroups = 1
+
+I am assuming I'm in the Magic Group, but since it's not up to me at all, it's a very strange thing to interpret.
+
+In theory my attendance hurt my grade, and negatively effected my Final Exam score, according to the model. Everything else according to the model helped my grade.
+
+
+### Process
+
+Below is the process for finding a usable lm. It's not important to look at any of it, but it is here to document the process.
+
+```{r}
+plot(FinalExam ~ Midterm, data=grades425)
+```
+
+```{r}
+hist(grades425$FinalExam)
+```
+
+```{r}
+final1.lm <- lm(FinalExam ~ Midterm + Analysis_PredWeather + Theory_Residuals + Analysis_CarPrices + Theory_SamplingDists + SkillsQuizzes + AssessmentQuizzes + ClassActivitiesCompletedPerfectly + MagicTwoGroups, data=g425no0)
+summary(final1.lm)
+```
+
+```{r}
+final2.lm <- lm(FinalExam ~ Midterm + Theory_SamplingDists + AssessmentQuizzes + ClassActivitiesCompletedPerfectly + MagicTwoGroups, data=g425no0)
+summary(final2.lm)
+```
+
+```{r}
+final3.lm <- lm(FinalExam ~ Midterm:., data=g425no0)
+summary(final3.lm)
+```
+
+```{r}
+midterm.lm <- lm(FinalExam ~ Midterm + Midterm:Year + Midterm:AssessmentQuizzes + Midterm:MagicTwoGroups,data=g425no0)
+summary(midterm.lm)
+```
+
+```{r}
+combo.lm <- lm(FinalExam ~ Midterm + Theory_SamplingDists + Midterm:Year + Midterm:AssessmentQuizzes + Midterm:MagicTwoGroups,data=g425no0)
+summary(combo.lm)
+```
+
+
+```{r}
+ß <- coef(final2.lm)
+finalfun <- function(x){ß[1] + ß[2] * x + ß[3] * x + ß[4] * x + ß[5] * x + ß[6] * x}
+
+ggplot(g425no0, aes(x = Midterm, y = FinalExam)) +
+  geom_point() +
+  stat_function(fun = finalfun, color = "red") +
+  theme_bw()
+
+```
+
+
+```{r}
+# Create a new data frame for predictions
+new_data <- g425no0 %>%
+  expand(Midterm, Year, AssessmentQuizzes, MagicTwoGroups, Theory_SamplingDists) %>%
+  mutate(FinalExam = predict(combo.lm, newdata = .))
+
+# Plot the original data and the predictions
+ggplot(g425no0, aes(x = Midterm, y = FinalExam)) +
+  geom_point(aes(color = factor(Year)), alpha = 0.6) +  # Original data points
+  geom_line(data = new_data, aes(y = FinalExam, color = factor(Year)), size = 1) +  # Predicted lines
+  labs(
+    title = "Regression of Final Exam Scores",
+    x = "Midterm",
+    y = "Final Exam",
+    color = "Year"
+  ) +
+  theme_bw()
+
+
+```
+
+```{r}
+switch.lm <- lm(FinalExam ~ 
+                  .:Gender +
+                  .:AttendedAlmostAlways +
+                  .:SpentTimeInOfficeHours +
+                  .:ClassActivitiesCompletedPerfectly +
+                  .:MagicTwoGroups +
+                  Midterm + Theory_SamplingDists + AssessmentQuizzes + ClassActivitiesCompletedPerfectly + MagicTwoGroups, data=g425no0)
+summary(switch.lm)
+```
+
+
+```{r}
+switch2.lm <- lm(FinalExam ~
+  AttendedAlmostAlways +
+  ClassActivitiesCompletedPerfectly +
+  Year:AttendedAlmostAlways +
+  AttendedAlmostAlways:AssessmentQuizzes +
+  AttendedAlmostAlways:ClassActivitiesCompletedPerfectly +
+  Year:ClassActivitiesCompletedPerfectly +
+  Theory_SamplingDists:MagicTwoGroups +
+  Midterm +
+  Theory_SamplingDists +
+  ClassActivitiesCompletedPerfectly +
+  MagicTwoGroups,
+  data = g425no0)
+
+summary(switch2.lm)
+```
+
+```{r}
+table(g425no0$AttendedAlmostAlways,g425no0$ClassActivitiesCompletedPerfectly)
+# Not the same
+```
+

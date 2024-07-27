@@ -1,0 +1,419 @@
+---
+title: "Practice Final Exam"
+execute:
+  keep-md: TRUE
+  df-print: paged
+  warning: false
+format:
+  html:
+    theme: cerulean
+    code-fold: true
+    code-line-numbers: true
+    embed-resources: true
+date: "2024-07-23"
+---
+
+
+```{r}
+pacman::p_load(tidyverse,dplyr,car)
+```
+
+## Q1
+
+$Y$
+
+When using $\hat{Y}$ we need to refer to the estimates of the $ꞵ_0$ and $ꞵ_1$ terms instead of their "true" values. Typically we do this with and but the real error is in labeling y-hat with "weight". It should be labeled as "predicted weight" or "estimated mean weight" or something else that emphasizes that it is the estimate of the "average weight" for every given x-value. It is no longer the weight of an individual, that is what $Y_i represents.
+
+
+## INCORRECT
+```{r}
+View(cars)
+c.lm <- lm(dist ~ speed,data=cars)
+summary(c.lm)
+```
+```{r}
+# Define a function to compute R-squared and adjusted R-squared
+model <- c.lm
+
+# Define a function to compute R-squared and adjusted R-squared
+compute_r_squared <- function(model, newdata) {
+  y_hat <- predict(model, newdata = newdata)
+  y_bar <- mean(newdata$dist) # Assuming `dist` is the response variable
+  SSTO <- sum((newdata$dist - y_bar)^2)
+  SSE <- sum((newdata$dist - y_hat)^2)
+  n <- length(newdata$dist)
+  p <- length(coef(model))
+  
+  r_squared <- 1 - SSE / SSTO
+  adj_r_squared <- 1 - (n - 1) / (n - p) * SSE / SSTO
+  
+  return(list(r_squared = r_squared, adj_r_squared = adj_r_squared))
+}
+
+# Compute R-squared and adjusted R-squared for the model
+validation_results <- compute_r_squared(model, newdata = cars)
+
+# Extract original R-squared and adjusted R-squared from the model summary
+original_r2 <- summary(model)$r.squared
+original_adj_r2 <- summary(model)$adj.r.squared
+validation_r2 <- validation_results$r_squared
+validation_adj_r2 <- validation_results$adj_r_squared
+
+# Create the output table
+my_output_table2 <- data.frame(
+  Model = "c.lm", 
+  `Original R2` = original_r2, 
+  `Orig. Adj. R-squared` = original_adj_r2, 
+  `Validation R-squared` = validation_r2, 
+  `Validation Adj. R^2` = validation_adj_r2
+)
+
+print(my_output_table2)
+```
+
+## CORRECT
+
+```{r}
+Yhat <- -17 + 4.2*cars$speed
+Ybar <- mean(cars$dist)
+SSE <- sum( (Yhat - cars$dist)^2 )
+SSTO <- sum( (cars$dist - Ybar)^2 )
+1 - SSE/SSTO
+```
+
+
+
+```{r}
+# Create the scatter plot
+plot(cars$speed, cars$dist, main="LOESS Curve for Distance vs Speed",
+     xlab="Speed", ylab="Distance", pch=19, col="blue")
+
+# Fit the LOESS curve with a different span (smoothing parameter)
+span_value <- 0.3 # Adjust this value as needed
+loess_fit <- loess(dist ~ speed, data=cars, span=span_value)
+
+# Add the LOESS curve to the plot
+lines(cars$speed, predict(loess_fit), col="red", lwd=2)
+```
+
+
+```{r}
+plot(cars$speed, cars$dist, main="LOWESS Curve for Distance vs Speed",
+     xlab="Speed", ylab="Distance", pch=19, col="blue")
+
+# Fit the LOWESS curve with a specified smoothing parameter
+# f is the parameter controlling the amount of smoothing
+lowess_fit <- lowess(cars$speed, cars$dist, f = 0.2) # Adjust `f` as needed
+
+# Add the LOWESS curve to the plot
+lines(lowess_fit, col="red", lwd=2)
+```
+# Robust Regression
+
+```{r}
+install.packages("rlm")
+library(rlm)
+
+robust_model <- rlm(dist ~ speed, data = cars)
+
+# Create the scatter plot
+plot(cars$speed, cars$dist, main="Robust Regression Line using rlm",
+     xlab="Speed", ylab="Distance", pch=19, col="blue")
+
+# Add the robust regression line
+abline(robust_model, col="red", lwd=2)
+
+```
+```{r}
+library(car)
+library(MASS)
+
+plot(hp ~ wt, data=mtcars)
+
+mtc.lm <- lm(hp ~ wt, data=mtcars)
+mtc.rlm <- rlm(hp ~ wt, data=mtcars)
+
+abline(mtc.lm)
+abline(mtc.rlm, col="red")
+
+summary(mtc.lm)
+summary(mtc.rlm)
+
+
+# plot(dav.lm, which=c(1,4,5))
+```
+```{r}
+
+library(MASS)
+
+# Clean the dataset
+TitanicSurvival_clean <- na.omit(TitanicSurvival)
+TitanicSurvival_clean$age <- as.numeric(TitanicSurvival_clean$age)
+
+# Fit a logistic regression model
+ts.glm <- glm(survived == "yes" ~ age, data = TitanicSurvival_clean, family = binomial)
+
+# Create the scatter plot
+plot(TitanicSurvival_clean$age, TitanicSurvival_clean$survived == "yes",
+     main="Logistic Regression Fit",
+     xlab="Age", ylab="Survived (yes)",
+     pch=19, col=ifelse(TitanicSurvival_clean$survived == "yes", "blue", "red"))
+
+# Generate a sequence of ages for predictions
+age_seq <- seq(min(TitanicSurvival_clean$age, na.rm = TRUE),
+                max(TitanicSurvival_clean$age, na.rm = TRUE),
+                length.out = 100)
+
+# Predict probabilities using the fitted model
+predicted_probs <- predict(ts.glm, newdata = data.frame(age = age_seq), type = "response")
+
+# Add the fitted logistic regression curve to the plot
+lines(age_seq, predicted_probs, col = "green", lwd = 2)
+
+```
+```{r}
+x = 40000
+pred <- 19408 + -.1926 * x + -2002 + .1202 * x
+pred
+```
+The slope is interpreted as, “the change in the average y-value for a one unit change in the x-value.” It is not the average change in y. It is the change in the average y-value.
+
+The y-intercept is interpreted as, “the average y-value when x is zero.” It is often not meaningful, but is sometimes useful. It just depends if x being zero is meaningful or not within the context of your analysis. For example, knowing the average price of a car with zero miles is useful. However, pretending to know the average height of adult males that weigh zero pounds, is not useful.
+
+```{r}
+c.lm <- lm(dist ~ speed, data=cars)
+summary(c.lm)
+```
+
+```{r}
+estimate <- 3.9324
+null_value <- 4.2
+standard_error <- 0.4155
+df <- 48
+
+# Calculate t-value
+t_value <- (estimate - null_value) / standard_error
+
+# Calculate p-value
+p_value <- 2 * (1 - pt(abs(t_value), df))
+
+p_value
+```
+
+```{r}
+View(airquality)
+aq.lm <- lm(Temp ~ Month + I(Month^2), data=airquality)
+summary(aq.lm)
+```
+
+```{r}
+library(mosaic)
+View(KidsFeet)
+kf.lm <- lm(width ~ length, data=KidsFeet)
+summary(kf.lm)
+pred_int <- predict(kf.lm,newdata=data.frame(length=25),interval="prediction",level=.95)
+pred_int
+```
+
+```{r}
+c.lm <- lm(dist ~ speed,data=cars)
+View(cars)
+pred <- predict(c.lm,newdata=data.frame(speed=14))
+print(cars$dist[23])
+print(pred)
+print(cars$dist[23]-pred)
+```
+
+```{r}
+# View(RailTrail)
+rt.lm <- lm(volume ~ cloudcover, data=RailTrail)
+plot(RailTrail$cloudcover, RailTrail$volume,
+     main = "Volume vs Cloudcover",
+     xlab = "Cloudcover",
+     ylab = "Volume",
+     pch = 19) # Plotting points with a solid circle
+
+# Add the regression line
+abline(rt.lm, col = "blue", lwd = 2)
+
+# pred <- predict(rt.lm,newdata=data.frame(cloudcover=8))
+# pred
+```
+
+```{r}
+residuals1 <- c(-7.1, 13, -7.4, 4.1, -2.7)
+residuals2 <- c(-8.7, 11.8, -8.6, 3, -3.6)
+residuals3 <- c(-19.6, 6.8, -7.3, 10.4, 9.9)
+residuals4 <- c(-2.6, 15.8, -6.3, 3.4, -5.1)
+
+# Compute sum of squared residuals for each set
+ssr1 <- sum(residuals1^2)
+ssr2 <- sum(residuals2^2)
+ssr3 <- sum(residuals3^2)
+ssr4 <- sum(residuals4^2)
+
+# Print the results
+print(ssr1)
+print(ssr2)
+print(ssr3)
+print(ssr4)
+
+```
+
+```{r}
+View(Marriage)
+m.lm <- lm(prevcount ~ age,data=Marriage)
+pred <- predict(m.lm,newdata=data.frame(age=27),interval="prediction",confidence=.95)
+pred
+
+```
+
+```{r}
+View(TenMileRace)
+```
+
+```{r}
+TMR <- TenMileRace %>% mutate(
+  s = ifelse(sex == "M",1,0)
+)
+
+tmr.lm <- lm(time ~ age * s, data = TMR)
+
+# Create the scatter plot
+plot(TenMileRace$age, TenMileRace$time, col = ifelse(TenMileRace$sex == "M", "blue", "red"),
+     xlab = "Age", ylab = "Time", pch = 19, main = "Time vs Age with Sex Regression Lines")
+
+# Add a legend
+legend("topright", legend = c("Men", "Women"), col = c("blue", "red"), pch = 19)
+
+# Extract the coefficients
+coefs <- coef(tmr.lm)
+
+# Add the regression line for men (s = 1)
+abline(a = coefs["(Intercept)"] + coefs["s"], b = coefs["age"] + coefs["age:s"], col = "blue", lwd = 2)
+
+# Add the regression line for women (s = 0)
+abline(a = coefs["(Intercept)"], b = coefs["age"], col = "red", lwd = 2)
+
+summary(tmr.lm)
+
+```
+
+```{r}
+TMR <- TenMileRace %>% mutate(
+  s = ifelse(sex == "M", 1, 0)
+)
+
+# Fit the linear model
+tmr.lm <- lm(time ~ age + s, data = TMR)
+
+# Create the scatter plot
+plot(TenMileRace$age, TenMileRace$time, col = ifelse(TenMileRace$sex == "M", "blue", "red"),
+     xlab = "Age", ylab = "Time", pch = 19, main = "Time vs Age with Sex Intercept Change")
+
+# Add a legend
+legend("topright", legend = c("Men", "Women"), col = c("blue", "red"), pch = 19)
+
+# Extract the coefficients
+coefs <- coef(tmr.lm)
+
+# Add the regression line for men (s = 1)
+abline(a = coefs["(Intercept)"] + coefs["s"], b = coefs["age"], col = "blue", lwd = 2)
+
+# Add the regression line for women (s = 0)
+abline(a = coefs["(Intercept)"], b = coefs["age"], col = "red", lwd = 2)
+
+summary(tmr.lm)
+```
+```{r}
+# Load necessary library
+library(datasets) # airquality dataset is part of base R
+
+# Fit the linear model
+aq.lm <- lm(Ozone ~ Wind + Temp + Wind:Temp, data = airquality)
+
+# Create the scatter plot with point sizes according to temperature
+plot(Ozone ~ Wind, data = airquality, 
+     cex = airquality$Temp / max(airquality$Temp, na.rm = TRUE) * 2, # Scale and set point sizes
+     xlab = "Wind", ylab = "Ozone", main = "Ozone vs Wind with Temperature as Size",
+     pch = 1) # Use solid circles for points
+
+# Define the specific temperature
+specific_temp <- 70
+
+# Create a new data frame for prediction
+new_data <- data.frame(Wind = seq(min(airquality$Wind, na.rm = TRUE), max(airquality$Wind, na.rm = TRUE), length.out = 100),
+                       Temp = specific_temp)
+
+# Predict Ozone values at the specific temperature
+predicted_ozone <- predict(aq.lm, newdata = new_data)
+
+# Add the predicted line to the plot
+lines(new_data$Wind, predicted_ozone, col = "blue", lwd = 2)
+
+
+```
+
+```{r}
+plot(mpg ~ hp, data=mtcars)
+mt.lm <- lm(mpg ~ hp, data=mtcars)
+boxCox(mt.lm)
+
+mt.ss.lm <- lm(sqrt(sqrt(mpg)) ~ hp, data=mtcars)
+pred <- predict(mt.ss.lm,newdata=data.frame(hp = 350))
+pred <- pred^4
+pred
+```
+
+```{r}
+library(MASS) # For boxCox function
+
+# Fit the initial linear model
+mt.lm <- lm(mpg ~ hp, data=mtcars)
+
+# Plot mpg vs hp
+plot(mpg ~ hp, data=mtcars, xlab = "Horsepower", ylab = "Miles per Gallon", main = "MPG vs Horsepower")
+abline(mt.lm, col="blue", lwd=2)
+
+# Apply Box-Cox transformation to find the best lambda
+bc <- boxCox(mt.lm)
+lambda <- bc$x[which.max(bc$y)] # Extract the lambda with the highest log-likelihood
+
+# Transform the response variable
+if (lambda == 0) {
+  transformed_mpg <- log(mtcars$mpg)
+} else {
+  transformed_mpg <- (mtcars$mpg^lambda - 1) / lambda
+}
+
+# Fit the linear model with the transformed response
+mt.ss.lm <- lm(transformed_mpg ~ hp, data=mtcars)
+
+# Predict with the transformed model
+new_data <- data.frame(hp = 350)
+pred_transformed <- predict(mt.ss.lm, newdata=new_data)
+
+# Transform the prediction back to the original scale
+if (lambda == 0) {
+  pred_original <- exp(pred_transformed)
+} else {
+  pred_original <- (pred_transformed * lambda + 1)^(1 / lambda)
+}
+
+# Print the prediction
+pred_original
+```
+```{r}
+library(car)
+
+lm1 <- lm(mpg ~ hp, data=mtcars)
+
+boxCox(lm1)
+
+#Suggests a 0 value is best, or log(Y) transformation.
+
+lm2 <- lm(log(mpg) ~ hp, data=mtcars)
+
+exp(predict(lm2, data.frame(hp=350))) #prediction transformed back
+```
+
